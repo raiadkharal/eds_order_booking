@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'NavDrawerHeader.dart';
-import 'NavDrawerItem.dart';
+import 'drawer_header.dart';
+import 'drawer_item.dart';
 
 class NavDrawer extends StatelessWidget {
   final BuildContext baseContext;

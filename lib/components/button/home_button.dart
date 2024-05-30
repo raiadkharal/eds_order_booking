@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../utils/Colors.dart';
-
 class HomeButton extends StatelessWidget {
   final Function() onTap;
   final String text;
@@ -33,7 +31,7 @@ class HomeButton extends StatelessWidget {
               ),
               Text(
                 text,
-                style: GoogleFonts.roboto(color: Colors.white,fontSize: 16),
+                style: GoogleFonts.roboto(color: Colors.white,fontSize: 16,fontWeight: FontWeight.w600),
               )
             ],
           ),

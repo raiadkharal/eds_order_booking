@@ -5,55 +5,55 @@ part 'market_return_detail.g.dart';
 @JsonSerializable()
 class MarketReturnDetail {
   @JsonKey(name: 'return_id')
-  final int? returnId;
+  int? returnId;
 
   @JsonKey(name: 'outletId')
-  final int? outletId;
+  int? outletId;
 
   @JsonKey(name: 'productId')
-  final int? productId;
+  int? productId;
 
   @JsonKey(name: 'unitDefinitionId')
-  final int? unitDefinitionId;
+  int? unitDefinitionId;
 
   @JsonKey(name: 'cartonDefinitionId')
-  final int? cartonDefinitionId;
+  int? cartonDefinitionId;
 
   @JsonKey(name: 'replacementProductId')
-  final int? replacementProductId;
+  int? replacementProductId;
 
   @JsonKey(name: 'replacementUnitDefinitionId')
-  final int? replacementUnitDefinitionId;
+  int? replacementUnitDefinitionId;
 
   @JsonKey(name: 'replacementCartonDefinitionId')
-  final int? replacementCartonDefinitionId;
+  int? replacementCartonDefinitionId;
 
   @JsonKey(name: 'marketReturnReasonId')
-  final int? marketReturnReasonId;
+  int? marketReturnReasonId;
 
   @JsonKey(name: 'invoiceId')
-  final int? invoiceId;
+  int? invoiceId;
 
   @JsonKey(name: 'cartonQuantity')
-  final int? cartonQuantity;
+  int? cartonQuantity;
 
   @JsonKey(name: 'unitQuantity')
-  final int? unitQuantity;
+  int? unitQuantity;
 
   @JsonKey(name: 'replaceWith')
-  final String? replaceWith;
+  String? replaceWith;
 
   @JsonKey(name: 'replacementCartonQuantity')
-  final int? replacementCartonQuantity;
+  int? replacementCartonQuantity;
 
   @JsonKey(name: 'replacementUnitQuantity')
-  final int? replacementUnitQuantity;
+  int? replacementUnitQuantity;
 
   @JsonKey(name: 'cartonSize')
-  final int? cartonSize;
+  int? cartonSize;
 
   @JsonKey(name: 'replacementCartonSize')
-  final int? replacementCartonSize;
+  int? replacementCartonSize;
 
   MarketReturnDetail({
     this.returnId,

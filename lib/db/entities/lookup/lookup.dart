@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../asset_status/asset_status.dart';
+import '../../models/asset_status/asset_status.dart';
 import '../market_return_reason/market_return_reasons.dart';
 
 part 'lookup.g.dart';
