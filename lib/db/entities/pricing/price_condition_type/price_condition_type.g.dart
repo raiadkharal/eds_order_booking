@@ -2,12 +2,12 @@ part of 'price_condition_type.dart';
 
 PriceConditionType _$PriceConditionTypeFromJson(Map<String, dynamic> json) {
   return PriceConditionType(
-    priceConditionTypeId: json['priceConditionTypeId'] as int,
+    priceConditionTypeId: json['priceConditionTypeId'] as int?,
     name: json['name'] as String?,
-    priceConditionClassId: json['priceConditionClassId'] as int,
-    operationType: json['operationType'] as int,
-    calculationType: json['calculationType'] as int,
-    roundingRule: json['roundingRule'] as int,
+    priceConditionClassId: json['priceConditionClassId'] as int?,
+    operationType: json['operationType'] as int?,
+    calculationType: json['calculationType'] as int?,
+    roundingRule: json['roundingRule'] as int?,
     priceScaleBasisId: json['priceScaleBasisId'] as int?,
     code: json['code'] as String?,
     conditionClassId: json['conditionClassId'] as int?,

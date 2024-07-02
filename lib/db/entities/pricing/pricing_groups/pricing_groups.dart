@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../../utils/utils.dart';
+
 part 'pricing_groups.g.dart';
 
 @JsonSerializable()
@@ -10,7 +12,7 @@ class PricingGroups {
   @JsonKey(name: 'pricingGroupName')
   final String? pricingGroupName;
 
-  @JsonKey(name: 'status')
+  @JsonKey(name: 'status',toJson: boolToInt,fromJson: boolFromInt)
   final bool? status;
 
   PricingGroups({

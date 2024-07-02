@@ -3,7 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'route.g.dart';
 
 @JsonSerializable()
-class Route {
+class MRoute {
   @JsonKey(name: 'routeId')
   int? routeId;
 
@@ -16,14 +16,14 @@ class Route {
   @JsonKey(name: 'totalOutlets')
   int? totalOutlets;
 
-  Route({
+  MRoute({
     this.routeId,
     this.routeName,
     this.employeeId,
     this.totalOutlets,
   });
 
-  factory Route.fromJson(Map<String, dynamic> json) => _$RouteFromJson(json);
+  factory MRoute.fromJson(Map<String, dynamic> json) => _$RouteFromJson(json);
 
   Map<String, dynamic> toJson() => _$RouteToJson(this);
 }

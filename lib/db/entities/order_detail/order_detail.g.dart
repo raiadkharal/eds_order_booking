@@ -48,20 +48,27 @@ OrderDetail _$OrderDetailFromJson(Map<String, dynamic> json) {
     ..cartonSelectedFreeGoodQuantity =
         json['cartonSelectedFreeGoodQuantity'] as int?
     ..parentId = json['parentId'] as int?
-    ..cartonPriceBreakDown = (jsonDecode(json['cartonPriceBreakDown'])
-            as List<dynamic>?)
-        ?.map((e) => CartonPriceBreakDown.fromJson(e as Map<String, dynamic>))
-        .toList()
-    ..unitPriceBreakDown =
-        (jsonDecode(json['unitPriceBreakDown']) as List<dynamic>?)
+    ..cartonPriceBreakDown = json['cartonPriceBreakDown'] == null
+        ? null
+        : (jsonDecode(json['cartonPriceBreakDown']) as List<dynamic>?)
+            ?.map(
+                (e) => CartonPriceBreakDown.fromJson(e as Map<String, dynamic>))
+            .toList()
+    ..unitPriceBreakDown = json['unitPriceBreakDown'] == null
+        ? null
+        : (jsonDecode(json['unitPriceBreakDown']) as List<dynamic>?)
             ?.map((e) => UnitPriceBreakDown.fromJson(e as Map<String, dynamic>))
             .toList()
-    ..cartonFreeGoods = (jsonDecode(json['cartonFreeGoods']) as List<dynamic>?)
-        ?.map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
-        .toList()
-    ..unitFreeGoods = (jsonDecode(json['unitFreeGoods']) as List<dynamic>?)
-        ?.map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
-        .toList();
+    ..cartonFreeGoods = json['cartonFreeGoods'] == null
+        ? null
+        : (jsonDecode(json['cartonFreeGoods']) as List<dynamic>?)
+            ?.map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+            .toList()
+    ..unitFreeGoods = json['unitFreeGoods'] == null
+        ? null
+        : (jsonDecode(json['unitFreeGoods']) as List<dynamic>?)
+            ?.map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+            .toList();
 }
 
 Map<String, dynamic> _$OrderDetailToJson(OrderDetail instance) =>

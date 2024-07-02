@@ -17,7 +17,7 @@ FreeGoodExclusives _$FreeGoodExclusivesFromJson(Map<String, dynamic> json) {
     productDefinitions: (jsonDecode(json['productDefinitions']) as List<dynamic>?)
         ?.map((e) => KeyValue.fromJson(e as Map<String, dynamic>))
         .toList(),
-    isDeleted: json['isDeleted'] as bool?,
+    isDeleted: boolFromInt(json['isDeleted'] as int?),
   );
 }
 
@@ -35,5 +35,5 @@ Map<String, dynamic> _$FreeGoodExclusivesToJson(
       'offerType': instance.offerType,
       'status': instance.status,
       'productDefinitions': jsonEncode(instance.productDefinitions),
-      'isDeleted': instance.isDeleted,
+      'isDeleted': boolToInt(instance.isDeleted),
     };

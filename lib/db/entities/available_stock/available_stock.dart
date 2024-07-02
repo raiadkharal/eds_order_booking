@@ -5,7 +5,7 @@ part 'available_stock.g.dart';
 @JsonSerializable()
 class AvailableStock {
   @JsonKey(name: 'mobileAvlStockDetailId')
-  final int avlStockId;
+  final int? avlStockId;
 
   @JsonKey(name: 'productId')
   final int? productId;
@@ -26,10 +26,10 @@ class AvailableStock {
   final int? outletId;
 
   @JsonKey(name: 'cartonQuantity')
-  final int cartonQuantity;
+  final int? cartonQuantity;
 
   @JsonKey(name: 'unitQuantity')
-  final int unitQuantity;
+  final int? unitQuantity;
 
   AvailableStock({
     required this.avlStockId,

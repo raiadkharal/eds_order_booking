@@ -37,6 +37,9 @@ class MarketReturnDetail {
   @JsonKey(name: 'cartonQuantity')
   int? cartonQuantity;
 
+  @JsonKey(name: 'cartonQuantity')
+  int? returnedProductTypeId;
+
   @JsonKey(name: 'unitQuantity')
   int? unitQuantity;
 
@@ -67,6 +70,7 @@ class MarketReturnDetail {
     this.marketReturnReasonId,
     this.invoiceId,
     this.cartonQuantity,
+    this.returnedProductTypeId,
     this.unitQuantity,
     this.replaceWith,
     this.replacementCartonQuantity,

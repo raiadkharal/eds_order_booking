@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS LookUp (
 
   static const String createMarketReturnDetailsTable = '''
 CREATE TABLE IF NOT EXISTS MarketReturnDetails (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  return_id INTEGER PRIMARY KEY AUTOINCREMENT,
   outletId INTEGER,
   productId INTEGER,
   unitDefinitionId INTEGER,
@@ -258,36 +258,36 @@ CREATE INDEX idx_order_outletId ON 'Order' (c_outletId)
     outletLatitude REAL,
     outletLongitude REAL,
     outletDistance INTEGER,
-    FOREIGN KEY (outletId) REFERENCES Outlet(mOutletId) ON DELETE CASCADE
+    FOREIGN KEY (outletId) REFERENCES Outlet(outletId) ON DELETE CASCADE
 );
 ''';
 
   static const String createOutletTable = '''
   CREATE TABLE IF NOT EXISTS Outlet (
-    mOutletId INTEGER PRIMARY KEY,
-    mRouteId INTEGER,
-    mOutletCode TEXT,
-    mOutletName TEXT,
-    mChannelName TEXT,
-    mLocation TEXT,
-    mVisitFrequency INTEGER,
-    mVisitDay INTEGER,
+    outletId INTEGER PRIMARY KEY,
+    routeId INTEGER,
+    outletCode TEXT,
+    outletName TEXT,
+    channelName TEXT,
+    location TEXT,
+    visitFrequency INTEGER,
+    visitDay INTEGER,
     planned INTEGER,
     sequenceNumber INTEGER,
-    mAddress TEXT,
-    mLatitude REAL,
-    mLongitude REAL,
+    address TEXT,
+    latitude REAL,
+    longitude REAL,
     visitTimeLat REAL,
     visitTimeLng REAL,
-    mLastSaleDate INTEGER,
+    lastSaleDate INTEGER,
     pricingGroupId INTEGER,
     vpoClassificationId INTEGER,
     channelId INTEGER,
-    mLastSaleQuantity TEXT,
-    mAvailableCreditLimit REAL,
-    mOutstandingCredit REAL,
-    mLastSale REAL,
-    mVisitStatus INTEGER,
+    lastSaleQuantity TEXT,
+    availableCreditLimit REAL,
+    outstandingCreditLimit REAL,
+    lastSale REAL,
+    visitStatus INTEGER,
     cnic TEXT,
     strn TEXT,
     mtdSale REAL,
@@ -298,7 +298,7 @@ CREATE INDEX idx_order_outletId ON 'Order' (c_outletId)
     lastOrder TEXT, -- Serialized as TEXT for simplicity
     isAssetsScennedInTheLastMonth INTEGER,
     synced INTEGER,
-    statusId INTEGER,
+    statusId INTEGER DEFAULT 0,
     isZeroSaleOutlet INTEGER,
     promoTypeId INTEGER,
     customerRegistrationTypeId INTEGER,
@@ -328,8 +328,8 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
 
   static const String createPackageTable = '''
   CREATE TABLE IF NOT EXISTS Package (
-    packageId INTEGER PRIMARY KEY,
-    packageName TEXT
+    productPackageId INTEGER PRIMARY KEY,
+    productPackageName TEXT
 );
 ''';
 
@@ -359,7 +359,12 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
     unitDefinitionId INTEGER,
     cartonDefinitionId INTEGER,
     actualUnitStock INTEGER,
-    actualCartonStock INTEGER
+    actualCartonStock INTEGER,
+    organizationId INTEGER,
+    qtyCarton INTEGER,
+    qtyUnit INTEGER,
+    avlStockUnit INTEGER,
+    avlStockCarton INTEGER
 );
 ''';
 
@@ -389,7 +394,7 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
 ''';
 
   static const String createRouteTable = '''
-  CREATE TABLE IF NOT EXISTS Routes (
+  CREATE TABLE IF NOT EXISTS Route (
     routeId INTEGER PRIMARY KEY,
     routeName TEXT,
     employeeId INTEGER,
@@ -408,29 +413,6 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
     status TEXT,
     remarks TEXT,
     PRIMARY KEY (taskId, taskTypeId)
-);
-''';
-
-  static const String createFreeGoodsDetailTable = '''
-  CREATE TABLE IF NOT EXISTS FreeGoodsDetail (
-    freeGoodDetailId INTEGER PRIMARY KEY NOT NULL,
-    freeGoodMasterId INTEGER,
-    productId INTEGER,
-    productCode TEXT,
-    productName TEXT,
-    productDefinitionId INTEGER,
-    typeId INTEGER,
-    typeText TEXT,
-    minimimQuantity INTEGER,
-    forEachQuantity INTEGER,
-    freeGoodQuantity INTEGER,
-    freeGoodGroupId INTEGER,
-    maximumFreeGoodQuantity INTEGER,
-    startDate TEXT,
-    endDate TEXT,
-    isActive INTEGER,
-    status TEXT,
-    isDifferentProduct INTEGER
 );
 ''';
 
@@ -465,6 +447,32 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
 );
 ''';
 
+
+  static const String createFreeGoodDetailsTable = '''
+  CREATE TABLE FreeGoodDetails (
+    freeGoodDetailId INTEGER PRIMARY KEY NOT NULL,
+    freeGoodMasterId INTEGER,
+    productId INTEGER,
+    productCode TEXT,
+    productName TEXT,
+    productDefinitionId INTEGER,
+    typeId INTEGER,
+    typeText TEXT,
+    minimumQuantity INTEGER,
+    forEachQuantity INTEGER,
+    freeGoodQuantity INTEGER,
+    freeGoodGroupId INTEGER,
+    maximumFreeGoodQuantity INTEGER,
+    startDate TEXT,
+    endDate TEXT,
+    isActive BOOLEAN,
+    status TEXT,
+    isDifferentProduct BOOLEAN,
+    freeGoodExclusives TEXT -- Serialized as JSON or a text representation
+);
+
+''';
+
   static const String createFreeGoodEntityDetailsTable = '''
   CREATE TABLE IF NOT EXISTS FreeGoodEntityDetails (
     freeGoodEntityDetailId INTEGER PRIMARY KEY,
@@ -484,21 +492,18 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
 
   static const createFreeGoodGroupsTable = '''
   CREATE TABLE IF NOT EXISTS FreeGoodGroups (
-    id INTEGER PRIMARY KEY,
-    freeGoodMasterId INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    typeId INTEGER NOT NULL,
-    minimumQuantity INTEGER NOT NULL,
-    forEachQuantity INTEGER NOT NULL,
-    maximumQuantity INTEGER NOT NULL,
-    isActive INTEGER
-  NOT NULL,
-    isDeleted INTEGER
-  NOT NULL,
-    isDifferentProduct INTEGER
-  NOT NULL,
-    freeQuantity INTEGER NOT NULL,
-    freeQuantityTypeId INTEGER NOT NULL
+    id INTEGER PRIMARY KEY NOT NULL,
+    freeGoodMasterId INTEGER,
+    name TEXT ,
+    typeId INTEGER,
+    minimumQuantity INTEGER,
+    forEachQuantity INTEGER,
+    maximumQuantity INTEGER,
+    isActive INTEGER,
+    isDeleted INTEGER,
+    isDifferentProduct INTEGER,
+    freeQuantity INTEGER,
+    freeQuantityTypeId INTEGER
 );
 ''';
 
@@ -536,7 +541,7 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
     priceAccessSequenceId INTEGER PRIMARY KEY NOT NULL,
     sequenceCode TEXT,
     sequenceName TEXT,
-    "order" INTEGER NOT NULL,
+    'order' INTEGER,
     pricingLevelId INTEGER,
     pricingTypeId INTEGER
 );
@@ -599,13 +604,13 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
   static const String createPriceConditionDetailTable = '''
   CREATE TABLE IF NOT EXISTS PriceConditionDetail (
   priceConditionDetailId INTEGER PRIMARY KEY NOT NULL,
-  priceConditionId INTEGER NOT NULL,
-  bundleId INTEGER NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  isScale INTEGER NOT NULL,
+  priceConditionId ,
+  bundleId INTEGER,
+  amount DECIMAL(10,2),
+  isScale INTEGER,
   validFrom TEXT,
   validTo TEXT,
-  type INTEGER NOT NULL,
+  type INTEGER,
   isDeleted INTEGER,
   productId INTEGER,
   productDefinitionId INTEGER,
@@ -668,9 +673,9 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
   static const String createPriceConditionScaleTable = '''
   CREATE TABLE IF NOT EXISTS PriceConditionScale (
   priceConditionScaleId INTEGER PRIMARY KEY NOT NULL,
-  "from" INTEGER NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  priceConditionDetailId INTEGER NOT NULL,
+  'from' INTEGER,
+  amount DECIMAL(10,2),
+  priceConditionDetailId INTEGER,
   cartonAmount REAL,
   FOREIGN KEY (priceConditionDetailId) REFERENCES PriceConditionDetail(priceConditionDetailId) ON DELETE CASCADE
 );
@@ -682,10 +687,10 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
   CREATE TABLE IF NOT EXISTS PriceConditionType (
   priceConditionTypeId INTEGER PRIMARY KEY NOT NULL,
   name TEXT,
-  priceConditionClassId INTEGER NOT NULL,
-  operationType INTEGER NOT NULL,
-  calculationType INTEGER NOT NULL,
-  roundingRule INTEGER NOT NULL,
+  priceConditionClassId INTEGER,
+  operationType INTEGER,
+  calculationType INTEGER,
+  roundingRule INTEGER,
   priceScaleBasisId INTEGER,
   code TEXT,
   conditionClassId INTEGER,
@@ -733,8 +738,14 @@ CREATE TABLE IF NOT EXISTS PricingLevels (
 );
 ''';
 
+  static const String createProductQuantityTable = '''
+CREATE TABLE ProductQuantity (
+    ProductDefinitionId INTEGER PRIMARY KEY,
+    Quantity INTEGER NOT NULL,
+    packageId INTEGER
+);
 
-
+''';
 
   //Drop Tables Queries
 
@@ -815,7 +826,7 @@ DROP TABLE IF EXISTS Promotions;
 ''';
 
   static const String dropRouteTable = '''
-DROP TABLE IF EXISTS Routes;
+DROP TABLE IF EXISTS Route;
 ''';
 
   static const String dropTaskTable = '''
@@ -903,8 +914,7 @@ DROP TABLE IF EXISTS PricingArea;
 DROP TABLE IF EXISTS PricingGroups;
 ''';
 
-    static const String dropPricingLevelsTable = '''
+  static const String dropPricingLevelsTable = '''
 DROP TABLE IF EXISTS PricingLevels;
 ''';
-
 }

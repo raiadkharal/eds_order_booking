@@ -8,15 +8,15 @@ part of 'available_stock.dart';
 
 AvailableStock _$AvailableStockFromJson(Map<String, dynamic> json) =>
     AvailableStock(
-      avlStockId: json['mobileAvlStockDetailId'] as int,
+      avlStockId: json['mobileAvlStockDetailId'] as int?,
       productId: json['productId'] as int?,
       packageId: json['packageId'] as int?,
       unitProductDefinitionId: json['unitProductDefinitionId'] as int?,
       cartonProductDefinitionId: json['cartonProductDefinitionId'] as int?,
       mOrderId: json['orderId'] as int?,
       outletId: json['outletId'] as int?,
-      cartonQuantity: json['cartonQuantity'] as int,
-      unitQuantity: json['unitQuantity'] as int,
+      cartonQuantity: json['cartonQuantity'] as int?,
+      unitQuantity: json['unitQuantity'] as int?,
     );
 
 Map<String, dynamic> _$AvailableStockToJson(AvailableStock instance) =>

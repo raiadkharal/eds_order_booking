@@ -3,9 +3,9 @@ part of 'price_condition_scale.dart';
 PriceConditionScale _$PriceConditionScaleFromJson(Map<String, dynamic> json) {
   return PriceConditionScale(
     priceConditionScaleId: json['priceConditionScaleId'] as int,
-    from: json['from'] as int?,
-    amount: json['amount'] as double,
-    priceConditionDetailId: json['priceConditionDetailId'] as int,
+    from: json['from'] as double?,
+    amount: json['amount'] as double?,
+    priceConditionDetailId: json['priceConditionDetailId'] as int?,
     cartonAmount: json['cartonAmount'] as double?,
   );
 }

@@ -1,48 +1,48 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:order_booking/utils/util.dart';
+import 'package:order_booking/utils/utils.dart';
 
 part 'order_status.g.dart';
 
 @JsonSerializable()
 class OrderStatus {
   @JsonKey(name: 'outletId')
-  final int? outletId;
+  int? outletId;
 
   @JsonKey(name: 'orderId')
-  final int? orderId;
+  int? orderId;
 
   @JsonKey(name: 'outletVisitEndTime')
-  final int? outletVisitEndTime;
+  int? outletVisitEndTime;
 
   @JsonKey(name: 'outletVisitStartTime')
-  final int? outletVisitStartTime;
+  int? outletVisitStartTime;
 
   @JsonKey(name: 'status')
-  final int? status;
+  int? status;
 
   @JsonKey(name: 'orderAmount')
-  final double? orderAmount;
+  double? orderAmount;
 
   @JsonKey(name: 'sync',toJson: boolToInt,fromJson: boolFromInt)
-  final bool? synced;
+  bool? synced;
 
   @JsonKey(name: 'data')
-  final String? data;
+  String? data;
 
   @JsonKey(name: 'imageStatus')
-  final int? imageStatus;
+  int? imageStatus;
 
   @JsonKey(name: 'requestStatus')
-  final int? requestStatus;
+  int? requestStatus;
 
   @JsonKey(name: 'outletLatitude')
-  final double? outletLatitude;
+  double? outletLatitude;
 
   @JsonKey(name: 'outletLongitude')
-  final double? outletLongitude;
+  double? outletLongitude;
 
   @JsonKey(name: 'outletDistance')
-  final int? outletDistance;
+  int? outletDistance;
 
   OrderStatus({
     this.outletId,

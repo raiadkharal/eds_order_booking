@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:order_booking/utils/util.dart';
+import 'package:order_booking/utils/utils.dart';
 
 part 'asset_status.g.dart';
 

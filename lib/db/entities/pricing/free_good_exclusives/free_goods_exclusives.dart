@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../../utils/utils.dart';
 import '../../../pricing_model/key_value/key_value.dart';
 
 part 'free_goods_exclusives.g.dart';
@@ -41,7 +42,7 @@ class FreeGoodExclusives {
   @JsonKey(name: 'productDefinitions')
   final List<KeyValue>? productDefinitions;
 
-  @JsonKey(name: 'isDeleted')
+  @JsonKey(name: 'isDeleted',fromJson: boolFromInt,toJson: boolToInt)
   final bool? isDeleted;
 
   FreeGoodExclusives({

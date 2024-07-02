@@ -2,8 +2,8 @@
 
 part of 'route.dart';
 
-Route _$RouteFromJson(Map<String, dynamic> json) {
-  return Route(
+MRoute _$RouteFromJson(Map<String, dynamic> json) {
+  return MRoute(
     routeId: json['routeId'] as int?,
     routeName: json['routeName'] as String?,
     employeeId: json['employeeId'] as int?,
@@ -11,7 +11,7 @@ Route _$RouteFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$RouteToJson(Route instance) => <String, dynamic>{
+Map<String, dynamic> _$RouteToJson(MRoute instance) => <String, dynamic>{
   'routeId': instance.routeId,
   'routeName': instance.routeName,
   'employeeId': instance.employeeId,

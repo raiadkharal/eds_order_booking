@@ -19,9 +19,9 @@ FreeGoodDetails _$FreeGoodDetailsFromJson(Map<String, dynamic> json) {
     maximumFreeGoodQuantity: json['maximumFreeGoodQuantity'] as int?,
     startDate: json['startDate'] as String?,
     endDate: json['endDate'] as String?,
-    isActive: json['isActive'] as bool?,
+    isActive: boolFromInt(json['isActive'] as int?),
     status: json['status'] as String?,
-    isDifferentProduct: json['isDifferentProduct'] as bool?,
+    isDifferentProduct:boolFromInt(json['isDifferentProduct'] as int?),
     freeGoodExclusives: (jsonDecode(json['freeGoodExclusives']) as List<dynamic>?)
         ?.map((e) => FreeGoodExclusives.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -45,8 +45,8 @@ Map<String, dynamic> _$FreeGoodDetailsToJson(FreeGoodDetails instance) =>
       'maximumFreeGoodQuantity': instance.maximumFreeGoodQuantity,
       'startDate': instance.startDate,
       'endDate': instance.endDate,
-      'isActive': instance.isActive,
+      'isActive': boolToInt(instance.isActive),
       'status': instance.status,
-      'isDifferentProduct': instance.isDifferentProduct,
+      'isDifferentProduct': boolToInt(instance.isDifferentProduct),
       'freeGoodExclusives': jsonEncode(instance.freeGoodExclusives),
     };

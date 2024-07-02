@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../db/models/work_status/work_status.dart';
+import '../model/configuration/configurations_model.dart';
 
 class PreferenceUtil {
   static PreferenceUtil? _instance;
@@ -13,14 +17,21 @@ class PreferenceUtil {
   static const String _targetOutletsMV = "target_outlets_mv";
   static const String _targetOutletsWW = "target_outlets_ww";
   static const String _outletStatus = "outlet_status";
-
+  static const String _requestCounter = "requestCounter";
+  static const String _distributionId = "distributionId";
+  static const String _organizationId = "organizationId";
+  static const String _warehouseId = "warehouseId";
+  static const String _hideCustomerInfo = "hideCustomerInfo";
+  static const String _targetAchievement = "targetAchievement";
+  static const String _punchOrderInUnits = "punchOrderInUnits";
+  static const String _marketReturnButton = "marketReturnButton";
+  static const String _deliveryDate = "deliveryDate";
 
   PreferenceUtil._(this._sharedPreferences);
 
-  static PreferenceUtil getInstanceSync(SharedPreferences sharedPreferences){
+  static PreferenceUtil getInstanceSync(SharedPreferences sharedPreferences) {
     if (_instance == null) {
-      return _instance =
-          PreferenceUtil._(sharedPreferences);
+      return _instance = PreferenceUtil._(sharedPreferences);
     } else {
       return _instance!;
     }
@@ -71,44 +82,44 @@ class PreferenceUtil {
     // return "Pass@word1";
     return _sharedPreferences.getString(_keyPassword) ?? "";
   }
-  //
-  // WorkStatus getWorkSyncData() {
-  //   final statusStr = _sharedPreferences.getString(_keySyncData) ?? "";
-  //
-  //   if (statusStr.isEmpty) {
-  //     return WorkStatus(0);
-  //   }
-  //
-  //   // Parse string to work status object and return
-  //   WorkStatus workStatus = WorkStatus.fromJson(jsonDecode(statusStr));
-  //   return workStatus;
-  // }
-  //
-  // void saveWorkSyncData(WorkStatus status) {
-  //   String statusStr = jsonEncode(status);
-  //
-  //   _sharedPreferences.setString(_keySyncData, statusStr);
-  // }
-  //
-  // void saveConfig(Configuration? config) {
-  //   var configStr = "";
-  //   if (config != null) {
-  //     configStr = jsonEncode(config);
-  //   }
-  //   _sharedPreferences.setString(_keyConfig, configStr);
-  // }
-  //
-  // Configuration getConfig() {
-  //   final configStr = _sharedPreferences.getString(_keyConfig) ?? "";
-  //
-  //   if (configStr.isEmpty) {
-  //     return Configuration();
-  //   }
-  //
-  //   // Parse string to configuration string to configuration object
-  //   Configuration config = Configuration.fromJson(jsonDecode(configStr));
-  //   return config;
-  // }
+
+  WorkStatus getWorkSyncData() {
+    final statusStr = _sharedPreferences.getString(_keySyncData) ?? "";
+
+    if (statusStr.isEmpty) {
+      return WorkStatus(0);
+    }
+
+    // Parse string to work status object and return
+    WorkStatus workStatus = WorkStatus.fromJson(jsonDecode(statusStr));
+    return workStatus;
+  }
+
+  void saveWorkSyncData(WorkStatus status) {
+    String statusStr = jsonEncode(status);
+
+    _sharedPreferences.setString(_keySyncData, statusStr);
+  }
+
+  void saveConfig(ConfigurationModel? config) {
+    var configStr = "";
+    if (config != null) {
+      configStr = jsonEncode(config);
+    }
+    _sharedPreferences.setString(_keyConfig, configStr);
+  }
+
+  ConfigurationModel getConfig() {
+    final configStr = _sharedPreferences.getString(_keyConfig) ?? "";
+
+    if (configStr.isEmpty) {
+      return ConfigurationModel();
+    }
+
+    // Parse string to configuration string to configuration object
+    ConfigurationModel config = ConfigurationModel.fromJson(jsonDecode(configStr));
+    return config;
+  }
 
   void setMVTargetOutlets(int? value) {
     if (value != null) {
@@ -141,6 +152,77 @@ class PreferenceUtil {
 
   int getOutletStatus() {
     return _sharedPreferences.getInt(_outletStatus) ?? 1;
+  }
+
+  void setRequestCounter(int value) {
+    _sharedPreferences.setInt(_requestCounter, value);
+  }
+
+  int getRequestCounter() {
+    return _sharedPreferences.getInt(_requestCounter) ?? 1;
+  }
+
+  void saveDistributionId(int distributionId) {
+    _sharedPreferences.setInt(_distributionId, distributionId);
+  }
+
+  int getDistributionId() {
+    return _sharedPreferences.getInt(_distributionId) ?? 1;
+  }
+
+  void saveOrganizationId(int organizationId) {
+    _sharedPreferences.setInt(_organizationId,organizationId);
+  }
+
+  int getOrganizationId() {
+    return _sharedPreferences.getInt(_organizationId) ?? 1;
+  }
+
+  void saveWarehouseId(int warehouseId) {
+    _sharedPreferences.setInt(_organizationId,warehouseId);
+  }
+
+  int getWarehouseId() {
+    return _sharedPreferences.getInt(_warehouseId) ?? 1;
+  }
+
+  void setHideCustomerInfo(bool? hideCustomerInfoInOrderingApp) {
+    _sharedPreferences.setBool(_hideCustomerInfo, hideCustomerInfoInOrderingApp??false);
+  }
+
+  bool getHideCustomerInfo() {
+    return _sharedPreferences.getBool(_hideCustomerInfo)??false;
+  }
+
+  void setPunchOrderInUnits(bool? canNotPunchOrderInUnits) {
+    _sharedPreferences.setBool(_punchOrderInUnits, canNotPunchOrderInUnits??false);
+  }
+
+  bool getPunchOrderInUnits() {
+   return _sharedPreferences.getBool(_punchOrderInUnits)??false;
+  }
+
+  void setTargetAchievement(String? targetAchievement) {
+    if(targetAchievement!=null){
+      _sharedPreferences.setString(_targetAchievement, targetAchievement);
+    }
+
+  }
+
+  String? getTargetAchievement() {
+    return _sharedPreferences.getString(_targetAchievement);
+  }
+
+  void setShowMarketReturnsButton(bool? showMarketReturnButton) {
+    _sharedPreferences.setBool(_marketReturnButton,showMarketReturnButton??false);
+  }
+
+  bool getShowMarketReturnsButton() {
+    return _sharedPreferences.getBool(_marketReturnButton)??false;
+  }
+
+  void setDeliveryDate(int deliveryDate) {
+    _sharedPreferences.setInt(_deliveryDate, deliveryDate);
   }
 
 }

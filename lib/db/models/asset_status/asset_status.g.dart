@@ -13,7 +13,7 @@ AssetStatus _$AssetStatusFromJson(Map<String, dynamic> json) {
     description: json['description'] as String?,
     firstIntExtraField: json['firstIntExtraField'] as int?,
     firstStringExtraField: json['firstStringExtraField'] as String?,
-    defaultFlag: boolFromInt(json['defaultFlag'] as int?),
+    defaultFlag:boolFromInt(json['defaultFlag'] as int?),
     secondIntExtraField: json['secondIntExtraField'] as int?,
     secondStringExtraField: json['secondStringExtraField'] as String?,
     hasError: boolFromInt(json['hasError'] as int?),

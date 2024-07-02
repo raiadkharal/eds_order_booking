@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:order_booking/data_source/remote/base_api_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:order_booking/data_source/remote/response/api_response.dart';
+import 'package:order_booking/db/models/log_model/log_model.dart';
 
 import '../../utils/Constants.dart';
 
@@ -31,7 +32,7 @@ class ApiService extends BaseApiService{
        );
        return handleApiResponse(response);
      } catch (error) {
-       return ApiResponse.error(error.toString());
+       return ApiResponse.error(error.toString(),null);
      }
    }
 
@@ -60,7 +61,7 @@ class ApiService extends BaseApiService{
        );
        return handleApiResponse(response);
      } catch (error) {
-       return ApiResponse.error(error.toString());
+       return ApiResponse.error(error.toString(),null);
      }
    }
 
@@ -70,16 +71,78 @@ class ApiService extends BaseApiService{
        case 200:
          return ApiResponse.success(response.body);
        case 401:
-         return ApiResponse.error("UnAuthorized");
+         return ApiResponse.error("UnAuthorized",response.statusCode);
        case 400:
-         return ApiResponse.error("Username or Password Incorrect");
+         return ApiResponse.error("Bad Request: Status code 400",response.statusCode);
        case 408:
-         return ApiResponse.error("Request Timed out");
+         return ApiResponse.error("Request Timed out",response.statusCode);
        case 500:
-         return ApiResponse.error("Internal Server Error");
+         return ApiResponse.error("Internal Server Error",response.statusCode);
        default:
-         return ApiResponse.error(Constants.GENERIC_ERROR);
+         return ApiResponse.error(Constants.GENERIC_ERROR,response.statusCode);
      }
    }
+
+   @override
+   Future<ApiResponse> getAccessToken(
+       String type, String username, String password) async {
+     Map<String, dynamic> bodyJson = {
+       'grant_type': type,
+       'username': username,
+       'password': password
+     };
+
+     final headers = {
+       "Content-Type": "application/x-www-form-urlencoded",
+       // "Content-Type": "application/json",
+     };
+
+     return makePostRequest("token", (bodyJson), headers, null);
+   }
+
+
+   @override
+   Future<ApiResponse> updateStartEndStatus(
+       LogModel logModel, String accessToken) async {
+     final headers = {
+       "Content-Type": "application/json;charset=UTF-8",
+       "Authorization": "Bearer $accessToken"
+     };
+
+     return makePostRequest("AppOpertion/LogStartEnd", jsonEncode(logModel.toJson()), headers, null);
+   }
+
+  @override
+  Future<ApiResponse> loadTodayRoutesOutlets(String accessToken) async{
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $accessToken"
+    };
+
+    return makeGetRequest(
+        "route/routes", headers, null);
+  }
+
+  @override
+  Future<ApiResponse> loadTodayPackageProduct(String accessToken)async {
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $accessToken"
+    };
+
+    return makeGetRequest(
+        "route/products", headers, null);
+  }
+
+  @override
+  Future<ApiResponse> loadPricing(String accessToken) {
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $accessToken"
+    };
+
+    return makeGetRequest(
+        "api/pricing/get", headers, null);
+  }
 
 }

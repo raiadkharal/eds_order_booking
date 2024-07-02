@@ -1,5 +1,5 @@
 // This file is manually generated. You should not edit it directly.
-// See price_condition.dart for details.
+// See price_condition_model.dart for details.
 
 part of 'price_condition.dart';
 
@@ -13,7 +13,7 @@ PriceCondition _$PriceConditionFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       priceConditionTypeId: json['priceConditionTypeId'] as int,
       accessSequenceId: json['accessSequenceId'] as int,
-      isBundle: json['isBundle'] as bool?,
+      isBundle: boolFromInt(json['isBundle'] as int?),
       pricingType: json['pricingType'] as int?,
       validFrom: json['validFrom'] as String?,
       validTo: json['validTo'] as String?,
@@ -32,7 +32,7 @@ Map<String, dynamic> _$PriceConditionToJson(PriceCondition instance) =>
       'accessSequenceId': instance.accessSequenceId,
       'priceConditionTypeId': instance.priceConditionTypeId,
       'name': instance.name,
-      'isBundle': instance.isBundle,
+      'isBundle': boolToInt(instance.isBundle),
       'pricingType': instance.pricingType,
       'validFrom': instance.validFrom,
       'validTo': instance.validTo,

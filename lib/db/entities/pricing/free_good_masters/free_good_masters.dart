@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:order_booking/utils/util.dart';
+import 'package:order_booking/utils/utils.dart';
 
 import '../free_good_groups/free_good_groups.dart';
 import '../free_goods_detail/free_goods_detail.dart';
@@ -18,13 +18,13 @@ class FreeGoodMasters {
   @JsonKey(name: 'name')
   String? name;
 
-  @JsonKey(name: 'isActive')
+  @JsonKey(name: 'isActive',toJson: boolToInt,fromJson: boolFromInt)
   bool? isActive;
 
-  @JsonKey(name: 'isDeleted')
+  @JsonKey(name: 'isDeleted',toJson: boolToInt,fromJson: boolFromInt)
   bool? isDeleted;
 
-  @JsonKey(name: 'isBundle')
+  @JsonKey(name: 'isBundle',toJson: boolToInt,fromJson: boolFromInt)
   bool? isBundle;
 
   @JsonKey(name: 'accessSequenceId')
@@ -57,5 +57,5 @@ class FreeGoodMasters {
 
   factory FreeGoodMasters.fromJson(Map<String, dynamic> json) => _$FreeGoodMastersFromJson(json);
 
-  Map<String?, dynamic> toJson() => _$FreeGoodMastersToJson(this);
+  Map<String, dynamic> toJson() => _$FreeGoodMastersToJson(this);
 }

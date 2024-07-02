@@ -9,12 +9,12 @@ part of 'pricing_groups.dart';
 PricingGroups _$PricingGroupsFromJson(Map<String, dynamic> json) => PricingGroups(
   pricingGroupId: json['pricingGroupId'] as int?,
   pricingGroupName: json['pricingGroupName'] as String?,
-  status: json['status'] as bool?,
+  status: boolFromInt(json['status'] as int?),
 );
 
 Map<String, dynamic> _$PricingGroupsToJson(PricingGroups instance) =>
     <String, dynamic>{
       'pricingGroupId': instance.pricingGroupId,
       'pricingGroupName': instance.pricingGroupName,
-      'status': instance.status,
+      'status': boolToInt(instance.status),
     };

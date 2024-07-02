@@ -7,7 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:order_booking/route.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../ui/login/login_screen.dart';
 import '../../utils/PreferenceUtil.dart';
+import '../dialog/logout_confirmation_dialog.dart';
 
 
 
@@ -83,14 +85,14 @@ class _NavDrawerItemListState extends State<NavDrawerItemList> {
         Fluttertoast.showToast(msg: "Update");
         break;
       case 3:
-      // showDialog(
-      //   context: context,
-      //   builder: (context) {
-      //     return LogoutConfirmationDialog(
-      //         onConfirm: () => logout(),
-      //         onCancel: () => Navigator.of(context).pop());
-      //   },
-      // );
+      showDialog(
+        context: context,
+        builder: (context) {
+          return LogoutConfirmationDialog(
+              onConfirm: () => logout(),
+              onCancel: () => Navigator.of(context).pop());
+        },
+      );
         break;
     }
   }
@@ -103,7 +105,7 @@ class _NavDrawerItemListState extends State<NavDrawerItemList> {
     PreferenceUtil.getInstance().then((preferenceUtil) {
       preferenceUtil.clearAllPreferences();
     });
-    // Get.offAll(LoginScreen());
+    Get.offAll(const LoginScreen());
     Fluttertoast.showToast(msg: "Logout Success");
   }
 }

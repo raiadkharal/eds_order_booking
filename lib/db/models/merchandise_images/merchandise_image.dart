@@ -5,26 +5,26 @@ part 'merchandise_image.g.dart';
 @JsonSerializable()
 class MerchandiseImage {
   @JsonKey(name: 'id')
-  final int id;
+  int? id;
 
   @JsonKey(name: 'path')
-  final String path;
+  String? path;
 
   @JsonKey(name: 'image')
-  final String image;
+  String? image;
 
   @JsonKey(name: 'type')
-  final int type;
+  int? type;
 
   @JsonKey(name: 'status')
-  final int status;
+  int? status;
 
   MerchandiseImage({
-    required this.id,
-    required this.path,
-    required this.image,
-    required this.type,
-    required this.status,
+    this.id,
+    this.path,
+    this.image,
+    this.type,
+    this.status,
   });
 
   factory MerchandiseImage.fromJson(Map<String, dynamic> json) =>

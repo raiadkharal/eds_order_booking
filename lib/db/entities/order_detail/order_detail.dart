@@ -115,12 +115,20 @@ class OrderDetail {
 
   List<OrderDetail>? unitFreeGoods;
 
-  OrderDetail();
+  OrderDetail(
+      {this.mOrderId,
+      this.mProductId,
+      this.mCartonQuantity,
+      this.mUnitQuantity});
+
+
+  void setAvlQty(int avlCartonQuantity, int avlUnitQuantity) {
+    this.avlCartonQuantity = avlCartonQuantity;
+    this.avlUnitQuantity = avlUnitQuantity;
+  }
 
   factory OrderDetail.fromJson(Map<String, dynamic> json) =>
       _$OrderDetailFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderDetailToJson(this);
 }
-
-

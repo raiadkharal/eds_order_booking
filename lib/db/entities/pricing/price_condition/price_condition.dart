@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:order_booking/utils/utils.dart';
 
 import '../price_condition_detail/price_condition_detail.dart';
 import '../price_condition_entities/price_condition_entities.dart';
@@ -12,6 +13,7 @@ class PriceCondition {
 
   final String name;
 
+  @JsonKey(name: "isBundle",fromJson: boolFromInt,toJson: boolToInt)
   final bool? isBundle;
   final int? pricingType;
   final String? validFrom;

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:order_booking/utils/utils.dart';
 
 import '../free_good_exclusives/free_goods_exclusives.dart';
 
@@ -53,13 +54,13 @@ class FreeGoodDetails {
   @JsonKey(name: 'endDate')
   final String? endDate;
 
-  @JsonKey(name: 'isActive')
+  @JsonKey(name: 'isActive',fromJson: boolFromInt,toJson: boolToInt)
   final bool? isActive;
 
   @JsonKey(name: 'status')
   final String? status;
 
-  @JsonKey(name: 'isDifferentProduct')
+  @JsonKey(name: 'isDifferentProduct',fromJson: boolFromInt,toJson: boolToInt)
   final bool? isDifferentProduct;
 
   @JsonKey(name: 'freeGoodExclusives')

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:order_booking/utils/util.dart';
+import 'package:order_booking/utils/utils.dart';
 
 import '../../models/last_order/last_order.dart';
 import '../../models/outlet_visit/outlet_visit.dart';
@@ -11,130 +11,130 @@ part 'outlet.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Outlet {
-  @JsonKey(name: 'mOutletId')
-  final int? outletId;
+  @JsonKey(name: 'outletId')
+  int? outletId;
 
   @JsonKey(name: 'routeId')
-  final int? routeId;
+  int? routeId;
 
   @JsonKey(name: 'outletCode')
-  final String? outletCode;
+  String? outletCode;
 
   @JsonKey(name: 'outletName')
-  final String? outletName;
+  String? outletName;
 
   @JsonKey(name: 'channelName')
-  final String? channelName;
+  String? channelName;
 
   @JsonKey(name: 'location')
-  final String? location;
+  String? location;
 
   @JsonKey(name: 'visitFrequency')
-  final int? visitFrequency;
+  int? visitFrequency;
 
   @JsonKey(name: 'visitDay')
-  final int? visitDay;
+  int? visitDay;
 
-  final int? planned;
-  final int? sequenceNumber;
+  int? planned;
+  int? sequenceNumber;
 
   @JsonKey(name: 'address')
-  final String? address;
+  String? address;
 
   @JsonKey(name: 'latitude')
-  final double? latitude;
+  double? latitude;
 
   @JsonKey(name: 'longitude')
-  final double? longitude;
+  double? longitude;
 
-  final double? visitTimeLat;
-  final double? visitTimeLng;
+  double? visitTimeLat;
+  double? visitTimeLng;
 
   @JsonKey(name: 'lastSaleDate')
-  final int? lastSaleDate;
+  int? lastSaleDate;
 
   @JsonKey(name: 'pricingGroupId')
-  final int? pricingGroupId;
+  int? pricingGroupId;
 
   @JsonKey(name: 'vpoClassificationId')
-  final int? vpoClassificationId;
+  int? vpoClassificationId;
 
   @JsonKey(name: 'channelId')
-  final int? channelId;
+  int? channelId;
 
   @JsonKey(name: 'lastSaleQuantity')
-  final String? lastSaleQuantity;
+  String? lastSaleQuantity;
 
   @JsonKey(name: 'availableCreditLimit')
-  final double? availableCreditLimit;
+  double? availableCreditLimit;
 
   @JsonKey(name: 'outstandingCreditLimit')
-  final double? outstandingCredit;
+  double? outstandingCredit;
 
   @JsonKey(name: 'lastSale')
-  final double? lastSale;
+  double? lastSale;
 
   @JsonKey(name: 'visitStatus')
-  final int? visitStatus;
+  int? visitStatus;
 
-  final String? cnic;
-  final String? strn;
+  String? cnic;
+  String? strn;
 
   @JsonKey(name: 'mtdSale')
-  final double? mtdSale;
+  double? mtdSale;
 
   @JsonKey(name: 'mobileNumber')
-  final String? mobileNumber;
+  String? mobileNumber;
 
   @JsonKey(name: 'hasHTHDiscount',toJson: boolToInt,fromJson: boolFromInt)
-  final bool? hasHTHDiscount;
+  bool? hasHTHDiscount;
 
   @JsonKey(name: 'hasRentalDiscount',toJson: boolToInt,fromJson: boolFromInt)
-  final bool? hasRentalDiscount;
+  bool? hasRentalDiscount;
 
   @JsonKey(name: 'hasExclusivityFee',toJson: boolToInt,fromJson: boolFromInt)
-  final bool? hasExclusivityFee;
+  bool? hasExclusivityFee;
 
   @JsonKey(name: 'lastOrder')
-  final LastOrder? lastOrder;
+  LastOrder? lastOrder;
 
   @JsonKey(name: 'isAssetsScennedInTheLastMonth',toJson: boolToInt,fromJson: boolFromInt)
-  final bool? isAssetsScennedInTheLastMonth;
+  bool? isAssetsScennedInTheLastMonth;
 
   @JsonKey(name: "synced",toJson: boolToInt,fromJson: boolFromInt)
-  final bool? synced;
+  bool? synced;
 
   @JsonKey(name: 'statusId')
-  final int? statusId;
+  int? statusId;
 
   @JsonKey(name: 'isZeroSaleOutlet',toJson: boolToInt,fromJson: boolFromInt)
-  final bool? isZeroSaleOutlet;
+  bool? isZeroSaleOutlet;
 
   @JsonKey(name: 'promoTypeId')
-  final int? promoTypeId;
+  int? promoTypeId;
 
   @JsonKey(name: 'customerRegistrationTypeId')
-  final int? customerRegistrationTypeId;
+  int? customerRegistrationTypeId;
 
   @JsonKey(name: 'digitalAccount')
-  final String? digitalAccount;
+  String? digitalAccount;
 
   @JsonKey(name: 'disburseAmount')
-  final double? disburseAmount;
+  double? disburseAmount;
 
-  final String? remarks;
+  String? remarks;
 
   @JsonKey(name: 'organizationId')
-  final int? organizationId;
+  int? organizationId;
 
   @JsonKey(name: 'outletPromoConfigId')
-  final int? outletPromoConfigId;
+  int? outletPromoConfigId;
 
   @JsonKey(name: 'outletVisits')
-  final List<OutletVisit>? outletVisits;
+  List<OutletVisit>? outletVisits;
 
   @JsonKey(name: 'avlStockDetail')
-  final List<AvailableStock>? avlStockDetail;
+  List<AvailableStock>? avlStockDetail;
 
   Outlet({
     this.outletId,

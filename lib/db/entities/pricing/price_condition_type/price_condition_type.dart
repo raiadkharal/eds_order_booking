@@ -1,18 +1,18 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:order_booking/utils/util.dart';
+import 'package:order_booking/utils/utils.dart';
 
 part 'price_condition_type.g.dart';
 
 @JsonSerializable()
 class PriceConditionType {
   @JsonKey(name: 'priceConditionTypeId')
-  final int priceConditionTypeId;
+  final int? priceConditionTypeId;
   final String? name;
   @JsonKey(name: 'priceConditionClassId')
-  final int priceConditionClassId;
-  final int operationType;
-  final int calculationType;
-  final int roundingRule;
+  final int? priceConditionClassId;
+  final int? operationType;
+  final int? calculationType;
+  final int? roundingRule;
   @JsonKey(name: 'priceScaleBasisId')
   final int? priceScaleBasisId;
   final String? code;

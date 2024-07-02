@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../../../utils/util.dart';
+import '../../../../utils/utils.dart';
 import '../../../pricing_model/group_free_good_details/group_free_good_details.dart';
 import '../free_good_exclusives/free_goods_exclusives.dart';
 

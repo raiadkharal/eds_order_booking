@@ -5,104 +5,106 @@ part 'product.g.dart';
 @JsonSerializable()
 class Product {
   @JsonKey(name: 'productId')
+  int? id;
 
-  int id;
-
-  String name;
+  String? productName;
   @JsonKey(name: 'productDescription')
-
-  String description;
+  String? description;
   @JsonKey(name: 'productCode')
-
-  String code;
+  String? code;
   @JsonKey(name: 'productGroupId')
-
-  int groupId;
+  int? groupId;
   @JsonKey(name: 'productGroupName')
-
-  String groupName;
+  String? groupName;
   @JsonKey(name: 'productPackageId')
-
-  int packageId;
+  int? packageId;
   @JsonKey(name: 'packageName')
-
-  String packageName;
+  String? packageName;
   @JsonKey(name: 'productBrandId')
-
-  int brandId;
+  int? brandId;
   @JsonKey(name: 'brandName')
-
-  String brandName;
+  String? brandName;
   @JsonKey(name: 'productFlavorId')
-
-  int flavorId;
+  int? flavorId;
   @JsonKey(name: 'flavorName')
-
-  String flavorName;
+  String? flavorName;
   @JsonKey(name: 'unitCode')
-
-  String unitCode;
+  String? unitCode;
   @JsonKey(name: 'cartonCode')
-
-  String cartonCode;
+  String? cartonCode;
   @JsonKey(name: 'unitQuantity')
-
-  int unitQuantity;
+  int? unitQuantity;
   @JsonKey(name: 'cartonQuantity')
-
-  int cartonQuantity;
+  int? cartonQuantity;
   @JsonKey(name: 'unitSizeForDisplay')
-
-  String unitSizeForDisplay;
+  String? unitSizeForDisplay;
   @JsonKey(name: 'cartonSizeForDisplay')
-
-  String cartonSizeForDisplay;
+  String? cartonSizeForDisplay;
   @JsonKey(name: 'unitStockInHand')
-
-  int unitStockInHand;
+  int? unitStockInHand;
   @JsonKey(name: 'cartonStockInHand')
-
-  int cartonStockInHand;
+  int? cartonStockInHand;
   @JsonKey(name: 'unitDefinitionId')
-
-  int unitDefinitionId;
+  int? unitDefinitionId;
   @JsonKey(name: 'cartonDefinitionId')
-
-  int cartonDefinitionId;
+  int? cartonDefinitionId;
   @JsonKey(name: 'actualUnitStock')
-
-  int actualUnitStock;
+  int? actualUnitStock;
   @JsonKey(name: 'actualCartonStock')
+  int? actualCartonStock;
+  @JsonKey(name: 'organizationId')
+  int? organizationId;
+  @JsonKey(name: 'qtyCarton')
+  int? qtyCarton;
+  @JsonKey(name: 'qtyUnit')
+  int? qtyUnit;
+  @JsonKey(name: 'avlStockUnit')
+  int? avlStockUnit;
+  @JsonKey(name: 'avlStockCarton')
+  int? avlStockCarton;
 
-  int actualCartonStock;
 
   Product({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.code,
-    required this.groupId,
-    required this.groupName,
-    required this.packageId,
-    required this.packageName,
-    required this.brandId,
-    required this.brandName,
-    required this.flavorId,
-    required this.flavorName,
-    required this.unitCode,
-    required this.cartonCode,
-    required this.unitQuantity,
-    required this.cartonQuantity,
-    required this.unitSizeForDisplay,
-    required this.cartonSizeForDisplay,
-    required this.unitStockInHand,
-    required this.cartonStockInHand,
-    required this.unitDefinitionId,
-    required this.cartonDefinitionId,
-    required this.actualUnitStock,
-    required this.actualCartonStock,
+    this.id,
+    this.productName,
+    this.description,
+    this.code,
+    this.groupId,
+    this.groupName,
+    this.packageId,
+    this.packageName,
+    this.brandId,
+    this.brandName,
+    this.flavorId,
+    this.flavorName,
+    this.unitCode,
+    this.cartonCode,
+    this.unitQuantity,
+    this.cartonQuantity,
+    this.unitSizeForDisplay,
+    this.cartonSizeForDisplay,
+    this.unitStockInHand,
+    this.cartonStockInHand,
+    this.unitDefinitionId,
+    this.cartonDefinitionId,
+    this.actualUnitStock,
+    this.actualCartonStock,
+    this.organizationId,
+    this.avlStockCarton,
+    this.avlStockUnit,
+    this.qtyCarton,
+    this.qtyUnit
   });
 
+  void setQty(int? cartonQty,int? unitQty){
+    qtyCarton=cartonQty;
+    qtyUnit=unitQty;
+  }
+
+  void setAvlStock(int? avlCartonQty,int? avlUnitQty) {
+     avlStockCarton= avlCartonQty;
+    avlStockUnit = avlUnitQty;
+  }
   factory Product.fromJson(Map<String, dynamic> json) =>
       _$ProductFromJson(json);
 

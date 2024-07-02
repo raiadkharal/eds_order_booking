@@ -1,24 +1,25 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:order_booking/db/entities/asset/asset.dart';
+import 'package:order_booking/model/asset_model/asset_model.dart';
 import '../../models/merchandise_images/merchandise_image.dart';
-import '../asset/asset.dart';
 
 part 'merchandise.g.dart';
 
 @JsonSerializable()
 class Merchandise {
   @JsonKey(name: 'outletId')
-  final int? outletId;
+  int? outletId;
 
   @JsonKey(name: 'remarks')
-  final String? remarks;
+  String? remarks;
 
   @JsonKey(name: 'merchandiseImages')
-  final List<MerchandiseImage>? merchandiseImages;
+  List<MerchandiseImage>? merchandiseImages;
 
   @JsonKey(name: 'assets')
-  final List<Asset>? assetList;
+  List<Asset>? assetList;
 
   Merchandise({
     this.outletId,

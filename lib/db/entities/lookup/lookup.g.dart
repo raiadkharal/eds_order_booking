@@ -19,7 +19,7 @@ LookUp _$LookUpFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$LookUpToJson(LookUp instance) => <String, dynamic>{
-  'lookUpId': instance.lookUpId,
-  'assetStatus': jsonEncode(instance.assetStatus),
-  'marketReturnReasons': jsonEncode(instance.marketReturnReasons),
-};
+      'lookUpId': instance.lookUpId,
+      'assetStatus': jsonEncode(instance.assetStatus),
+      'marketReturnReasons': jsonEncode(instance.marketReturnReasons),
+    };
