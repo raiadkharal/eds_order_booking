@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -77,10 +78,10 @@ class _ImageDialogState extends State<ImageDialog> {
                     _currentPage=value;
                   });
                 },
-                children: const <Widget>[
+                children: <Widget>[
                   Center(
                     child: Image(
-                        image: AssetImage("assets/images/traditional_trade.png")),
+                        image: AssetImage("assets/images/traditional_trade.png"),),
                   ),
                   Center(
                     child: Image(

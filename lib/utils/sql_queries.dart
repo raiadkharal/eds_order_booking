@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS AvailableStock (
   static const String createCartonPriceBreakDownTable = '''
 CREATE TABLE IF NOT EXISTS CartonPriceBreakDown (
   pk_cpbd INTEGER PRIMARY KEY AUTOINCREMENT,
-  fk_modid INTEGER NOT NULL,
+  mobileOrderDetailId INTEGER NOT NULL,
   orderId INTEGER,
   priceCondition TEXT,
   priceConditionType TEXT,
@@ -65,9 +65,9 @@ CREATE TABLE IF NOT EXISTS CartonPriceBreakDown (
   maximumLimit REAL,
   alreadyAvailed REAL,
   limitBy INTEGER,
-  FOREIGN KEY (fk_modid) REFERENCES OrderDetail (pk_modid) ON DELETE CASCADE
+  FOREIGN KEY (mobileOrderDetailId) REFERENCES OrderDetail (pk_modid) ON DELETE CASCADE
 );
- CREATE INDEX idx_cartonPriceBreakdownTable_mobileOrderId ON CartonPriceBreakDown (fk_modid);
+ CREATE INDEX idx_cartonPriceBreakdownTable_mobileOrderId ON CartonPriceBreakDown (mobileOrderDetailId);
 ''';
 
   static const String createCustomerInputTable = '''
@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS MarketReturnDetails (
   marketReturnReasonId INTEGER,
   invoiceId INTEGER,
   cartonQuantity INTEGER,
+  returnedProductTypeId INTEGER,
   unitQuantity INTEGER,
   replaceWith TEXT,
   replacementCartonQuantity INTEGER,
@@ -139,9 +140,9 @@ CREATE TABLE IF NOT EXISTS Merchandise (
 ''';
 
   static const String createOrderTable = '''
-CREATE TABLE IF NOT EXISTS 'Order' (
+CREATE TABLE IF NOT EXISTS `Order` (
   pk_oid INTEGER PRIMARY KEY AUTOINCREMENT,
-  c_outletId INTEGER,
+  outletId INTEGER,
   serverOrderId INTEGER,
   routeId INTEGER,
   code TEXT,
@@ -156,30 +157,30 @@ CREATE TABLE IF NOT EXISTS 'Order' (
   distributionId INTEGER,
   priceBreakDown TEXT,
   orderDetails TEXT,
-  FOREIGN KEY (c_outletId) REFERENCES Outlet(mOutletId) ON DELETE CASCADE
+  FOREIGN KEY (outletId) REFERENCES Outlet(outletId) ON DELETE CASCADE
 );
-CREATE INDEX idx_order_outletId ON 'Order' (c_outletId)
+CREATE INDEX idx_order_outletId ON `Order` (outletId)
 ''';
 
   static const String createOrderDetailTable = '''
   CREATE TABLE IF NOT EXISTS OrderDetail (
     pk_modid INTEGER PRIMARY KEY AUTOINCREMENT,
-    mProductId INTEGER,
+    productId INTEGER,
     fk_oid INTEGER NOT NULL,
     orderId INTEGER,
     packageId INTEGER,
     unitOrderDetailId INTEGER,
     cartonOrderDetailId INTEGER,
-    mProductGroupId INTEGER,
+    productGroupId INTEGER,
     unitFreeGoodGroupId INTEGER,
     cartonFreeGoodGroupId INTEGER,
     unitFreeGoodDetailId INTEGER,
     cartonFreeGoodDetailId INTEGER,
     unitFreeGoodExclusiveId INTEGER,
     cartonFreeGoodExclusiveId INTEGER,
-    mProductName TEXT,
-    mCartonQuantity INTEGER,
-    mUnitQuantity INTEGER,
+    productName TEXT,
+    cartonQuantity INTEGER,
+    unitQuantity INTEGER,
     avlUnitQuantity INTEGER,
     avlCartonQuantity INTEGER,
     productTempDefinitionId INTEGER,
@@ -189,13 +190,13 @@ CREATE INDEX idx_order_outletId ON 'Order' (c_outletId)
     actualUnitStock INTEGER,
     actualCartonStock INTEGER,
     cartonSize INTEGER,
-    mCartonCode TEXT,
-    mUnitCode TEXT,
+    cartonCode TEXT,
+    unitCode TEXT,
     unitPrice REAL,
     cartonPrice REAL,
     unitTotalPrice REAL,
     cartonTotalPrice REAL,
-    total REAL,
+    payable REAL,
     subtotal REAL,
     type TEXT,
     unitFreeQuantityTypeId INTEGER,
@@ -217,28 +218,28 @@ CREATE INDEX idx_order_outletId ON 'Order' (c_outletId)
   static const String createUnitPriceBreakdownTable = '''
  CREATE TABLE IF NOT EXISTS UnitPriceBreakDown (
   pk_upbd INTEGER PRIMARY KEY AUTOINCREMENT,
-  mOrderId INTEGER,
-  fk_modid INTEGER,
-  mPriceCondition TEXT,
-  mPriceConditionType TEXT,
-  mPriceConditionClass TEXT,
-  mPriceConditionClassOrder INTEGER,
-  mPriceConditionClassId INTEGER,
-  mPriceConditionId INTEGER,
-  mPriceConditionDetailId INTEGER,
-  mAccessSequence TEXT,
-  mUnitPrice REAL,
-  mBlockPrice REAL,
-  mTotalPrice REAL,
-  mCalculationType INTEGER,
+  orderId INTEGER,
+  mobileOrderDetailId INTEGER,
+  priceCondition TEXT,
+  priceConditionType TEXT,
+  priceConditionClass TEXT,
+  priceConditionClassOrder INTEGER,
+  priceConditionClassId INTEGER,
+  priceConditionId INTEGER,
+  priceConditionDetailId INTEGER,
+  accessSequence TEXT,
+  unitPrice REAL,
+  blockPrice REAL,
+  totalPrice REAL,
+  calculationType INTEGER,
   outletId INTEGER,
-  mProductId INTEGER,
-  mProductDefinitionId INTEGER,
+  productId INTEGER,
+  productDefinitionId INTEGER,
   isMaxLimitReached INTEGER,
   maximumLimit REAL,
-  mAlreadyAvailed REAL,
-  mLimitBy INTEGER,
-  FOREIGN KEY (fk_modid) REFERENCES OrderDetail(pk_modid) ON DELETE CASCADE
+  alreadyAvailed REAL,
+  limitBy INTEGER,
+  FOREIGN KEY (mobileOrderDetailId) REFERENCES OrderDetail(pk_modid) ON DELETE CASCADE
 );
 
   ''';
@@ -648,12 +649,16 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
     severityLevel INTEGER NOT NULL,
     severityLevelMessage TEXT,
     pricingAreaId INTEGER,
+    pricingLevelId INTEGER,
     distributionId INTEGER,
     organizationId INTEGER,
     canLimit INTEGER,
     code TEXT,
     deriveFromConditionClassId INTEGER
 );
+
+CREATE INDEX idx_pricingLevelId ON PriceConditionClass (pricingLevelId);
+
 ''';
 
   static const String createPriceConditionOutletAttributesTable = '''
@@ -739,10 +744,23 @@ CREATE TABLE IF NOT EXISTS PricingLevels (
 ''';
 
   static const String createProductQuantityTable = '''
-CREATE TABLE ProductQuantity (
-    ProductDefinitionId INTEGER PRIMARY KEY,
-    Quantity INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS ProductQuantity (
+    productDefinitionId INTEGER PRIMARY KEY NOT NULL,
+    quantity INTEGER,
     packageId INTEGER
+);
+
+''';
+
+  static const String createOrderAndAvailableQuantityTable = '''
+CREATE TABLE IF NOT EXISTS OrderAndAvailableQuantity (
+     outletId INTEGER NOT NULL,
+    productId INTEGER,
+    cartonQuantity INTEGER,
+    unitQuantity INTEGER,
+    avlCartonQuantity INTEGER,
+    avlUnitQuantity INTEGER,
+    PRIMARY KEY (outletId, productId)
 );
 
 ''';
@@ -916,5 +934,13 @@ DROP TABLE IF EXISTS PricingGroups;
 
   static const String dropPricingLevelsTable = '''
 DROP TABLE IF EXISTS PricingLevels;
+''';
+
+  static const String dropProductQuantityTable = '''
+DROP TABLE IF EXISTS ProductQuantity;
+''';
+
+  static const String dropOrderAndAvailableQuantityTable = '''
+DROP TABLE IF EXISTS OrderAndAvailableQuantity;
 ''';
 }

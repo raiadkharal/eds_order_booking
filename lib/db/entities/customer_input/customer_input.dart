@@ -5,10 +5,10 @@ part 'customer_input.g.dart';
 @JsonSerializable()
 class CustomerInput {
   @JsonKey(name: 'outletId')
-  final int outletId;
+  final int? outletId;
 
   @JsonKey(name: 'orderId')
-  final int orderId;
+  final int? orderId;
 
   @JsonKey(name: 'mobileNumber')
   final String? mobileNumber;
@@ -26,17 +26,17 @@ class CustomerInput {
   final String? cnic;
 
   @JsonKey(name: 'deliveryDate')
-  final int deliveryDate;
+  final int? deliveryDate;
 
   CustomerInput({
-    required this.outletId,
-    required this.orderId,
+    this.outletId,
+    this.orderId,
     this.mobileNumber,
     this.strn,
     this.remarks,
     this.signature,
     this.cnic,
-    required this.deliveryDate,
+    this.deliveryDate,
   });
 
   factory CustomerInput.fromJson(Map<String, dynamic> json) =>

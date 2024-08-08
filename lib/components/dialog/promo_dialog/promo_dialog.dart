@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:order_booking/utils/Colors.dart';
 
 import '../../../db/entities/promotion/promotion.dart';
 
@@ -11,6 +12,7 @@ class PromotionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(5))),
       insetPadding: const EdgeInsets.all(20),
@@ -30,7 +32,9 @@ class PromotionDialog extends StatelessWidget {
                   color: Colors.red,
                   size: 30,
                 ),
-                const SizedBox(width: 10,),
+                const SizedBox(
+                  width: 10,
+                ),
                 Text("Promotions",
                     style: GoogleFonts.roboto(
                         fontSize: 20,
@@ -38,11 +42,10 @@ class PromotionDialog extends StatelessWidget {
                         fontWeight: FontWeight.w400)),
               ],
             ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height*0.75,
-                width: MediaQuery.of(context).size.width*0.75,
+            Flexible(
+              fit: FlexFit.loose,
               child: ListView.separated(
-                shrinkWrap: true,
+                  shrinkWrap: true,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.all(10.0),
@@ -57,42 +60,56 @@ class PromotionDialog extends StatelessWidget {
                             children: [
                               Expanded(
                                 flex: 2,
-                                child: Text("Name: ",
-                                    style: GoogleFonts.roboto(
-                                        fontSize: 14,
-                                        color: Colors.black54,
-                                        fontWeight: FontWeight.w400),textAlign: TextAlign.start,),
+                                child: Text(
+                                  "Name: ",
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.w400),
+                                  textAlign: TextAlign.start,
+                                ),
                               ),
                               Expanded(
                                 flex: 4,
-                                child: Text(promos[index].name.toString(),
-                                    style: GoogleFonts.roboto(
-                                        fontSize: 14,
-                                        color: Colors.black54,
-                                        fontWeight: FontWeight.w400),textAlign: TextAlign.start,),
+                                child: Text(
+                                  promos[index].name.toString(),
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.w400),
+                                  textAlign: TextAlign.start,
+                                ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10,),
+                          const SizedBox(
+                            height: 10,
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Expanded(
                                 flex: 2,
-                                child: Text("Amount: ",
+                                child: Text(
+                                  "Amount: ",
                                   style: GoogleFonts.roboto(
                                       fontSize: 14,
                                       color: Colors.black54,
-                                      fontWeight: FontWeight.w400),textAlign: TextAlign.start,),
+                                      fontWeight: FontWeight.w400),
+                                  textAlign: TextAlign.start,
+                                ),
                               ),
                               Expanded(
                                 flex: 4,
-                                child: Text(promos[index].amount.toString(),
+                                child: Text(
+                                  promos[index].amount.toString(),
                                   style: GoogleFonts.roboto(
                                       fontSize: 14,
                                       color: Colors.black54,
-                                      fontWeight: FontWeight.w400),textAlign: TextAlign.start,),
+                                      fontWeight: FontWeight.w400),
+                                  textAlign: TextAlign.start,
+                                ),
                               ),
                             ],
                           )
@@ -101,9 +118,29 @@ class PromotionDialog extends StatelessWidget {
                     );
                   },
                   separatorBuilder: (context, index) {
-                    return Container(color: Colors.grey,height: 0.5,);
+                    return Container(
+                      color: Colors.grey,
+                      height: 0.5,
+                    );
                   },
                   itemCount: promos.length),
+            ),
+            // Container(
+            //   color: Colors.grey,
+            //   width: MediaQuery.of(context).size.width,
+            //   height: 1,
+            // ),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      "Cancel",
+                      style: GoogleFonts.roboto(color: secondaryColor),
+                    )),
+              ],
             )
           ],
         ),

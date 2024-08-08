@@ -8,13 +8,13 @@ part of 'price_condition_detail.dart';
 
 PriceConditionDetail _$PriceConditionDetailFromJson(Map<String, dynamic> json) {
   return PriceConditionDetail(
-    priceConditionDetailId: json['priceConditionDetailId'] as int,
-    amount: json['amount'] as double,
-    isScale: boolFromInt(json['isScale'] as int),
+    priceConditionDetailId: json['priceConditionDetailId'] as int?,
+    amount: (json['amount'] is int)? (json['amount'] as int).toDouble(): json['amount'] as double?,
+    isScale: boolFromInt(json['isScale'] as int?),
     validFrom: json['validFrom'] as String?,
     validTo: json['validTo'] as String?,
-    type: json['type'] as int,
-    priceConditionId: json['priceConditionId'] as int,
+    type: json['type'] as int?,
+    priceConditionId: json['priceConditionId'] as int?,
     isDeleted: boolFromInt(json['isDeleted'] as int?),
     productId: json['productId'] as int?,
     productDefinitionId: json['productDefinitionId'] as int?,

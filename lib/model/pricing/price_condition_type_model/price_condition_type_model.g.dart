@@ -23,7 +23,7 @@ Map<String, dynamic> _$PriceConditionTypeToJson(PriceConditionTypeModel instance
     <String, dynamic>{
       'priceConditionTypeId': instance.priceConditionTypeId,
       'name': instance.name,
-      'priceConditionClassId': instance.conditionClassId,
+      'priceConditionClassId': instance.priceConditionClassId,
       'operationType': instance.operationType,
       'calculationType': instance.calculationType,
       'roundingRule': instance.roundingRule,

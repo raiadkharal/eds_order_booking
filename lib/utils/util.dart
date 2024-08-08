@@ -2,16 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:order_booking/db/entities/unit_price_breakdown/unit_price_breakdown.dart';
 
 class Util {
   static const String DATE_FORMAT_1 = "MM/dd/yy";
   static const String DATE_FORMAT_2 = "MMM dd";
   static const String DATE_FORMAT_3 = "MMM-dd";
+  static const String DATE_FORMAT ="MMM dd yyyy";
   static const String DATE_FORMAT_5 = "hh:mm a";
   static const String DATE_FORMAT_4 = "MM/dd/yyyy hh:mm a";
   static const String DATE_FORMAT_6 = "yyyy-MM-dd'T'HH:mm:ss.SSS";
@@ -106,6 +109,23 @@ class Util {
     return "${distanceInKm.toStringAsFixed(2)} km";
   }
 
+ static bool isCurrentDateMatched(int? startDate) {
+
+    if(startDate==null){
+      return false;
+    }
+    DateTime startDateTime = DateTime.fromMillisecondsSinceEpoch(startDate);
+    DateTime currentDate = DateTime.now();
+
+    if (startDateTime.day != currentDate.day) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+
+
   static String convertStockToDecimalQuantity(int? carton, int? units) {
     carton ??= 0;
     units ??= 0;
@@ -122,9 +142,33 @@ class Util {
     return finalVal;
   }
 
-  static List<int> convertToLongQuantity(String qty) {
+  static String? convertStockToNullableDecimalQuantity(int? carton, int? units) {
+
+    if(carton==null&&units==null) return null;
+
+    carton ??= 0;
+    units ??= 0;
+
+    String? finalVal;
+    if (carton > 0 && units > 0) {
+      finalVal = "$carton.$units";
+    } else if (carton > 0) {
+      finalVal = "$carton";
+    } else if (units > 0) {
+      finalVal = "0.$units";
+    }
+
+    return finalVal;
+  }
+
+  static List<int>? convertToLongQuantity(String qty) {
+
+    if(qty==""){
+      return null;
+    }
+
     if (qty.startsWith(".")) {
-      qty = "0.$qty";
+      qty = "0$qty";
     }
     int decimal;
     int fractional;
@@ -158,4 +202,30 @@ class Util {
 
     return finalVal;
   }
+
+  static String formatCurrency(double? price, int fractionDigits) {
+    price ??= 0;
+
+    final format = NumberFormat.currency(
+      locale: 'en_PK',
+      symbol: '',
+      decimalDigits: fractionDigits,
+    );
+
+    final formattedPrice = format.format(price);
+
+    // Add currency symbol separately to handle positive/negative formatting
+    // final currencySymbol = NumberFormat.simpleCurrency(locale: Platform.localeName).currencySymbol;
+    const currencySymbol = "Rs";
+    if (price < 0) {
+      return '-$currencySymbol${formattedPrice.substring(1)}';  // Remove minus sign from formatted price
+    } else {
+      return '$currencySymbol $formattedPrice';
+    }
+  }
+
+  static bool isListEmpty(List<dynamic>? list) {
+    return(list==null||list.isEmpty);
+  }
+
 }

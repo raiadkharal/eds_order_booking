@@ -13,8 +13,8 @@ LastOrderModel _$LastOrderFromJson(Map<String, dynamic> json) => LastOrderModel(
   orderTotal: (json['orderTotal'] as num?)?.toDouble(),
   lastSaleDate: json['lastSaleDate'] as int?,
   orderQuantity: (json['orderQuantity'] as num?)?.toDouble(),
-  orderDetails: (json['orderDetails'] as List<dynamic>?)
-      ?.map((e) => OrderDetailModel.fromJson(e as Map<String, dynamic>))
+  orderDetails:  ((json['orderDetails'] is String)? jsonDecode(json['orderDetails']):json['orderDetails'] as List<dynamic>?)
+      ?.map<OrderDetailModel>((e) => OrderDetailModel.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 

@@ -8,14 +8,14 @@ part of 'customer_input.dart';
 
 CustomerInput _$CustomerInputFromJson(Map<String, dynamic> json) {
   return CustomerInput(
-    outletId: json['outletId'] as int,
-    orderId: json['orderId'] as int,
+    outletId: json['outletId'] as int?,
+    orderId: json['orderId'] as int?,
     mobileNumber: json['mobileNumber'] as String?,
     strn: json['strn'] as String?,
     remarks: json['remarks'] as String?,
     signature: json['signature'] as String?,
     cnic: json['cnic'] as String?,
-    deliveryDate: json['deliveryDate'] as int,
+    deliveryDate: json['deliveryDate'] as int?,
   );
 }
 

@@ -5,6 +5,7 @@ import 'package:order_booking/db/entities/available_stock/available_stock.dart';
 import 'package:order_booking/db/models/outlet_visit/outlet_visit.dart';
 import 'package:order_booking/utils/utils.dart';
 
+import '../../db/models/last_order/last_order.dart';
 import '../last_order/last_order_model.dart';
 
 
@@ -97,7 +98,7 @@ class OutletModel {
   bool? hasExclusivityFee;
 
   @JsonKey(name: 'lastOrder')
-  LastOrderModel? lastOrder;
+  LastOrder? lastOrder;
 
   @JsonKey(name: 'isAssetsScennedInTheLastMonth',toJson: boolToInt)
   bool? isAssetsScennedInTheLastMonth;

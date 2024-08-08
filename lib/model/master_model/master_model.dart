@@ -6,6 +6,7 @@ import '../../db/entities/market_returns/market_returns.dart';
 import '../../db/entities/task/task.dart';
 import '../../db/models/base_response/base_response.dart';
 import '../../utils/util.dart';
+import '../market_return_model/market_return_model.dart';
 import '../merchandise_model/merchandise_model.dart';
 import '../order_response_model/order_response_model.dart';
 part 'master_model.g.dart';
@@ -58,7 +59,7 @@ class MasterModel extends BaseResponse {
   OrderResponseModel? order;
 
   @JsonKey(name: 'marketReturns')
-  MarketReturns? marketReturns;
+  MarketReturnsModel? marketReturns;
 
   @JsonKey(name: 'tasks')
   List<Task>? tasks;
@@ -70,7 +71,7 @@ class MasterModel extends BaseResponse {
   double? outletLongitude;
 
   @JsonKey(name: 'outletDistance')
-  int? outletDistance;
+  double? outletDistance;
 
   @JsonKey(name: 'outletVisits')
   List<OutletVisit>? outletVisits;
@@ -95,4 +96,9 @@ class MasterModel extends BaseResponse {
       _$MasterModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$MasterModelToJson(this);
+
+  void setLocation(latitude, longitude) {
+    this.latitude=latitude;
+    this.longitude=longitude;
+  }
 }

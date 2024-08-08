@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_rx/get_rx.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:order_booking/components/progress_dialog/PregressDialog.dart';
+import 'package:order_booking/db/entities/order_status/order_status.dart';
 import 'package:order_booking/db/entities/outlet/outlet.dart';
 import 'package:order_booking/db/entities/route/route.dart';
+import 'package:order_booking/db/models/outlet_order_status/outlet_order_status.dart';
 import 'package:order_booking/route.dart';
 import 'package:order_booking/ui/route/outlet/outlet_list/outlet_list_item.dart';
 import 'package:order_booking/ui/route/outlet/outlet_list/outlet_list_repository.dart';
@@ -20,11 +24,11 @@ class OutletListScreen extends StatefulWidget {
 
 class _OutletListScreenState extends State<OutletListScreen>
     with TickerProviderStateMixin {
-  final controller =
-      Get.put(OutletListViewModel(OutletListRepository(Get.find())));
+  final controller = Get.put(
+      OutletListViewModel(OutletListRepository(Get.find(), Get.find())));
   late final MRoute route;
 
-  int _selectedTab = 0;
+  final RxInt _selectedTab = 0.obs;
 
   late final TabController _tabController;
   late final TabController _pjpTabController;
@@ -58,10 +62,19 @@ class _OutletListScreenState extends State<OutletListScreen>
         appBar: AppBar(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          title: Text(
-            route.routeName ?? "Route Name",
-            style: GoogleFonts.roboto(color: Colors.white),
+          title:
+                 Text(
+                    route.routeName ?? "Route Name",
+                    style: GoogleFonts.roboto(color: Colors.white),
           ),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  showSearch(context: context, delegate: CustomSearchDelegate(controller));
+                },
+                icon:
+                const Icon(Icons.search)),
+          ],
         ),
         body: Stack(
           children: [
@@ -72,10 +85,12 @@ class _OutletListScreenState extends State<OutletListScreen>
                   child: TabBar(
                     onTap: (index) {
                       if (index == 1) {
-                        controller.loadUnPlannedOutlets(route.routeId ?? 102825);
+                        controller
+                            .loadUnPlannedOutlets(route.routeId ?? 102825);
                       }
                       setState(() {
-                        _selectedTab=index;
+                        _selectedTab(index);
+                        controller.filterOutlets(_selectedTab.value,0);
                       });
                     },
                     controller: _tabController,
@@ -104,73 +119,73 @@ class _OutletListScreenState extends State<OutletListScreen>
                     ],
                   ),
                 ),
-                if (_selectedTab == 0)
-                  Container(
-                    color: Colors.white,
-                    child: TabBar(
-                      controller: _pjpTabController,
-                      indicatorColor: Colors.black,
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.black,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      tabAlignment: TabAlignment.fill,
-                      onTap: (value) => controller.filterOutlets(value),
-                      tabs: [
-                        Tab(
-                          child: Flexible(
-                              child: Obx(
-                            () => Text(
-                              "PENDING( ${controller.pendingOutlets.length} )",
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.black,
-                                  fontSize: 12),
-                            ),
-                          )),
-                        ),
-                        Tab(
-                          child: Flexible(
-                              child: Obx(
-                            () => Text(
-                              "NON PRODUCTIVE( ${controller.visitedOutlets.length} )",
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.black,
-                                  fontSize: 12),
-                            ),
-                          )),
-                        ),
-                        Tab(
-                          child: Flexible(
-                              child: Obx(
-                            () => Text(
-                              "PRODUCTIVE( ${controller.productiveOutlets.length} )",
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.black,
-                                  fontSize: 12),
-                            ),
-                          )),
-                        ),
-                      ],
-                    ),
+                Obx(() => _selectedTab.value == 0 ? Container(
+                  color: Colors.white,
+                  child: TabBar(
+                    controller: _pjpTabController,
+                    indicatorColor: Colors.black,
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.black,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    tabAlignment: TabAlignment.fill,
+                    onTap: (index) => controller.filterOutlets(_selectedTab.value,index),
+                    tabs: [
+                      Tab(
+                        child: Flexible(
+                            child: Obx(
+                                  () => Text(
+                                "PENDING( ${controller.pendingOutlets.length} )",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.black,
+                                    fontSize: 12),
+                              ),
+                            )),
+                      ),
+                      Tab(
+                        child: Flexible(
+                            child: Obx(
+                                  () => Text(
+                                "NON PRODUCTIVE( ${controller.visitedOutlets.length} )",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.black,
+                                    fontSize: 12),
+                              ),
+                            )),
+                      ),
+                      Tab(
+                        child: Flexible(
+                            child: Obx(
+                                  () => Text(
+                                "PRODUCTIVE( ${controller.productiveOutlets.length} )",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.black,
+                                    fontSize: 12),
+                              ),
+                            )),
+                      ),
+                    ],
                   ),
+                ):const SizedBox(),),
                 Expanded(
-                  child: Padding(
+                  child: Container(
+                    color: Colors.white,
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Obx(
                       () => ListView.separated(
                         itemBuilder: (context, index) {
-                          final outlet =  _selectedTab == 0
-                              ? controller.pjpOutlets[index]
-                              : controller.outlets[index];
+                          final outletOrderStatus = controller.filteredOutlets[index];
                           return OutletListItem(
-                            outlet:outlet,
+                            outlet: outletOrderStatus.outlet??Outlet(),
+                            orderStatus: outletOrderStatus.orderStatus,
                             onTap: (outletId) {
-                              Get.toNamed(EdsRoutes.outletDetail,arguments: [outletId]);
+                              Get.toNamed(EdsRoutes.outletDetail,
+                                  arguments: [outletId]);
                             },
                           );
                         },
@@ -180,9 +195,8 @@ class _OutletListScreenState extends State<OutletListScreen>
                             color: Colors.grey,
                           );
                         },
-                        itemCount: _selectedTab == 0
-                            ? controller.pjpOutlets.length
-                            : controller.outlets.length,
+                        itemCount: controller.filteredOutlets.length
+                        ,
                       ),
                     ),
                   ),
@@ -199,4 +213,110 @@ class _OutletListScreenState extends State<OutletListScreen>
   }
 
   void setObservers() {}
+
+}
+
+class CustomSearchDelegate extends SearchDelegate {
+  final OutletListViewModel controller;
+
+  CustomSearchDelegate(this.controller);
+
+  @override
+  String? get searchFieldLabel => "Enter Outlet Name or Code";
+
+  @override
+  TextStyle? get searchFieldStyle => GoogleFonts.roboto(fontSize: 16);
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+          showSuggestions(context);
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    List<OutletOrderStatus> filteredItems = [];
+
+    filteredItems = controller.filteredOutlets
+        .where((outletOrderStatus) =>
+            (outletOrderStatus.outlet
+                ?.outletName
+                .toString()??"")
+                .toLowerCase()
+                .contains(query.toLowerCase()) ||
+                (outletOrderStatus.outlet?.outletCode.toString()??"").contains(query))
+        .toList();
+
+    return ListView.separated(
+      itemBuilder: (context, index) {
+        final outletOrderStatus = filteredItems[index];
+        return OutletListItem(
+          outlet: outletOrderStatus.outlet??Outlet(),
+          orderStatus: outletOrderStatus.orderStatus,
+          onTap: (outletId) {
+            Get.toNamed(EdsRoutes.outletDetail, arguments: [outletId]);
+          },
+        );
+      },
+      separatorBuilder: (context, index) {
+        return Container(
+          height: 1,
+          color: Colors.grey,
+        );
+      },
+      itemCount: filteredItems.length,
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    List<OutletOrderStatus> filteredItems = [];
+
+    filteredItems = controller.filteredOutlets
+        .where((outletOrderStatus) =>
+    (outletOrderStatus.outlet
+        ?.outletName
+        .toString()??"")
+        .toLowerCase()
+        .contains(query.toLowerCase()) ||
+        (outletOrderStatus.outlet?.outletCode.toString()??"").contains(query))
+        .toList();
+
+    return ListView.separated(
+      itemBuilder: (context, index) {
+        final outletOrderStatus = filteredItems[index];
+        return OutletListItem(
+          outlet: outletOrderStatus.outlet??Outlet(),
+          orderStatus: outletOrderStatus.orderStatus,
+          onTap: (outletId) {
+            Get.toNamed(EdsRoutes.outletDetail, arguments: [outletId]);
+          },
+        );
+      },
+      separatorBuilder: (context, index) {
+        return Container(
+          height: 1,
+          color: Colors.grey,
+        );
+      },
+      itemCount: filteredItems.length,
+    );
+  }
 }

@@ -1,61 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_rx/get_rx.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PageView Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(),
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  final PageController _pageController = PageController(initialPage: 0);
-
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('PageView Example'),
+      appBar: AppBar(title: const Text('Progress Dialog Example')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () => _showProgressDialog(context),
+          child: const Text('Show Progress Dialog'),
+        ),
       ),
-      body: PageView(
-        controller: _pageController,
-        children: <Widget>[
-          Container(
-            color: Colors.red,
-            child: Center(
-              child: Text(
-                'Page 1',
-                style: TextStyle(fontSize: 24, color: Colors.white),
+    );
+  }
+
+  Future<void> _showProgressDialog(BuildContext context) async {
+    final int totalTasks = 5;
+    final ProgressDialog progressDialog =
+        ProgressDialog(totalTasks: totalTasks);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return progressDialog;
+      },
+    );
+
+    for (int i = 0; i < totalTasks; i++) {
+      await Future.delayed(const Duration(seconds: 1)); // Simulate a task
+      progressDialog.createState().updateProgress('Task ${i + 1}', i + 1);
+    }
+
+    Navigator.of(context).pop(); // Close the dialog when all tasks are done
+  }
+}
+
+class ProgressDialog extends StatefulWidget {
+  final int totalTasks;
+
+  const ProgressDialog({Key? key, required this.totalTasks}) : super(key: key);
+
+  @override
+  _ProgressDialogState createState() => _ProgressDialogState();
+}
+
+class _ProgressDialogState extends State<ProgressDialog> {
+  final RxInt _completedTasks = 0.obs;
+  final RxString _currentTask = "".obs;
+
+  void updateProgress(String currentTask, int completedTasks) {
+    _currentTask(currentTask);
+    _completedTasks(completedTasks);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return AlertDialog(
+          title: Text("Progress"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Obx(
+                () => Text("Current Task: $_currentTask"),
               ),
-            ),
-          ),
-          Container(
-            color: Colors.green,
-            child: Center(
-              child: Text(
-                'Page 2',
-                style: TextStyle(fontSize: 24, color: Colors.white),
+              SizedBox(height: 10),
+              Obx(
+                () => LinearProgressIndicator(
+                  value: widget.totalTasks > 0
+                      ? _completedTasks / widget.totalTasks
+                      : 0,
+                ),
               ),
-            ),
-          ),
-          Container(
-            color: Colors.blue,
-            child: Center(
-              child: Text(
-                'Page 3',
-                style: TextStyle(fontSize: 24, color: Colors.white),
+              SizedBox(height: 10),
+              Obx(
+                () =>
+                    Text("Completed: $_completedTasks / ${widget.totalTasks}"),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

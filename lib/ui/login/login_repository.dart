@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:get/get.dart';
+import 'package:order_booking/db/dao/order_dao.dart';
+import 'package:order_booking/db/dao/order_status_dao.dart';
 
 import '../../data_source/remote/api_service.dart';
 import '../../data_source/remote/response/api_response.dart';
@@ -14,19 +16,21 @@ class LoginRepository {
   final ApiService _apiService;
   static LoginRepository? _instance;
   final PreferenceUtil _preferenceUtil;
+  final OrderDao _orderDao;
+  final OrderStatusDao _statusDao;
 
-  RxBool _isLoading = false.obs;
+  final RxBool _isLoading = false.obs;
 
   final Rx<Event<String>> _msg = Event("").obs;
 
   // LoggedInUser? _user;
 
-  LoginRepository._(this._apiService, this._preferenceUtil);
+  LoginRepository._(this._apiService, this._preferenceUtil, this._orderDao, this._statusDao);
 
   static LoginRepository getInstance(
-      ApiService apiService, PreferenceUtil preferenceUtil) {
+      ApiService apiService, PreferenceUtil preferenceUtil,OrderDao orderDao,OrderStatusDao statusDao) {
     if (_instance == null) {
-      return _instance = LoginRepository._(apiService, preferenceUtil);
+      return _instance = LoginRepository._(apiService, preferenceUtil,orderDao,statusDao);
     } else {
       return _instance!;
     }
@@ -61,9 +65,8 @@ class LoginRepository {
               if (previousUsername != username) {
                 _preferenceUtil.clearAllPreferences();
 
-                //TODO- create below methods later
-                // statusRepository.deleteAllStatus();
-                // statusRepository.deleteAllOrders();
+                _statusDao.deleteAllStatus();
+                _orderDao.deleteAllOrders();
               }
 
               _preferenceUtil.saveToken(tokenResponse.accessToken);
@@ -71,6 +74,8 @@ class LoginRepository {
               _preferenceUtil.savePassword(password);
               //pass user data to callback
               successCallback(tokenResponse.isSuccess);
+            }else{
+              onError("Unable to login, Please contact Administrator");
             }
           } catch (e) {
             onError(e.toString());

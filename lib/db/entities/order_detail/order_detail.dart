@@ -45,6 +45,13 @@ class OrderDetail {
   @JsonKey(name: 'cartonFreeGoodDetailId')
   int? cartonFreeGoodDetailId;
 
+  @JsonKey(name: 'unitFreeGoodExclusiveId')
+  int? unitFreeGoodExclusiveId;
+
+  @JsonKey(name: 'cartonFreeGoodExclusiveId')
+  int? cartonFreeGoodExclusiveId;
+
+
   String? mProductName;
 
   @JsonKey(name: 'cartonQuantity')
@@ -115,8 +122,15 @@ class OrderDetail {
 
   List<OrderDetail>? unitFreeGoods;
 
+
+ int? productTempDefinitionId; // this definitionId sets on PriceCalculation
+
+
+ int ?productTempQuantity;
+
+
   OrderDetail(
-      {this.mOrderId,
+      {this.mLocalOrderId,
       this.mProductId,
       this.mCartonQuantity,
       this.mUnitQuantity});
@@ -127,8 +141,18 @@ class OrderDetail {
     this.avlUnitQuantity = avlUnitQuantity;
   }
 
+  String getQuantity(){
+    return "${mCartonQuantity??0}/${mUnitQuantity??0}";
+  }
+
+  String getWithoutUnitQuantity(){
+    return "${mCartonQuantity??0}";
+  }
+
+
   factory OrderDetail.fromJson(Map<String, dynamic> json) =>
       _$OrderDetailFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderDetailToJson(this);
+
 }

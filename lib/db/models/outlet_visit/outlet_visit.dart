@@ -4,10 +4,10 @@ part 'outlet_visit.g.dart';
 
 @JsonSerializable()
 class OutletVisit {
-  final int? outletId;
-  final int? visitTime;
-  final double? latitude;
-  final double? longitude;
+  int? outletId;
+  int? visitTime;
+  double? latitude;
+  double? longitude;
 
   OutletVisit({
     this.outletId,

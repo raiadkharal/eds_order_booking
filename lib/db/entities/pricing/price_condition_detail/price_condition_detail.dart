@@ -6,13 +6,13 @@ part 'price_condition_detail.g.dart';
 @JsonSerializable()
 class PriceConditionDetail {
   @JsonKey(name: 'priceConditionDetailId')
-  final int priceConditionDetailId;
+  final int? priceConditionDetailId;
 
   @JsonKey(name: 'amount')
-  final double amount;
+  final double? amount;
 
   @JsonKey(name: 'isScale',toJson: boolToInt,fromJson: boolFromInt)
-  final bool isScale;
+  final bool? isScale;
 
   @JsonKey(name: 'validFrom')
   final String? validFrom;
@@ -21,10 +21,10 @@ class PriceConditionDetail {
   final String? validTo;
 
   @JsonKey(name: 'type')
-  final int type;
+  final int? type;
 
   @JsonKey(name: 'priceConditionId')
-  final int priceConditionId;
+  final int? priceConditionId;
 
   @JsonKey(name: 'isDeleted',toJson: boolToInt,fromJson: boolFromInt)
   final bool? isDeleted;
@@ -63,13 +63,13 @@ class PriceConditionDetail {
   final int? bundleId;
 
   PriceConditionDetail({
-    required this.priceConditionDetailId,
-    required this.amount,
-    required this.isScale,
+    this.priceConditionDetailId,
+    this.amount,
+    this.isScale,
     this.validFrom,
     this.validTo,
-    required this.type,
-    required this.priceConditionId,
+     this.type,
+     this.priceConditionId,
     this.isDeleted,
     this.productId,
     this.productDefinitionId,

@@ -1,9 +1,12 @@
+import 'package:get/get.dart';
 import 'package:order_booking/db/dao/product_dao.dart';
 import 'package:order_booking/db/entities/packages/package.dart';
 import 'package:order_booking/db/entities/product/product.dart';
 import 'package:order_booking/db/entities/product_group/product_group.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../../model/product_stock_in_hand/product_stock_in_hand.dart';
+import '../../../utils/utils.dart';
 import '../../entities/order_detail/order_detail.dart';
 import '../../models/product_carton_quantity/product_carton_quantity.dart';
 
@@ -37,31 +40,61 @@ class ProductDaoImpl extends ProductDao {
 
   @override
   Future<void> insertPackages(List<Package>? packageList) async {
-    if (packageList != null) {
-      for (Package package in packageList) {
-        _database.insert("Package", package.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
+    try {
+      await _database.transaction(
+        (txn) async {
+          Batch batch = txn.batch();
+          if (packageList != null) {
+            for (Package package in packageList) {
+              batch.insert("Package", package.toJson(),
+                  conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+          await batch.commit(noResult: true);
+        },
+      );
+    } catch (e) {
+      showToastMessage(e.toString());
     }
   }
 
   @override
   Future<void> insertProductGroups(List<ProductGroup>? productGroups) async {
-    if (productGroups != null) {
-      for (ProductGroup productGroup in productGroups) {
-        _database.insert("ProductGroups", productGroup.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
+    try {
+      await _database.transaction(
+        (txn) async {
+          Batch batch = txn.batch();
+          if (productGroups != null) {
+            for (ProductGroup productGroup in productGroups) {
+              batch.insert("ProductGroups", productGroup.toJson(),
+                  conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+          await batch.commit(noResult: true);
+        },
+      );
+    } catch (e) {
+      showToastMessage(e.toString());
     }
   }
 
   @override
   Future<void> insertProducts(List<Product>? productList) async {
-    if (productList != null) {
-      for (Product product in productList) {
-        _database.insert("Product", product.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
+    try {
+      await _database.transaction(
+        (txn) async {
+          Batch batch = txn.batch();
+          if (productList != null) {
+            for (Product product in productList) {
+              batch.insert("Product", product.toJson(),
+                  conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+          await batch.commit(noResult: true);
+        },
+      );
+    } catch (e) {
+      showToastMessage(e.toString());
     }
   }
 
@@ -91,8 +124,8 @@ class ProductDaoImpl extends ProductDao {
 
   @override
   Future<List<Product>> findAllProductsByPkg(int? packageId) async {
-    final result = await _database
-        .query("Product", where: "productPackageId = ?", whereArgs: [packageId]);
+    final result = await _database.query("Product",
+        where: "productPackageId = ?", whereArgs: [packageId]);
 
     return result
         .map(
@@ -111,5 +144,72 @@ class ProductDaoImpl extends ProductDao {
           (json) => OrderDetail.fromJson(json),
         )
         .toList();
+  }
+
+  @override
+  Future<List<Product>> getAllProducts() async {
+    final result = await _database.rawQuery("Select * from Product");
+
+    return result
+        .map(
+          (e) => Product.fromJson(e),
+        )
+        .toList();
+  }
+
+  @override
+  Future<Product?> checkUnitProduct(int? productDefinitionId) async {
+    final result = await _database.rawQuery(
+        "SELECT * FROM Product WHERE unitDefinitionId= $productDefinitionId");
+
+    if (result.isNotEmpty) {
+      return Product.fromJson(result.first);
+    }
+
+    return null;
+  }
+
+  @override
+  Future<Product?> findProductById(int? replacementProductId) async {
+    if (replacementProductId == null) return null;
+
+    final result = await _database
+        .rawQuery("SELECT * FROM Product WHERE pk_pid=$replacementProductId");
+
+    if (result.isNotEmpty) {
+      return Product.fromJson(result.first);
+    }
+
+    return null;
+  }
+
+  @override
+  Future<void> updateProductStock(
+      int? productId, int unitStockInHand, int cartonStockInHand) async {
+    try {
+      _database.rawUpdate(
+          "Update Product set unitStockInHand= ? , cartonStockInHand= ? where pk_pid= ?",
+          [unitStockInHand, cartonStockInHand, productId]);
+    } catch (e) {
+      e.printInfo();
+      // showToastMessage("Something went Wrong please try again later.");
+    }
+  }
+
+  @override
+  Future<ProductStockInHand?> getProductStockInHand(int? id) async {
+    try {
+      final result = await _database.rawQuery(
+          "select pk_pid,unitStockInHand,cartonStockInHand from product where pk_pid= $id");
+
+      if (result.isNotEmpty) {
+        return ProductStockInHand.fromJson(result.first);
+      }
+
+      return ProductStockInHand(pkPid: id??0, unitStockInHand: 0, cartonStockInHand: 0);
+    } catch (e) {
+      e.printInfo();
+      return null;
+    }
   }
 }

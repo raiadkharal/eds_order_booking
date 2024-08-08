@@ -9,9 +9,9 @@ part 'price_condition.g.dart';
 @JsonSerializable()
 class PriceCondition {
 
-  final int priceConditionId;
+  final int? priceConditionId;
 
-  final String name;
+  final String? name;
 
   @JsonKey(name: "isBundle",fromJson: boolFromInt,toJson: boolToInt)
   final bool? isBundle;
@@ -25,8 +25,8 @@ class PriceCondition {
   final double? combinedMaxCaseLimit;
   final int? combinedLimitBy;
   final int? customerRegistrationTypeId;
-  final int priceConditionTypeId;
-  final int accessSequenceId;
+  final int? priceConditionTypeId;
+  final int? accessSequenceId;
 
   @JsonKey(ignore: true)
   final List<PriceConditionEntities>? priceConditionEntities;
@@ -36,10 +36,10 @@ class PriceCondition {
 
 
   PriceCondition({
-    required this.priceConditionTypeId,
-    required this.accessSequenceId,
-    required this.priceConditionId,
-    required this.name,
+    this.priceConditionTypeId,
+    this.accessSequenceId,
+    this.priceConditionId,
+    this.name,
     this.isBundle,
     this.pricingType,
     this.validFrom,

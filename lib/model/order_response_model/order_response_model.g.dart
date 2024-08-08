@@ -13,13 +13,13 @@ OrderResponseModel _$OrderResponseModelFromJson(Map<String, dynamic> json) =>
       distributionId: json['distributionId'] as int?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      mobileOrderId: json['mobileOrderId'] as int?,
+      mobileOrderId: json['pk_oid'] as int?,
       orderDate: json['orderDate'] as int?,
-      orderDetails: (json['orderDetails'] as List<dynamic>?)
-          ?.map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+      orderDetails: ((json['orderDetails'] is String)? jsonDecode(json['orderDetails']):json['orderDetails'] as List<dynamic>?)
+          ?.map<OrderDetail>((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
           .toList(),
-      priceBreakDown: (json['priceBreakDown'] as List<dynamic>?)
-          ?.map((e) => UnitPriceBreakDownModel.fromJson(e as Map<String, dynamic>))
+      priceBreakDown: ((json['priceBreakDown'] is String)? jsonDecode(json['priceBreakDown']):json['priceBreakDown'] as List<dynamic>?)
+          ?.map<UnitPriceBreakDownModel>((e) => UnitPriceBreakDownModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       orderId: json['orderId'] as int?,
       orderStatusId: json['orderStatusId'] as int?,
@@ -34,7 +34,7 @@ OrderResponseModel _$OrderResponseModelFromJson(Map<String, dynamic> json) =>
       startedDate: json['startedDate'] as int?,
       outlet: json['outlet'] == null
           ? null
-          : OutletModel.fromJson(json['outlet'] as Map<String, dynamic>),
+          : Outlet.fromJson(json['outlet'] as Map<String, dynamic>),
       channelId: json['channelId'] as int?,
       organizationId: json['organizationId'] as int?,
     );
@@ -46,7 +46,7 @@ Map<String, dynamic> _$OrderResponseModelToJson(OrderResponseModel instance) =>
       'distributionId': instance.distributionId,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'mobileOrderId': instance.mobileOrderId,
+      'pk_oid': instance.mobileOrderId,
       'orderDate': instance.orderDate,
       'orderDetails': instance.orderDetails?.map((e) => e.toJson()).toList(),
       'priceBreakDown':

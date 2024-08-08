@@ -14,12 +14,30 @@ class TaskDaoImpl extends TaskDao {
 
   @override
   Future<void> insertTasks(List<Task>? tasks) async {
-    if (tasks != null) {
+
+    try {
+      await _database.transaction(
+                (txn) async {
+              Batch batch = txn.batch();
+              if (tasks != null&&tasks.isNotEmpty) {
+                for (Task task in tasks) {
+                  batch.insert("Tasks", task.toJson(),
+                      conflictAlgorithm: ConflictAlgorithm.replace);
+                }
+              }
+              await batch.commit(noResult: true);
+            },
+          );
+    } catch (e) {
+      print(e);
+    }
+
+  /*  if (tasks != null&&tasks.isNotEmpty) {
       for (Task task in tasks) {
         _database.insert("Tasks", task.toJson(),
             conflictAlgorithm: ConflictAlgorithm.replace);
       }
-    }
+    }*/
   }
 
   @override

@@ -25,7 +25,7 @@ CartonPriceBreakDownModel _$CartonPriceBreakDownFromJson(Map<String, dynamic> js
     outletId: json['outletId'] as int?,
     productId: json['productId'] as int?,
     productDefinitionId: json['productDefinitionId'] as int?,
-    isMaxLimitReached: json['isMaxLimitReached'] as bool?,
+    isMaxLimitReached: (json['isMaxLimitReached'] is int)? boolFromInt(json['isMaxLimitReached'] as int?): (json['isMaxLimitReached'] as bool?),
     maximumLimit: (json['maximumLimit'] as num?)?.toDouble(),
     alreadyAvailed: (json['alreadyAvailed'] as num?)?.toDouble(),
     limitBy: json['limitBy'] as int?,

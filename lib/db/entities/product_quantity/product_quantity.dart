@@ -13,7 +13,7 @@ class ProductQuantity {
   @JsonKey(name: 'packageId')
   int? packageId;
 
-  ProductQuantity({this.productDefinitionId, required this.quantity, this.packageId});
+  ProductQuantity({this.productDefinitionId, this.quantity, this.packageId});
 
   factory ProductQuantity.fromJson(Map<String, dynamic> json) => _$ProductQuantityFromJson(json);
 

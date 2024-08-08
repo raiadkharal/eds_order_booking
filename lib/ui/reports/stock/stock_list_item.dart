@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:order_booking/db/entities/product/product.dart';
+
+import '../../../utils/util.dart';
 
 class StockListItem extends StatelessWidget {
-  const StockListItem({super.key});
+  final Product product;
+  const StockListItem({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,7 @@ class StockListItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "AXL",
+                  product.productName.toString(),
                   style: GoogleFonts.roboto(
                       fontSize: 11,
                       color: Colors.black,
@@ -33,7 +37,7 @@ class StockListItem extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
-                      "0.0",
+                          product.cartonStockInHand.toString(),
                       style: GoogleFonts.roboto(
                           fontSize: 14,
                           color: Colors.white,

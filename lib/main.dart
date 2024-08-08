@@ -10,6 +10,7 @@ import 'package:order_booking/ui/order/order_booking_screen.dart';
 import 'package:order_booking/ui/reports/reports_screen.dart';
 import 'package:order_booking/ui/reports/stock/stock_screen.dart';
 import 'package:order_booking/ui/route/outlet/merchandising/asset_verification/asset_verification_screen.dart';
+import 'package:order_booking/ui/route/outlet/merchandising/asset_verification/scanner/barcode_scanner_screen.dart';
 import 'package:order_booking/ui/route/outlet/merchandising/merchandising_screen.dart';
 import 'package:order_booking/ui/route/outlet/outlet_detail/outlet_detail_screen.dart';
 import 'package:order_booking/ui/route/outlet/outlet_list/outlet_list_screen.dart';
@@ -17,9 +18,31 @@ import 'package:order_booking/ui/route/routes/routes_screen.dart';
 import 'package:order_booking/ui/splash_screen.dart';
 import 'package:order_booking/ui/task/pending_task_screen.dart';
 import 'package:order_booking/ui/upload_orders/upload_orders_screen.dart';
+import 'package:order_booking/utils/Constants.dart';
+import 'package:workmanager/workmanager.dart';
+
+
+@pragma('vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) {
+    switch (task) {
+      case  Constants.MERCHANDISE_UPLOAD_TASK:
+      // Perform your task here using inputData
+        if (inputData != null) {
+          final outletId = inputData[Constants.EXTRA_PARAM_OUTLET_ID];
+          final token = inputData[Constants.EXTRA_PARAM_TOKEN];
+          final statusId = inputData[Constants.EXTRA_PARAM_STATUS_ID];
+          //TODO - implement merchandise post logic here
+        }
+        break;
+    }
+    return Future.value(true);
+  });
+}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   runApp(const MyApp());
 }
 
@@ -34,6 +57,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'EDS Order Booking',
       theme: ThemeData(
+        popupMenuTheme: const PopupMenuThemeData(color: Colors.white),
+        datePickerTheme: const DatePickerThemeData(surfaceTintColor: Colors.white),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
@@ -76,6 +101,10 @@ class MyApp extends StatelessWidget {
             page: () => const AssetVerificationScreen(),
             transition: Transition.rightToLeft),
         GetPage(
+            name: EdsRoutes.barcodeScanner,
+            page: () => const BarcodeScannerScreen(),
+            transition: Transition.fadeIn),
+        GetPage(
             name: EdsRoutes.orderBooking,
             page: () => const OrderBookingScreen(),
             transition: Transition.rightToLeft),
@@ -106,4 +135,5 @@ class MyApp extends StatelessWidget {
       ],
     );
   }
+
 }

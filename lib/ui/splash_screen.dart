@@ -33,6 +33,7 @@ class SplashScreen extends StatelessWidget {
             } else {
               //navigate to login screen
               WidgetsBinding.instance.addPostFrameCallback((_) {
+                // Get.offNamed(EdsRoutes.customerInput);
                 Get.offNamed(EdsRoutes.login);
               });
             }

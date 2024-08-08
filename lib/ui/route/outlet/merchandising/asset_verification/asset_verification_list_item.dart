@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:order_booking/db/entities/asset/asset.dart';
+import 'package:order_booking/db/models/asset_status/asset_status.dart';
 
 import '../../../../../utils/Constants.dart';
 
-class AssetVerificationListItem extends StatefulWidget {
-  const AssetVerificationListItem({super.key});
+class AssetVerificationListItem extends StatelessWidget {
+  final Asset asset;
+  final List<AssetStatus> assetStatuses;
+  const AssetVerificationListItem({super.key, required this.asset, required this.assetStatuses});
 
-  @override
-  State<AssetVerificationListItem> createState() => _AssetVerificationListItemState();
-}
-
-class _AssetVerificationListItemState extends State<AssetVerificationListItem> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -21,7 +20,7 @@ class _AssetVerificationListItemState extends State<AssetVerificationListItem> {
           Expanded(
             flex: 8,
             child: Text(
-              "RBL1709631",
+             asset.serialNumber.toString(),
               style: GoogleFonts.roboto(
                   fontSize: 14,
                   fontWeight: FontWeight.normal,
@@ -32,7 +31,7 @@ class _AssetVerificationListItemState extends State<AssetVerificationListItem> {
           Expanded(
             flex: 8,
             child: Text(
-              "Pending",
+              (asset.verified??false)?"Verified":"Pending",
               style: GoogleFonts.roboto(
                   fontSize: 14,
                   fontWeight: FontWeight.normal,
@@ -47,21 +46,22 @@ class _AssetVerificationListItemState extends State<AssetVerificationListItem> {
                     canvasColor: Colors.white
                 ),
                 child: DropdownButtonFormField(
-                  onChanged: (value) {},
+                  onChanged:(value) {},
                   isDense: true,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    focusedBorder: OutlineInputBorder(
+                  decoration: InputDecoration(
+                    enabled: asset.getVerified(),
+                    focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide.none),
-                    border:OutlineInputBorder(
+                    border:const OutlineInputBorder(
                         borderSide: BorderSide.none),),
-                  items: Constants.assetVerificationList
+                  items: assetStatuses
                       .map(
                         (element) =>
                         DropdownMenuItem(
                             value: element,
                             child: Text(
-                              element,
+                              element.value.toString(),
                               style: GoogleFonts.roboto(
                                   fontSize: 14,
                                   fontWeight: FontWeight.normal,

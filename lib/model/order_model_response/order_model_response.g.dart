@@ -29,7 +29,7 @@ OrderEntityModel _$OrderModelFromJson(Map<String, dynamic> json) {
         .toList(),
     freeAvailableQty: (json['freeAvailableQty'] as num?)?.toDouble(),
     orderDetailAndCPriceBreakdowns: (json['orderDetailAndCPriceBreakdowns'] as List<dynamic>?)
-        ?.map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => OrderDetailAndPriceBreakdown.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
 }

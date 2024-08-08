@@ -1,10 +1,14 @@
+import 'package:json_annotation/json_annotation.dart';
+import '../../../utils/utils.dart';
 import '../../entities/unit_price_breakdown/unit_price_breakdown.dart';
 
-class PriceBreakDown extends UnitPriceBreakDown {
+part 'price_breakdown.g.dart';
 
-  PriceBreakDown(int _priceConditionId,String _priceConditionType){
-   priceConditionId = _priceConditionId;
-   priceConditionType=_priceConditionType;
+@JsonSerializable()
+class PriceBreakDown extends UnitPriceBreakDown {
+  PriceBreakDown(int priceConditionId, String priceConditionType) {
+    this.priceConditionId = priceConditionId;
+    this.priceConditionType = priceConditionType;
   }
 
   int? getPriceConditionClassOrder() {
@@ -18,7 +22,7 @@ class PriceBreakDown extends UnitPriceBreakDown {
   int get hashCode {
     const prime = 31;
     var result = 1;
-    if(priceConditionId!=null) {
+    if (priceConditionId != null) {
       result = prime * result + priceConditionId!;
     }
     return result;
@@ -31,4 +35,8 @@ class PriceBreakDown extends UnitPriceBreakDown {
     final PriceBreakDown otherPriceBreakDown = other as PriceBreakDown;
     return priceConditionId == otherPriceBreakDown.priceConditionId;
   }
+
+  factory PriceBreakDown.fromJson(Map<String, dynamic> json) => _$PriceBreakDownFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PriceBreakDownToJson(this);
 }

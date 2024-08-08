@@ -5,42 +5,42 @@ part 'available_stock.g.dart';
 @JsonSerializable()
 class AvailableStock {
   @JsonKey(name: 'mobileAvlStockDetailId')
-  final int? avlStockId;
+  int? avlStockId;
 
   @JsonKey(name: 'productId')
-  final int? productId;
+  int? productId;
 
   @JsonKey(name: 'packageId', includeIfNull: false)
-  final int? packageId;
+  int? packageId;
 
   @JsonKey(name: 'unitProductDefinitionId')
-  final int? unitProductDefinitionId;
+  int? unitProductDefinitionId;
 
   @JsonKey(name: 'cartonProductDefinitionId')
-  final int? cartonProductDefinitionId;
+  int? cartonProductDefinitionId;
 
   @JsonKey(name: 'orderId', includeIfNull: false)
-  final int? mOrderId;
+  int? mOrderId;
 
   @JsonKey(name: 'outletId', includeIfNull: false)
-  final int? outletId;
+  int? outletId;
 
   @JsonKey(name: 'cartonQuantity')
-  final int? cartonQuantity;
+  int? cartonQuantity;
 
   @JsonKey(name: 'unitQuantity')
-  final int? unitQuantity;
+  int? unitQuantity;
 
   AvailableStock({
-    required this.avlStockId,
-    required this.productId,
-    required this.packageId,
-    required this.unitProductDefinitionId,
-    required this.cartonProductDefinitionId,
-    required this.mOrderId,
-    required this.outletId,
-    required this.cartonQuantity,
-    required this.unitQuantity,
+    this.avlStockId,
+    this.productId,
+    this.packageId,
+    this.unitProductDefinitionId,
+    this.cartonProductDefinitionId,
+    this.mOrderId,
+    this.outletId,
+    this.cartonQuantity,
+    this.unitQuantity,
   });
 
   factory AvailableStock.fromJson(Map<String, dynamic> json) => _$AvailableStockFromJson(json);

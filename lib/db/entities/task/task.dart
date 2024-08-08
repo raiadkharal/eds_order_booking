@@ -5,10 +5,10 @@ part 'task.g.dart';
 @JsonSerializable()
 class Task {
   @JsonKey(name: 'taskId')
-  final int taskId;
+  final int? taskId;
 
   @JsonKey(name: 'taskTypeId')
-  final int taskTypeId;
+  final int? taskTypeId;
 
   @JsonKey(name: 'taskName')
   final String? taskName;

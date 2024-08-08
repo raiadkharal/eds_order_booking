@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:order_booking/db/entities/order_detail/order_detail.dart';
 import 'package:order_booking/db/entities/order_status/order_status.dart';
+import 'package:order_booking/model/order_detail_and_price_breakdown/order_detail_and_price_breakdown.dart';
 import 'package:order_booking/model/order_detail_model/order_detail_model.dart';
 import 'package:order_booking/model/order_model/order_model.dart';
 import 'package:order_booking/model/outlet_model/outlet_model.dart';
@@ -32,7 +33,7 @@ class OrderEntityModel {
   @JsonKey(ignore: true)
   double? freeAvailableQty;
 
-  List<OrderDetail>? orderDetailAndCPriceBreakdowns;
+  List<OrderDetailAndPriceBreakdown>? orderDetailAndCPriceBreakdowns;
 
   OrderEntityModel({
     this.order,
@@ -46,6 +47,13 @@ class OrderEntityModel {
     this.orderDetailAndCPriceBreakdowns,
   });
 
+  Order? getOrder(){
+    return order;
+  }
+
+  void setOrder(Order order){
+    this.order=order;
+  }
   // Factory method to create an instance from JSON
   factory OrderEntityModel.fromJson(Map<String, dynamic> json) =>
       _$OrderModelFromJson(json);

@@ -8,6 +8,7 @@ class EdsRoutes{
   static const String outletMerchandising = "/outletMerchandising";
   static const String pendingTask = "/pendingTask";
   static const String assetVerification = "/assetVerification";
+  static const String barcodeScanner = "/barcodeScanner";
   static const String orderBooking = "/orderBooking";
   static const String cashMemo = "/cashMemo";
   static const String upload = "/upload";

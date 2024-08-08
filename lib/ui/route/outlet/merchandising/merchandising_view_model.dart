@@ -2,15 +2,20 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:order_booking/db/entities/outlet/outlet.dart';
 import 'package:order_booking/db/entities/task/task.dart';
 import 'package:order_booking/model/configuration/configurations_model.dart';
+import 'package:order_booking/status_repository.dart';
 
+import '../../../../db/entities/asset/asset.dart';
 import '../../../../db/entities/merchandise/merchandise.dart';
 import '../../../../db/models/merchandise_images/merchandise_image.dart';
+import '../../../../utils/utils.dart';
 import '../../../repository.dart';
 
 class MerchandisingViewModel extends GetxController {
   final Repository _repository;
+  final StatusRepository _statusRepository;
 
   Rx<List<MerchandiseImage>> beforeImages = Rx<List<MerchandiseImage>>([]);
   Rx<List<MerchandiseImage>> afterImages = Rx<List<MerchandiseImage>>([]);
@@ -23,11 +28,24 @@ class MerchandisingViewModel extends GetxController {
   RxBool enableNextButton = false.obs;
   RxBool isSaved = false.obs;
   RxBool lessImages = false.obs;
+  Rx<Outlet> outlet = Outlet().obs;
+  List<Asset> _mAssets=[];
+
   int imagesCount = 0;
 
-  MerchandisingViewModel(this._repository);
+  MerchandisingViewModel(this._repository, this._statusRepository);
 
   // MerchandisingViewModel(this._repository);
+
+  Future<void> loadOutlet(int outletId) async {
+    _statusRepository.findOutletById(outletId).then(
+      (value) {
+        outlet(value);
+        _repository.setAssetsScannedInLastMonth(value.isAssetsScennedInTheLastMonth??false);
+        _repository.setEnforcedAssetScan(!(value.isAssetsScennedInTheLastMonth??false));
+      },
+    );
+  }
 
   Future<void> saveImages(String? imagePath, int type) async {
     imagesCount++;
@@ -54,26 +72,28 @@ class MerchandisingViewModel extends GetxController {
   }
 
   Rx<Merchandise> loadMerchandise(int outletId) {
-    /*
     try {
+      setLoading(true);
       _repository.findMerchandise(outletId).then((merchandise) {
         listImages.clear();
-        if (merchandise.merchandiseImages != null) {
-          listImages.addAll(merchandise.merchandiseImages!);
+        setLoading(false);
+        if (merchandise != null) {
+          if (merchandise.merchandiseImages != null) {
+            listImages.addAll(merchandise.merchandiseImages!);
+          }
+          imagesCount = listImages.length;
+          merchandiseData.value = merchandise;
         }
-        imagesCount = listImages.length;
-        merchandiseData.value = merchandise;
         if (imagesCount > 1) {
           setEnableNextButton(1);
         }
       });
     } catch (e) {
+      setLoading(false);
       showToastMessage(e.toString());
     }
 
     return merchandiseData;
-  */
-    return Merchandise().obs;
   }
 
   void setEnableNextButton(int type) {
@@ -128,22 +148,27 @@ class MerchandisingViewModel extends GetxController {
     lessImages.refresh();
   }
 
-  void insertMerchandiseIntoDB(int outletId) {
+  void insertMerchandiseIntoDB(int outletId,String remarks,int? statusId) {
     if (listImages.length >= 2) {
-      saveMerchandise(outletId, imagesLiveData.value);
+      setLoading(true);
+      saveMerchandise(outletId,remarks,imagesLiveData.value,statusId);
     } else {
       setLessImages(true);
     }
   }
 
-  void saveMerchandise(int outletId, List<MerchandiseImage> merchandiseImages) {
+  void saveMerchandise(int outletId, String remarks,List<MerchandiseImage> merchandiseImages,int? statusId) {
     Merchandise merchandise = Merchandise();
     merchandise.outletId = outletId;
     merchandise.merchandiseImages = merchandiseImages;
+    merchandise.remarks=remarks;
+    merchandise.assetList=_mAssets;
 
     _repository.insertIntoDB(merchandise).whenComplete(() {
+      setLoading(false);
       setIsSaved(true);
     }).onError((error, stackTrace) {
+      setLoading(false);
       setIsSaved(true);
     });
   }
@@ -157,4 +182,41 @@ class MerchandisingViewModel extends GetxController {
 
   Future<List<Task>?> getTasksByOutletId(int outletId) =>
       _repository.getTasksByOutlet(outletId);
+
+  RxList<Asset> getAssets(int outletId) {
+    final RxList<Asset> assets = RxList();
+    _statusRepository.getAssets(outletId).then(
+      (assetList) {
+        _mAssets=assetList;
+        assets(assetList);
+        assets.refresh();
+      },
+    );
+
+    return assets;
+  }
+
+  void setAssetsScannedInLastMonth(bool value) {
+    _repository.setAssetsScannedInLastMonth(value);
+  }
+
+  bool getEnforceAssetScan() {
+    return _repository.getEnforceAssetScan();
+  }
+
+  bool getAssetsScanned() {
+    return _repository.getAssetsScanned();
+  }
+
+  int getAssetsVerifiedCount() {
+    return _repository.getAssetsVerifiedCount();
+  }
+
+  bool isTestUser() {
+    return _repository.isTestUser();
+  }
+
+  void updateOutlet(Outlet outlet) {
+    _statusRepository.updateOutlet(outlet);
+  }
 }

@@ -14,7 +14,7 @@ LastOrder _$LastOrderFromJson(Map<String, dynamic> json) => LastOrder(
   lastSaleDate: json['lastSaleDate'] as int?,
   orderQuantity: (json['orderQuantity'] as num?)?.toDouble(),
   orderDetails: (json['orderDetails'] as List<dynamic>?)
-      ?.map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+      ?.map<OrderDetail>((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 

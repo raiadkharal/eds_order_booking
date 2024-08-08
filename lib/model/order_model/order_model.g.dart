@@ -8,7 +8,7 @@ part of 'order_model.dart';
 
 OrderModel _$OrderFromJson(Map<String, dynamic> json) => OrderModel(
   id: json['mobileOrderId'] as int?,
-  serverOrderId: json['orderId'] as int?,
+  serverOrderId: json['serverOrderId'] as int?,
   outletId: json['outletId'] as int?,
   routeId: json['routeId'] as int?,
   orderStatus: json['orderStatusId'] as int?,
@@ -30,8 +30,8 @@ OrderModel _$OrderFromJson(Map<String, dynamic> json) => OrderModel(
   ..payable = (json['payable'] as num?)?.toDouble();
 
 Map<String, dynamic> _$OrderToJson(OrderModel instance) => <String, dynamic>{
-  'mobileOrderId': instance.id,
-  'orderId': instance.serverOrderId,
+  'pk_oid': instance.id,
+  'serverOrderId': instance.serverOrderId,
   'outletId': instance.outletId,
   'routeId': instance.routeId,
   'orderStatusId': instance.orderStatus,

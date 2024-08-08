@@ -11,80 +11,80 @@ part 'free_good_groups.g.dart';
 @JsonSerializable()
 class FreeGoodGroups {
   @JsonKey(name: 'id')
-  final int id;
+  int? id;
 
   @JsonKey(name: 'freeGoodMasterId')
-  final int freeGoodMasterId;
+  int? freeGoodMasterId;
 
   @JsonKey(name: 'name')
-  final String name;
+  String? name;
 
   @JsonKey(name: 'typeId')
-  final int typeId;
+  int? typeId;
 
   @JsonKey(name: 'minimumQuantity')
-  final int minimumQuantity;
+  int? minimumQuantity;
 
   @JsonKey(name: 'forEachQuantity')
-  final int forEachQuantity;
+  int? forEachQuantity;
 
   @JsonKey(name: 'maximumQuantity')
-  final int maximumQuantity;
+  int? maximumQuantity;
 
   @JsonKey(name: 'isActive',toJson: boolToInt,fromJson: boolFromInt)
-  final bool isActive;
+  bool? isActive;
 
   @JsonKey(name: 'isDeleted',toJson: boolToInt,fromJson: boolFromInt)
-  final bool isDeleted;
+  bool? isDeleted;
 
   @JsonKey(name: 'isDifferentProduct',toJson: boolToInt,fromJson: boolFromInt)
-  final bool isDifferentProduct;
+  bool? isDifferentProduct;
 
   @JsonKey(name: 'freeQuantity')
-  final int freeQuantity;
+  int? freeQuantity;
 
   @JsonKey(name: 'freeQuantityTypeId')
-  final int freeQuantityTypeId;
+  int? freeQuantityTypeId;
 
   @JsonKey(name: 'groupFreeGoodDetails')
-  final List<GroupFreeGoodDetails> groupFreeGoodDetails;
+  List<GroupFreeGoodDetails>? groupFreeGoodDetails;
 
   @JsonKey(name: 'freeGoodExclusives')
-  final List<FreeGoodExclusives> freeGoodExclusives;
+  List<FreeGoodExclusives>? freeGoodExclusives;
 
   @JsonKey(ignore: true)
-  final int outletChannelAttributeCount;
+  int? outletChannelAttributeCount;
 
   @JsonKey(ignore: true)
-  final int channelAttributeCount;
+  int? channelAttributeCount;
 
   @JsonKey(ignore: true)
-  final int outletGroupAttributeCount;
+  int? outletGroupAttributeCount;
 
   @JsonKey(ignore: true)
-  final int groupAttributeCount;
+  int? groupAttributeCount;
 
   @JsonKey(ignore: true)
-  final int outletVPOAttributeCount;
+  int? outletVPOAttributeCount;
 
   @JsonKey(ignore: true)
-  final int vpoAttributeCount;
+  int? vpoAttributeCount;
 
   FreeGoodGroups({
-    required this.id,
-    required this.freeGoodMasterId,
-    required this.name,
-    required this.typeId,
-    required this.minimumQuantity,
-    required this.forEachQuantity,
-    required this.maximumQuantity,
-    required this.isActive,
-    required this.isDeleted,
-    required this.isDifferentProduct,
-    required this.freeQuantity,
-    required this.freeQuantityTypeId,
-    required this.groupFreeGoodDetails,
-    required this.freeGoodExclusives,
+    this.id,
+    this.freeGoodMasterId,
+    this.name,
+    this.typeId,
+    this.minimumQuantity,
+    this.forEachQuantity,
+    this.maximumQuantity,
+    this.isActive,
+    this.isDeleted,
+    this.isDifferentProduct,
+    this.freeQuantity,
+    this.freeQuantityTypeId,
+    this.groupFreeGoodDetails,
+    this.freeGoodExclusives,
     this.outletChannelAttributeCount = 0,
     this.channelAttributeCount = 0,
     this.outletGroupAttributeCount = 0,

@@ -14,6 +14,8 @@ class PriceConditionClass {
   final String? severityLevelMessage;
   @JsonKey(name: 'pricingAreaId')
   final int? pricingAreaId;
+  @JsonKey(name: 'pricingLevelId')
+  final int? pricingLevelId;
   @JsonKey(name: 'distributionId')
   final int? distributionId;
   @JsonKey(name: 'organizationId')
@@ -31,6 +33,7 @@ class PriceConditionClass {
     required this.severityLevel,
     required this.severityLevelMessage,
     required this.pricingAreaId,
+    required this.pricingLevelId,
     required this.distributionId,
     required this.organizationId,
     required this.canLimit,

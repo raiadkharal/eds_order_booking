@@ -1,22 +1,31 @@
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:order_booking/db/dao/product_dao.dart';
+import 'package:order_booking/db/entities/carton_price_breakdown/carton_price_breakdown.dart';
 import 'package:order_booking/db/entities/order/order.dart';
 import 'package:order_booking/db/entities/order_detail/order_detail.dart';
+import 'package:order_booking/db/entities/order_quantity/order_quantity.dart';
+import 'package:order_booking/db/entities/outlet/outlet.dart';
 import 'package:order_booking/db/entities/packages/package.dart';
 import 'package:order_booking/db/entities/product/product.dart';
 import 'package:order_booking/db/entities/product_group/product_group.dart';
+import 'package:order_booking/db/entities/unit_price_breakdown/unit_price_breakdown.dart';
+import 'package:order_booking/db/models/work_status/work_status.dart';
 import 'package:order_booking/model/order_detail_model/order_detail_model.dart';
 import 'package:order_booking/model/order_model/order_model.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 import 'package:order_booking/model/packageModel/package_model.dart';
 
 import '../../db/dao/order_dao.dart';
+import '../../db/dao/route_dao.dart';
+import '../../utils/PreferenceUtil.dart';
 
 class OrderBookingRepository {
   final ProductDao _productDao;
   final OrderDao _orderDao;
+  final RouteDao _routeDao;
+  final PreferenceUtil _preferenceUtil;
 
-  OrderBookingRepository(this._productDao, this._orderDao);
+  OrderBookingRepository(this._productDao, this._orderDao, this._routeDao, this._preferenceUtil);
 
   Future<List<Package>> findAllPackages() async {
     return _productDao.getAllPackages();
@@ -78,7 +87,58 @@ class OrderBookingRepository {
     return _orderDao.getOrderWithItems(outletId);
   }
 
-  Future<void> addOrderItems(List<OrderDetail> orderDetails) async {
+  Future<void> addOrderItems(List<OrderDetail>? orderDetails) async {
     _orderDao.insertOrderItems(orderDetails);
   }
+
+  Future<List<Product>> getAllProducts() async{
+    return await _productDao.getAllProducts();
+  }
+
+  Future<Outlet> findOutletById(int outletId)async=>_routeDao.getOutletById(outletId);
+
+  Future<Order> findOrderById(int? mobileOrderId) {
+   return _orderDao.findOrderById(mobileOrderId);
+  }
+
+  Future<void> updateOrder(Order? order) async{
+    _orderDao.updateOrder(order);
+  }
+
+  WorkStatus getWorkSyncData()=>_preferenceUtil.getWorkSyncData();
+
+  Future<void> deleteOrderItems(int? orderId) async{
+    _orderDao.deleteOrderItems(orderId);
+  }
+
+  void addOrderUnitPriceBreakDown(List<UnitPriceBreakDown>? unitPriceBreakDown) {
+    _orderDao.insertUnitPriceBreakDown(unitPriceBreakDown);
+  }
+
+  void addOrderCartonPriceBreakDown(List<CartonPriceBreakDown>? cartonPriceBreakDown) {
+    _orderDao.insertCartonPriceBreakDown(cartonPriceBreakDown);
+  }
+
+  bool isShowMarketReturnButton()=> _preferenceUtil.getShowMarketReturnsButton();
+
+  void deleteOrderUnitPriceBreakdown(int? orderDetailId) {
+    _orderDao.deleteOrderUnitPriceBreakdown(orderDetailId);
+  }
+
+  void deleteOrderCartonPriceBreakdown(int? orderDetailId) {
+    _orderDao.deleteOrderCartonPriceBreakdown(orderDetailId);
+  }
+
+  void saveOrderAndAvailableStockData(List<OrderAndAvailableQuantity> orderQuantityList) {
+    _orderDao.insertOrderAndAvailableStockData(orderQuantityList);
+  }
+
+  void deleteOrderAndAvailableStockByOutlet(int? outletId) {
+    _orderDao.deleteOrderAndAvailableStockByOutlet(outletId);
+  }
+
+  Future<List<OrderAndAvailableQuantity>> getOrderAndAvailableQuantityDataByOutlet(int? outletId) {
+    return _orderDao.getOrderAndAvailableQuantityDataByOutlet(outletId);
+  }
+
 }

@@ -79,6 +79,16 @@ class MarketReturnDetail {
     this.replacementCartonSize,
   });
 
+  void setReplacementQty(int? replacementCartonQuantity, int? replacementUnitQuantity) {
+    this.replacementCartonQuantity = replacementCartonQuantity;
+    this.replacementUnitQuantity = replacementUnitQuantity;
+  }
+
+  void setReturnQty(int? cartonQty, int? unitQty) {
+    cartonQuantity=cartonQty;
+    unitQuantity=unitQty;
+  }
+
   factory MarketReturnDetail.fromJson(Map<String, dynamic> json) =>
       _$MarketReturnDetailFromJson(json);
 

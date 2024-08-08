@@ -26,6 +26,10 @@ class PreferenceUtil {
   static const String _punchOrderInUnits = "punchOrderInUnits";
   static const String _marketReturnButton = "marketReturnButton";
   static const String _deliveryDate = "deliveryDate";
+  static const String _assetScanned = "asset_scanned";
+  static const String _assetScannedInLastMonth = "assetScannedInLastMonth";
+  static const String _enForcedAssetScan = "enForcedAssetScan";
+  static const String _assetVerifiedCount = "assetVerifiedCount";
 
   PreferenceUtil._(this._sharedPreferences);
 
@@ -142,8 +146,8 @@ class PreferenceUtil {
   }
 
   bool isTestUser() {
-    // return false;
-    return getUsername().startsWith("u_");
+    return true;
+    // return getUsername().startsWith("u_");
   }
 
   void setOutletStatus(int value) {
@@ -218,11 +222,44 @@ class PreferenceUtil {
   }
 
   bool getShowMarketReturnsButton() {
-    return _sharedPreferences.getBool(_marketReturnButton)??false;
+    return _sharedPreferences.getBool(_marketReturnButton)??true;
   }
 
   void setDeliveryDate(int deliveryDate) {
     _sharedPreferences.setInt(_deliveryDate, deliveryDate);
+  }
+
+  int getDeliveryDate()=>_sharedPreferences.getInt(_deliveryDate)??0;
+
+  void setAssetScanned(bool scanned) {
+    _sharedPreferences.setBool(_assetScanned, scanned);
+  }
+  bool getAssetScanned() {
+    return _sharedPreferences.getBool(_assetScanned)??false;
+  }
+
+  void setAssetScannedInLastMonth(bool value) {
+    _sharedPreferences.setBool(_assetScanned, value);
+  }
+
+  bool getAssetScannedInLastMonth() {
+    return _sharedPreferences.getBool(_assetScannedInLastMonth)??false;
+  }
+
+  bool getEnforcedAssetScan() {
+    return _sharedPreferences.getBool(_enForcedAssetScan)??false;
+  }
+
+  void setEnforcedAssetScan(bool value) {
+    _sharedPreferences.setBool(_enForcedAssetScan,value);
+  }
+
+  int getAssetsVerifiedCount() {
+    return _sharedPreferences.getInt(_assetVerifiedCount)??0;
+  }
+
+  void setAssetsVerifiedCount(int count) {
+    _sharedPreferences.setInt(_assetVerifiedCount, count);
   }
 
 }

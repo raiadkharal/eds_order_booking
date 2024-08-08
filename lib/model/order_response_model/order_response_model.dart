@@ -1,14 +1,18 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:order_booking/db/entities/order_detail/order_detail.dart';
 import 'package:order_booking/model/order_detail_model/order_detail_model.dart';
 import 'package:order_booking/model/unit_price_breakdown_model/unit_price_breakdown_model.dart';
 
+import '../../db/entities/outlet/outlet.dart';
+import '../../db/models/base_response/base_response.dart';
 import '../outlet_model/outlet_model.dart';
 
 part 'order_response_model.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class OrderResponseModel {
+class OrderResponseModel extends BaseResponse{
   @JsonKey(name: 'code')
   String? code;
 
@@ -70,7 +74,7 @@ class OrderResponseModel {
   int? startedDate;
 
   @JsonKey(name: 'outlet')
-  OutletModel? outlet;
+  Outlet? outlet;
 
   @JsonKey(name: 'channelId')
   int? channelId;

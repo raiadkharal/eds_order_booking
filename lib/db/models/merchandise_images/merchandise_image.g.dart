@@ -8,11 +8,11 @@ part of 'merchandise_image.dart';
 
 MerchandiseImage _$MerchandiseImageFromJson(Map<String, dynamic> json) {
   return MerchandiseImage(
-    id: json['id'] as int,
-    path: json['path'] as String,
-    image: json['image'] as String,
-    type: json['type'] as int,
-    status: json['status'] as int,
+    id: json['id'] as int?,
+    path: json['path'] as String?,
+    image: json['image'] as String?,
+    type: json['type'] as int?,
+    status: json['status'] as int?,
   );
 }
 

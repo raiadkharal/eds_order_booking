@@ -9,16 +9,26 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:order_booking/components/dialog/last_order_dialog/last_order_dialog.dart';
 import 'package:order_booking/components/dialog/promo_dialog/promo_dialog.dart';
+import 'package:order_booking/model/configuration/configurations_model.dart';
 import 'package:order_booking/route.dart';
+import 'package:order_booking/ui/home/home_view_model.dart';
 import 'package:order_booking/ui/route/outlet/outlet_detail/outlet_detail_repository.dart';
+import 'package:order_booking/utils/Constants.dart';
+import 'package:order_booking/utils/device_info_util.dart';
+import 'package:order_booking/utils/network_manager.dart';
 import 'package:order_booking/utils/util.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../components/navigation_drawer/my_navigation_drawer.dart';
 import '../../../../components/progress_dialog/PregressDialog.dart';
 import '../../../../db/entities/outlet/outlet.dart';
 import '../../../../db/entities/promotion/promotion.dart';
+import '../../../../db/models/configuration/configurations.dart';
+import '../../../../db/models/outlet_visit/outlet_visit.dart';
+import '../../../../utils/AlertDialogManager.dart';
 import '../../../../utils/Colors.dart';
 import '../../../../utils/PreferenceUtil.dart';
 import '../../../../utils/utils.dart';
@@ -35,37 +45,53 @@ class OutletDetailScreen extends StatefulWidget {
 }
 
 class _OutletDetailScreenState extends State<OutletDetailScreen> {
-  late GoogleMapController _controller;
+  late GoogleMapController _mapController;
 
-  LatLng? outletLatLng, currentLatLng;
+  LatLng? _outletLatLng, _currentLatLng;
 
-  int statusId = 1;
+  int _statusId = 1;
 
-  int startLocationTime = 0;
+  int _startLocationTime = 0;
 
-  int endLocationTime = 0;
+  int _endLocationTime = 0;
 
-  int alertDialogCount = 0;
+  int _alertDialogCount = 0;
 
-  bool isFakeLocation = false;
+  bool _isFakeLocation = false;
 
-  int? notFlowReasonCode;
+  int? _notFlowReasonCode;
 
-  final OutletDetailViewModel controller =
-  Get.put(OutletDetailViewModel(OutletDetailRepository(Get.find(),Get.find())));
+  final OutletDetailViewModel _controller = Get.put(OutletDetailViewModel(
+      OutletDetailRepository(
+          Get.find(), Get.find(), Get.find(), Get.find(), Get.find()),
+      Get.find()));
 
-  late final int outletId;
+  final _homeController = Get.find<HomeViewModel>();
+
+  late final int _outletId;
+
+  final bool _enableMerchandise = true;
+
+  String _reasonForNoSale = "";
+
+  int _outletVisitStartTime = DateTime.now().millisecondsSinceEpoch;
+  bool _withoutVerification = false;
+
+  final RxString _tvAssetsNumber = "".obs;
+  final RxBool _enableBtn = false.obs;
+  bool _isAssets = false;
 
   @override
   void initState() {
     if (Get.arguments != null) {
       List<dynamic> args = Get.arguments;
-      outletId = args[0];
+      _outletId = args[0];
     } else {
-      outletId = 0;
+      _outletId = 0;
     }
-    controller.loadSelectedOutlet(outletId);
-    // setObservers();
+    _controller.setAssetScanned(false);
+    _controller.loadSelectedOutlet(_outletId);
+    _setObservers();
     _setLocationCallback();
     super.initState();
   }
@@ -73,19 +99,16 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: NavDrawer(
-        baseContext: context,
-      ),
+      backgroundColor: Colors.white,
       appBar: AppBar(
           foregroundColor: Colors.white,
           backgroundColor: primaryColor,
-          title: Expanded(
-              child: Text(
-                "EDS",
-                style: GoogleFonts.roboto(color: Colors.white),
-              ))),
+          title: Text(
+            "OUTLET DETAILS",
+            style: GoogleFonts.roboto(color: Colors.white),
+          )),
       body: FutureBuilder(
-        future: controller.loadSelectedOutlet(outletId),
+        future: _controller.loadSelectedOutlet(_outletId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Stack(
@@ -101,36 +124,33 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                             width: double.infinity,
                             height: 250,
                             child: Obx(
-                                  () =>
-                                  GoogleMap(
-                                    initialCameraPosition:
+                              () => GoogleMap(
+                                initialCameraPosition:
                                     OutletDetailScreen._initialCameraPosition,
-                                    scrollGesturesEnabled: false,
-                                    markers: controller.markers.value,
-                                    zoomControlsEnabled: false,
-                                    mapToolbarEnabled: false,
-                                    mapType: MapType.normal,
-                                    onMapCreated: (mapController) async {
-                                      _controller = mapController;
-                                      // final Uint8List? markerIcon = await Utils.getBytesFromAsset('assets/images/ic_location.png', 100);
-                                      if (controller.outlet.latitude != null &&
-                                          controller.outlet.longitude != null) {
-                                        controller.addMarker(Marker(
-                                          markerId: const MarkerId("location"),
-                                          position: LatLng(
-                                              controller.outlet.latitude!,
-                                              controller.outlet.longitude!),
-                                        ));
-                                        _controller.animateCamera(
-                                            CameraUpdate.newLatLngZoom(
-                                                LatLng(
-                                                    controller.outlet.latitude!,
-                                                    controller.outlet
-                                                        .longitude!),
-                                                15));
-                                      }
-                                    },
-                                  ),
+                                scrollGesturesEnabled: false,
+                                markers: _controller.markers.value,
+                                zoomControlsEnabled: false,
+                                mapToolbarEnabled: false,
+                                mapType: MapType.normal,
+                                onMapCreated: (mapController) async {
+                                  _mapController = mapController;
+                                  // final Uint8List? markerIcon = await Utils.getBytesFromAsset('assets/images/ic_location.png', 100);
+                                  if (_controller.outlet.latitude != null &&
+                                      _controller.outlet.longitude != null) {
+                                    _controller.addMarker(Marker(
+                                      markerId: const MarkerId("location"),
+                                      position: LatLng(
+                                          _controller.outlet.latitude!,
+                                          _controller.outlet.longitude!),
+                                    ));
+                                    _mapController.animateCamera(
+                                        CameraUpdate.newLatLngZoom(
+                                            LatLng(_controller.outlet.latitude!,
+                                                _controller.outlet.longitude!),
+                                            15));
+                                  }
+                                },
+                              ),
                             )),
                         Positioned(
                           bottom: 5.0,
@@ -142,7 +162,7 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                             ),
                             onPressed: () {
                               try {
-                                launchMapUrl();
+                                _launchMapUrl();
                               } catch (e) {
                                 showToastMessage(e.toString());
                               }
@@ -163,167 +183,212 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                                   borderRadius: BorderRadius.zero),
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                    Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          "Name: ",
-                                          style: GoogleFonts.roboto(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.normal),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            "Name: ",
+                                            style: GoogleFonts.roboto(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.normal),
+                                          ),
                                         ),
-                                        const SizedBox(
-                                          height: 15,
-                                        ),
-                                        Text(
-                                          "Address: ",
-                                          style: GoogleFonts.roboto(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.normal),
-                                        ),
-                                        const SizedBox(
-                                          height: 15,
-                                        ),
-                                        Text(
-                                          "Channel: ",
-                                          style: GoogleFonts.roboto(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.normal),
-                                        ),
-                                        const SizedBox(
-                                          height: 15,
-                                        ),
-                                        Text(
-                                          "Number of Assets: ",
-                                          style: GoogleFonts.roboto(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.normal),
-                                        ),
-                                        const SizedBox(
-                                          height: 15,
-                                        ),
-                                        Text(
-                                          "Digital Account: ",
-                                          style: GoogleFonts.roboto(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.normal),
-                                        ),
-                                        const SizedBox(
-                                          height: 15,
-                                        ),
-                                        Text(
-                                          "Disburse Amount",
-                                          style: GoogleFonts.roboto(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.normal),
-                                        ),
-                                        const SizedBox(
-                                          height: 15,
-                                        ),
-                                        Text(
-                                          "Remarks",
-                                          style: GoogleFonts.roboto(
-                                              color: Colors.black,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.normal),
+                                        Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            "${_controller.outlet.outletName}-${_controller.outlet.location}" ??
+                                                "outlet name",
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.roboto(
+                                                color: Colors.black54,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.normal),
+                                          ),
                                         ),
                                       ],
                                     ),
                                     const SizedBox(
-                                      width: 30,
+                                      height: 15,
                                     ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            controller.outlet.outletName ??
-                                                "outlet name",
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            "Address: ",
                                             style: GoogleFonts.roboto(
-                                                color: Colors.black54,
+                                                color: Colors.black,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                          const SizedBox(
-                                            height: 15,
-                                          ),
-                                          Text(
-                                            controller.outlet.address ??
+                                        ),
+                                        Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            _controller.outlet.address ??
                                                 "outlet address",
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                             style: GoogleFonts.roboto(
                                                 color: Colors.black54,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                          const SizedBox(
-                                            height: 15,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            "Channel: ",
+                                            style: GoogleFonts.roboto(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.normal),
                                           ),
-                                          Text(
-                                            controller.outlet.channelName ??
+                                        ),
+                                        Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            _controller.outlet.channelName ??
                                                 "channel name",
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                             style: GoogleFonts.roboto(
                                                 color: Colors.black54,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                          const SizedBox(
-                                            height: 15,
-                                          ),
-                                          Text(
-                                            controller.outlet.outletCode ??
-                                                "no of assets",
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            "No Of Assets: ",
                                             style: GoogleFonts.roboto(
-                                                color: Colors.black54,
+                                                color: Colors.black,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                          const SizedBox(
-                                            height: 15,
+                                        ),
+                                        Expanded(
+                                          flex: 4,
+                                          child: Obx(
+                                            () => Text(
+                                              _tvAssetsNumber.value,
+                                              style: GoogleFonts.roboto(
+                                                  color: Colors.black54,
+                                                  fontSize: 14,
+                                                  fontWeight:
+                                                      FontWeight.normal),
+                                            ),
                                           ),
-                                          Text(
-                                            controller.outlet.digitalAccount ??
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            "Digital Account: ",
+                                            style: GoogleFonts.roboto(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.normal),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            _controller.outlet.digitalAccount ??
                                                 "digital account",
                                             style: GoogleFonts.roboto(
                                                 color: Colors.black54,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                          const SizedBox(
-                                            height: 15,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            "Disburse Amount: ",
+                                            style: GoogleFonts.roboto(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.normal),
                                           ),
-                                          Text(
-                                            "${controller.outlet
-                                                .disburseAmount ?? 0.0}",
+                                        ),
+                                        Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            "${_controller.outlet.disburseAmount ?? 0.0}",
                                             style: GoogleFonts.roboto(
                                                 color: Colors.black54,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                          const SizedBox(
-                                            height: 15,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            "Remarks: ",
+                                            style: GoogleFonts.roboto(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.normal),
                                           ),
-                                          Text(
-                                            controller.outlet.remarks ??
+                                        ),
+                                        Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            _controller.outlet.remarks ??
                                                 "Remarks",
                                             style: GoogleFonts.roboto(
                                                 color: Colors.black54,
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.normal),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -344,19 +409,18 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                                       style: GoogleFonts.roboto(
                                           color: Colors.black,
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w500),
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       mainAxisAlignment:
-                                      MainAxisAlignment.start,
+                                          MainAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Month to Date Sales: ${controller
-                                              .outlet.lastSale ?? 0.0}",
+                                          "Month to Date Sales: ${_controller.outlet.lastSale ?? 0.0}",
                                           style: GoogleFonts.roboto(
-                                            color: Colors.black54,
-                                          ),
+                                              color: Colors.black54,
+                                              fontWeight: FontWeight.normal),
                                         )
                                       ],
                                     )
@@ -369,64 +433,62 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                               color: Colors.white,
                               shape: const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.zero),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Last Order",
-                                      style: GoogleFonts.roboto(
-                                          color: Colors.black,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Rs : ${controller.outlet.lastOrder
-                                              ?.orderTotal ?? 0.0}",
-                                          style: GoogleFonts.roboto(
-                                            color: Colors.black54,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Quantity : ${controller.outlet
-                                              .lastOrder?.orderQuantity ??
-                                              0.0}",
-                                          style: GoogleFonts.roboto(
-                                            color: Colors.black54,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Taken on : ${Util.formatDate(
-                                              Util.DATE_FORMAT_1,
-                                              controller.outlet.lastOrder
-                                                  ?.lastSaleDate)}",
-                                          style: GoogleFonts.roboto(
-                                            color: Colors.black54,
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                  ],
+                              child: InkWell(
+                                onTap: () => _showLastOrderDialog(),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Last Order",
+                                        style: GoogleFonts.roboto(
+                                            color: Colors.black,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Rs. ${_controller.outlet.lastOrder?.orderTotal ?? 0.0}",
+                                            style: GoogleFonts.roboto(
+                                              color: Colors.black54,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Quantity : ${_controller.outlet.lastOrder?.orderQuantity ?? 0.0}",
+                                            style: GoogleFonts.roboto(
+                                              color: Colors.black54,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Taken on : ${Util.formatDate(Util.DATE_FORMAT, _controller.outlet.lastOrder?.lastSaleDate)}",
+                                            style: GoogleFonts.roboto(
+                                              color: Colors.black54,
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -434,17 +496,20 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                               mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10.0),
+                                Container(
+                                  width: 150,
+                                  padding: const EdgeInsets.only(
+                                      top: 10.0, right: 10),
                                   child: InkWell(
                                     onTap: () {
-                                      onPromotionsClick();
+                                      _onPromotionsClick();
                                     },
                                     child: Container(
                                       color: Colors.blueAccent,
                                       padding: const EdgeInsets.all(8),
                                       child: Text(
                                         "Promotions",
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.roboto(
                                             color: Colors.white, fontSize: 16),
                                       ),
@@ -463,100 +528,113 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          PopupMenuButton(
-                            itemBuilder: (BuildContext context) {
-                              return ['Outlet Closed', 'No Time']
-                                  .map((String item) {
-                                return PopupMenuItem<String>(
-                                  value: item,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5.0),
-                                    child: Text(item),
+                          Obx(
+                            () => PopupMenuButton(
+                              enabled: _enableBtn.value,
+                              itemBuilder: (BuildContext context) {
+                                return ['Outlet Closed', 'No Time']
+                                    .map((String item) {
+                                  return PopupMenuItem<String>(
+                                    value: item,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5.0),
+                                      child: Text(item),
+                                    ),
+                                  );
+                                }).toList();
+                              },
+                              onSelected: (selectedReason) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    backgroundColor: Colors.white,
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
+                                    insetPadding: const EdgeInsets.all(20),
+                                    title: const Text("Warning!"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Are you sure you want to take an action?",
+                                          style:
+                                              GoogleFonts.roboto(fontSize: 16),
+                                        ),
+                                        const SizedBox(
+                                          height: 24,
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context).pop(),
+                                                child: Text(
+                                                  "No",
+                                                  style: GoogleFonts.roboto(
+                                                      color: Colors.black,
+                                                      fontSize: 16),
+                                                )),
+                                            TextButton(
+                                                onPressed: () {
+                                                  Map<String, int> hashMap = {};
+                                                  hashMap['Outlet Closed'] = 2;
+                                                  hashMap['No Time'] = 3;
+
+                                                  _notFlowReasonCode =
+                                                      hashMap[selectedReason];
+                                                  Navigator.of(context).pop();
+                                                  _notFlowClick();
+                                                },
+                                                child: Text(
+                                                  "Yes",
+                                                  style: GoogleFonts.roboto(
+                                                      color: Colors.black,
+                                                      fontSize: 16),
+                                                )),
+                                          ],
+                                        )
+                                      ],
+                                    ),
                                   ),
                                 );
-                              }).toList();
-                            },
-                            onSelected: (selectedReason) {
-                              showDialog(
-                                context: context,
-                                builder: (context) =>
-                                    AlertDialog(
-                                      shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(Radius.circular(5))),
-                                      insetPadding: const EdgeInsets.all(20),
-                                      title: const Text("Warning!"),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Are you sure you want to take an action?",
-                                            style: GoogleFonts.roboto(
-                                                fontSize: 16),
-                                          ),
-                                          const SizedBox(
-                                            height: 24,
-                                          ),
-                                          Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                            children: [
-                                              TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  child: Text(
-                                                    "No",
-                                                    style: GoogleFonts.roboto(
-                                                        color: Colors.black,fontSize: 16),
-                                                  )),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    Map<String, int> hashMap = {
-                                                    };
-                                                    hashMap['Outlet Closed'] =
-                                                    2;
-                                                    hashMap['No Time'] = 3;
-
-                                                    notFlowReasonCode =
-                                                    hashMap[selectedReason];
-                                                    Navigator.of(context).pop();
-                                                    notFlowClick();
-                                                  },
-                                                  child: Text(
-                                                    "Yes",
-                                                    style: GoogleFonts.roboto(
-                                                        color: Colors.black,fontSize: 16),
-                                                  )),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                              );
-                            },
-                            offset: const Offset(0, -120),
-                            child: Container(
-                              color: Colors.blueAccent,
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                "CAN'T START FLOW",
-                                style: GoogleFonts.roboto(
-                                    color: Colors.white, fontSize: 16),
-                              ),
-                            ), // Adjust the vertical offset as needed
+                              },
+                              offset: const Offset(0, -120),
+                              child: Opacity(
+                                opacity: _enableBtn.value ? 1.0 : 0.5,
+                                child: Container(
+                                  color: Colors.blueAccent,
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    "CAN'T START FLOW",
+                                    style: GoogleFonts.roboto(
+                                        color: Colors.white, fontSize: 16),
+                                  ),
+                                ),
+                              ), // Adjust the vertical offset as needed
+                            ),
                           ),
-                          InkWell(
-                            onTap: () => onStartFlowClick(),
-                            child: Container(
-                              color: Colors.blueAccent,
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                "START FLOW",
-                                style: GoogleFonts.roboto(
-                                    color: Colors.white, fontSize: 16),
+                          Obx(
+                            () => InkWell(
+                              onTap: _enableBtn.value
+                                  ? () => _onStartFlowClick()
+                                  : null,
+                              child: Opacity(
+                                opacity: _enableBtn.value ? 1.0 : 0.5,
+                                child: Container(
+                                  color: Colors.blueAccent,
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    "START FLOW",
+                                    style: GoogleFonts.roboto(
+                                        color: Colors.white, fontSize: 16),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -566,10 +644,7 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                   ],
                 ),
                 Obx(
-                      () =>
-                  controller
-                      .isLoading()
-                      .value
+                  () => _controller.isLoading().value
                       ? const SimpleProgressDialog()
                       : const SizedBox(),
                 ),
@@ -583,22 +658,42 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
     );
   }
 
-  void onStartFlowClick() {
+  Future<void> _onStartFlowClick() async {
     PreferenceUtil preferenceUtil = Get.find<PreferenceUtil>();
     preferenceUtil.setOutletStatus(1);
 
-    if (!isFakeLocation) {
-      //TODO-add auto time check here, if not auto time then show dialog message and return
-      bool autoTime = true;
-      if (!autoTime) {
+    if (!_isFakeLocation) {
+      //check auto time and date enabled if not show message
+      bool isAutoTimeEnabled = await DeviceInfoUtil.isAutoTimeEnabled();
+
+      if (!isAutoTimeEnabled && !_controller.isTestUser()) {
+        //ask user to enable auto date and time
+        _showAutoTimeWarningDialog();
         return;
       }
-      controller.updateOutletStatusCode(1);
 
-      if (currentLatLng != null) {
+      _outletVisitStartTime = DateTime.now().millisecondsSinceEpoch;
+      bool isMatched = Util.isCurrentDateMatched(_controller.getSyncDate());
+      if (!isMatched && !_controller.isTestUser()) {
+        _showWarningDialogue(
+            "Your System Date Time doesn't match with Day Start");
+        return;
+      }
+
+      bool isDeveloperOptionEnable =
+          await DeviceInfoUtil.isDeveloperOptionsEnabled();
+      if (isDeveloperOptionEnable && !_controller.isTestUser()) {
+        _showWarningDialogue(
+            "Your developer option is enable in mobile setting!\nPlease turn off the developer Option.");
+        return;
+      }
+
+      _controller.updateOutletStatusCode(1);
+
+      if (_currentLatLng != null) {
         final outletVisitStartTime = DateTime.now().millisecondsSinceEpoch;
 
-        controller.onNextClick(currentLatLng!,outletVisitStartTime);
+        _controller.onNextClick(_currentLatLng!, outletVisitStartTime);
       } else {
         _setLocationCallback();
       }
@@ -607,42 +702,25 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
     }
   }
 
-  void notFlowClick() async {
-    if (!isFakeLocation) {
-      bool isAutoTimeEnabled = await _checkAutoTime();
+  void _notFlowClick() async {
+    if (!_isFakeLocation) {
+      bool isAutoTimeEnabled = await DeviceInfoUtil.isAutoTimeEnabled();
 
-      // if (!isAutoTimeEnabled && !controller.isTestUser()) {
-      //   //TODO-show dialog message
-      //   showToastMessage("Please enable auto date time");
-      //   return;
-      // }
-      controller.updateOutletStatusCode(1);
+      if (!isAutoTimeEnabled && !_controller.isTestUser()) {
+        //show to dialog to ask user to enable auto time
+        _showAutoTimeWarningDialog();
+        return;
+      }
+      _controller.updateOutletStatusCode(1);
 
-      if (currentLatLng != null) {
-        // controller.onStartNotFlow(currentLatLng!);
+      if (_currentLatLng != null) {
+        _controller.onNextClick(_currentLatLng!, _outletVisitStartTime);
       } else {
         _setLocationCallback();
       }
     } else {
       showToastMessage("You are using fake GPS");
     }
-  }
-
-  Future<bool> _checkAutoTime() async {
-    const platform = MethodChannel('com.optimus.time/autoTime');
-
-    bool isAutoTimeEnabled;
-    try {
-      final bool result = await platform.invokeMethod('isAutoDateTimeEnabled');
-      isAutoTimeEnabled = result;
-    } on PlatformException catch (e) {
-      isAutoTimeEnabled = false;
-    } on Exception catch (e) {
-      e.printInfo();
-      isAutoTimeEnabled = false;
-    }
-
-    return isAutoTimeEnabled;
   }
 
   Future<LocationData> _setLocationCallback() async {
@@ -668,105 +746,112 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
       return Future.error(
           "Location permissions are permanently denied, we cannot request permissions. ");
     }
-    // controller.setLoading(true);
+    _controller.setLoading(true);
     final locationData = await Location.instance.getLocation();
-    isFakeLocation = locationData.isMock ?? false;
+    _isFakeLocation = locationData.isMock ?? false;
 
-    // controller.setLoading(false);
     if (locationData.latitude != null && locationData.longitude != null) {
-      currentLatLng = LatLng(locationData.latitude!, locationData.longitude!);
+      _currentLatLng = LatLng(locationData.latitude!, locationData.longitude!);
     }
 
-    if (controller.outlet.latitude != null &&
-        controller.outlet.longitude != null) {
-      outletLatLng =
-          LatLng(controller.outlet.latitude!, controller.outlet.longitude!);
+    if (_controller.outlet.latitude != null &&
+        _controller.outlet.longitude != null) {
+      _outletLatLng =
+          LatLng(_controller.outlet.latitude!, _controller.outlet.longitude!);
     }
 
     // controller.setLoading(true);
-    // double meters = Util.checkMetre(currentLatLng, outletLatLng);
+    double meters = Util.checkMetre(_currentLatLng, _outletLatLng);
 
-    // Configuration configuration = controller.getConfiguration();
+    ConfigurationModel configuration = _controller.getConfiguration();
 
-    startLocationTime = DateTime
-        .now()
-        .millisecondsSinceEpoch;
-    // if ((meters > configuration.geoFenceMinRadius &&
-    //         startLocationTime > endLocationTime) &&
-    //     !controller.isTestUser()) {
-    //   showOutsideBoundaryDialog(alertDialogCount, meters.toString());
-    // } else if (meters <= configuration.geoFenceMinRadius ||
-    //     !controller.isTestUser()) {
-    //   controller.updateBtn(true);
-    // }
+    _controller.setLoading(false);
+    _startLocationTime = DateTime.now().millisecondsSinceEpoch;
+    if ((meters > configuration.geoFenceMinRadius &&
+            _startLocationTime > _endLocationTime) &&
+        !_controller.isTestUser()) {
+      _showOutsideBoundaryDialog(_alertDialogCount, meters.toString());
+    } else if (meters <= configuration.geoFenceMinRadius ||
+        _controller.isTestUser()) {
+      _updateBtn(true);
+    }
 
     return locationData;
   }
 
-  void launchMapUrl() async {
+  void _updateBtn(bool value) {
+    _enableBtn.value = value;
+    _enableBtn.refresh();
+  }
+
+  void _launchMapUrl() async {
     String url =
-        "https://www.google.com/maps/dir/?api=1&destination=${controller.outlet
-        .latitude},${controller.outlet.longitude}";
+        "https://www.google.com/maps/dir/?api=1&destination=${_controller.outlet.latitude},${_controller.outlet.longitude}";
     if (!await launchUrl(Uri.parse(url))) {
       throw 'Could not launch $url';
     }
   }
 
-  void showOutsideBoundaryDialog(int repeat, String distance) {
+  void _showOutsideBoundaryDialog(int repeat, String distance) {
     if (repeat < 2) {
-      alertDialogCount++;
-      // showToastMessage(
-      //     "Your are $distance away from the outlet please go to outlet location and try again");
-
-      // controller.setLoading(true);
-
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) =>
-            AlertDialog(
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(5))),
-              insetPadding: const EdgeInsets.all(20),
-              title: Text("Warning!", style: GoogleFonts.roboto()),
-              content: Text(
-                "You are $distance away from the retailer's defined boundary.\nPress Ok to continue" +
-                    "\nCurrent LatLng ::  ${currentLatLng
-                        ?.latitude} , ${currentLatLng
-                        ?.longitude} \nAlert Count :: ${repeat + 1}",
-                style: GoogleFonts.roboto(),
-              ),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _setLocationCallback();
-                    },
-                    child: Text(
-                      "Ok",
-                      style: GoogleFonts.roboto(color: Colors.grey.shade800,fontSize: 16),
-                    ))
-              ],
-            ),
+        builder: (context) => AlertDialog(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(5))),
+          insetPadding: const EdgeInsets.all(20),
+          title: Text("Warning!", style: GoogleFonts.roboto()),
+          content: Text(
+            "You are $distance away from the retailer's defined boundary.\nPress Ok to continue" +
+                "\nCurrent LatLng ::  ${_currentLatLng?.latitude} , ${_currentLatLng?.longitude} \nAlert Count :: ${repeat + 1}",
+            style: GoogleFonts.roboto(),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _alertDialogCount++;
+                  _startLocationTime = DateTime.now().millisecondsSinceEpoch;
+                  _endLocationTime = _startLocationTime + 4000;
+                  _setLocationCallback();
+                },
+                child: Text(
+                  "Ok",
+                  style: GoogleFonts.roboto(
+                      color: Colors.grey.shade800, fontSize: 16),
+                ))
+          ],
+        ),
       );
+    } else {
+      OutletVisit outletVisit = OutletVisit();
+      outletVisit.outletId = _outletId;
+      outletVisit.visitTime = _outletVisitStartTime;
+      outletVisit.latitude = _outletLatLng?.latitude;
+      outletVisit.longitude = _outletLatLng?.longitude;
+      _controller.outlet.outletVisits?.add(outletVisit);
+      _controller.updateOutlet(_controller.outlet);
+      _updateBtn(true);
     }
   }
 
-  void onPromotionsClick() {
-    controller.getPromotions(outletId).then(
-          (promotions) {
+  void _onPromotionsClick() {
+    _controller.getPromotions(_outletId).then(
+      (promotions) {
         if (promotions.isNotEmpty) {
           showDialog(
+            barrierDismissible: false,
             context: context,
             builder: (context) {
-              // List<Promotion> promos = [
-              //   Promotion(name: "Promotion 1", amount: 100),
-              //   Promotion(name: "Promotion 2", amount: 140.22),
-              //   Promotion(name: "Promotion 3", amount: 300.0),
-              //   Promotion(name: "Promotion 4", amount: 10.0),
-              //   Promotion(name: "Promotion 5", amount: 130.0),
-              //   Promotion(name: "Promotion 6", amount: 130.0),
-              // ];
+              List<Promotion> promos = [
+                /*  Promotion(name: "Promotion 1", amount: 100),
+                Promotion(name: "Promotion 2", amount: 140.22),
+                Promotion(name: "Promotion 3", amount: 300.0),
+                Promotion(name: "Promotion 4", amount: 10.0),
+                Promotion(name: "Promotion 5", amount: 130.0),
+                Promotion(name: "Promotion 6", amount: 130.0),*/
+              ];
               return PromotionDialog(promos: promotions);
             },
           );
@@ -777,49 +862,206 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
     );
   }
 
-//
-// void setObservers() {
-//   debounce(controller.isStartFlow, (value) {
-//     if (value) {
-//       startFlowToNext();
-//     }
-//   }, time: const Duration(milliseconds: 200));
-//
-//   debounce(controller.isStartNotFlow, (value) {
-//     if (value) {
-//       // setStartNotFlow();
-//     }
-//   }, time: const Duration(milliseconds: 200));
-//
-//   debounce(controller.outletNearbyPos, (distance) {
-//     if (currentLatLng != null && outletLatLng != null) {
-//       AlertDialogManager.getInstance()
-//           .showLocationMissMatchAlertDialog(context,currentLatLng!, outletLatLng!);
-//     }
-//   }, time: const Duration(milliseconds: 200));
-//
-//   debounce(controller.getSurveySavedWithEvent(), (event) {
-//     if (event.getContentIfNotHandled() != null) {
-//       controller.setOutletStatus(1);
-//       // navigate back to outlet list screen
-//       // Get.back(result: "ok");
-//       Get.until((route) => Get.currentRoute == Routes.outletList);
-//       SurveySingletonModel.getInstance().reset();
-//     }
-//   }, time: const Duration(milliseconds: 200));
-//
-//   debounce(controller.getPostWorkWithSaved(), (aBoolean) {
-//     if (aBoolean) {
-//       controller.setOutletStatus(1);
-//       // navigate back to outlet list screen
-//       // Get.back(result: "ok");
-//       Get.until((route) => Get.currentRoute == Routes.outletList);
-//       WorkWithSingletonModel.getInstance().reset();
-//     }
-//   }, time: const Duration(milliseconds: 100));
-//
-//   debounce(controller.getMessage(), (event) {
-//     showToastMessage(event.peekContent());
-//   }, time: const Duration(milliseconds: 200));
-// }
+  void _setObservers() {
+    debounce(_controller.getUploadStatus(), (aBoolean) async {
+      if (aBoolean) {
+        double outletDistance = checkMetre(_currentLatLng, _outletLatLng);
+        _controller.uploadStatus(
+            _outletId,
+            _currentLatLng,
+            _outletLatLng,
+            outletDistance,
+            _outletVisitStartTime,
+            DateTime.now().millisecondsSinceEpoch,
+            _reasonForNoSale);
+      } else {
+        if (_enableMerchandise) {
+          Get.toNamed(EdsRoutes.outletMerchandising, arguments: [_outletId])
+              ?.then(
+            (result) {
+              _handleResult(result);
+            },
+          );
+        } else {
+          Get.toNamed(EdsRoutes.orderBooking, arguments: [_outletId])?.then(
+            (result) {
+              _handleResult(result);
+            },
+          );
+        }
+
+//                finish();
+      }
+    }, time: const Duration(milliseconds: 200));
+
+    debounce(_controller.getAssets(_outletId), (assets) {
+      _tvAssetsNumber(assets.length.toString());
+      _tvAssetsNumber.refresh();
+      _isAssets = assets.isNotEmpty;
+    }, time: const Duration(milliseconds: 200));
+
+    debounce(_controller.getSingleOrderUpdate(), (outletId) {
+      if (outletId != 0) {
+        NetworkManager.getInstance().isConnectedToInternet().then(
+          (aBoolean) async {
+            if (aBoolean) {
+              WakelockPlus.enable();
+              String? msg = await _homeController.uploadSingleOrder(outletId);
+              if (msg != null && !msg.isNotEmpty) {
+                showToastMessage(msg.toString());
+              }
+
+              Get.back();
+            } else {
+              showToastMessage(Constants.NETWORK_ERROR);
+              Get.back();
+            }
+          },
+        );
+      }
+    }, time: const Duration(milliseconds: 100));
+
+    debounce(_controller.outletNearbyPos, (distance) {
+      if (_currentLatLng != null && _outletLatLng != null) {
+        AlertDialogManager.getInstance().showLocationMissMatchAlertDialog(
+            context, _currentLatLng!, _outletLatLng!);
+      }
+    }, time: const Duration(milliseconds: 200));
+  }
+
+  double checkMetre(LatLng? currentLatLng, LatLng? outletLatLng) {
+    //TODO-implement this method later
+    return 0.0;
+  }
+
+  void _showLastOrderDialog() {
+    if (_controller.outlet.lastOrder != null) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) =>
+            LastOrderDialog(order: _controller.outlet.lastOrder),
+      );
+    }
+  }
+
+  void _showAutoTimeWarningDialog() {
+    Get.dialog(
+        barrierDismissible: false,
+        AlertDialog(
+          backgroundColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          insetPadding: const EdgeInsets.all(20),
+          title: const Text("Warning!"),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Please Enable auto Date and time",
+                  style: GoogleFonts.roboto(fontSize: 16),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          "Cancel",
+                          style: GoogleFonts.roboto(
+                              color: Colors.black54, fontSize: 16),
+                        )),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          DeviceInfoUtil.openDateTimeSettings();
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          "Settings",
+                          style: GoogleFonts.roboto(
+                              color: Colors.black, fontSize: 16),
+                        ))
+                  ],
+                )
+              ],
+            ),
+          ),
+        ));
+  }
+
+  void _showWarningDialogue(String message) {
+    Get.dialog(
+        barrierDismissible: false,
+        AlertDialog(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          insetPadding: const EdgeInsets.all(20),
+          backgroundColor: Colors.white,
+          title: const Text("Error"),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  message,
+                  style: GoogleFonts.roboto(fontSize: 16),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          "Ok",
+                          style: GoogleFonts.roboto(
+                              color: Colors.black, fontSize: 16),
+                        ))
+                  ],
+                )
+              ],
+            ),
+          ),
+        ));
+  }
+
+  void _handleResult(Map<String, dynamic>? result) {
+    if (result != null &&
+        result.keys.contains(Constants.EXTRA_PARAM_NO_ORDER_FROM_BOOKING)) {
+      bool noOrderFromOrderBooking =
+          result[Constants.EXTRA_PARAM_NO_ORDER_FROM_BOOKING] ?? false;
+      _withoutVerification = result[Constants.WITHOUT_VERIFICATION] ?? false;
+      _reasonForNoSale =
+          result[Constants.EXTRA_PARAM_OUTLET_REASON_N_ORDER] ?? false;
+      if (!_withoutVerification) {
+        // showProgress();
+        _controller.postEmptyCheckout(noOrderFromOrderBooking, _outletId,
+            _outletVisitStartTime, DateTime.now().millisecondsSinceEpoch);
+//                            viewModel.scheduleMerchandiseJob(getApplication(), outletId, PreferenceUtil.getInstance(getApplication()).getToken());
+      } else {
+        _controller.postEmptyCheckoutWithOutAssetVerification(
+            noOrderFromOrderBooking,
+            _outletId,
+            _outletVisitStartTime,
+            DateTime.now().millisecondsSinceEpoch);
+      }
+    } else {
+      Get.back();
+    }
+  }
 }

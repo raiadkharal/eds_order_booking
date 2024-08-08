@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:order_booking/utils/extension.dart';
 
 class DeviceInfoUtil{
@@ -107,6 +109,44 @@ class DeviceInfoUtil{
   //   return text;
   // }
 
+
+  static Future<bool> isAutoTimeEnabled() async {
+    const platform = MethodChannel('com.optimus.eds/autoTime');
+
+    try {
+      final bool isAutoTimeEnabled = await platform.invokeMethod('isAutoDateTimeEnabled');
+      return isAutoTimeEnabled;
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print("Failed to get auto time status: '${e.message}'.");
+      }
+      return false;
+    }
+  }
+
+  static Future<void> openDateTimeSettings() async {
+    const platform = MethodChannel('com.optimus.eds/autoTime');
+    try {
+      await platform.invokeMethod('openDateTimeSettings');
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print("Failed to open date time settings: '${e.message}'.");
+      }
+    }
+  }
+
+  static Future<bool> isDeveloperOptionsEnabled() async {
+    const platform = MethodChannel('com.optimus.eds/autoTime');
+    try {
+      final bool isDeveloperOptionsEnabled = await platform.invokeMethod('isDeveloperOptionsEnabled');
+      return isDeveloperOptionsEnabled;
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print("Failed to get developer options status: '${e.message}'.");
+      }
+      return false;
+    }
+  }
 
 }
 

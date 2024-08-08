@@ -2,11 +2,11 @@ part of 'price_condition_scale.dart';
 
 PriceConditionScale _$PriceConditionScaleFromJson(Map<String, dynamic> json) {
   return PriceConditionScale(
-    priceConditionScaleId: json['priceConditionScaleId'] as int,
-    from: json['from'] as double?,
-    amount: json['amount'] as double?,
+    priceConditionScaleId: json['priceConditionScaleId'] as int?,
+    from: (json['from'] is int)? (json['from'] as int).toDouble(): json['from'] as double?,
+    amount: (json['amount'] is int)? (json['amount'] as int).toDouble(): json['amount'] as double?,
     priceConditionDetailId: json['priceConditionDetailId'] as int?,
-    cartonAmount: json['cartonAmount'] as double?,
+    cartonAmount: (json['cartonAmount'] is int)? (json['cartonAmount'] as int).toDouble(): json['cartonAmount'] as double?,
   );
 }
 

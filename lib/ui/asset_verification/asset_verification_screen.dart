@@ -1,10 +1,12 @@
+/*
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AssetVerificationScreen extends StatefulWidget {
-  const AssetVerificationScreen({super.key});
+  final int outletId;
+  const AssetVerificationScreen({super.key, required this.outletId});
 
   @override
   State<AssetVerificationScreen> createState() => _AssetVerificationScreenState();
@@ -16,6 +18,7 @@ class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
 
   @override
   void initState() {
+    outletId=widget.outletId;
     if (Get.arguments != null) {
       List<dynamic> args = Get.arguments;
       outletId = args[0];
@@ -70,3 +73,4 @@ class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
 
   void setObservers() {}
 }
+*/

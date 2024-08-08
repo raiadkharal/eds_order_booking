@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:order_booking/data_source/remote/response/api_response.dart';
 import 'package:order_booking/db/models/log_model/log_model.dart';
 
+import '../../model/master_model/master_model.dart';
 import '../../utils/Constants.dart';
 
 class ApiService extends BaseApiService{
@@ -93,11 +94,11 @@ class ApiService extends BaseApiService{
      };
 
      final headers = {
-       "Content-Type": "application/x-www-form-urlencoded",
-       // "Content-Type": "application/json",
+       // "Content-Type": "application/x-www-form-urlencoded",
+       "Content-Type": "application/json",
      };
 
-     return makePostRequest("token", (bodyJson), headers, null);
+     return makePostRequest("token", jsonEncode(bodyJson), headers, null);
    }
 
 
@@ -142,7 +143,16 @@ class ApiService extends BaseApiService{
     };
 
     return makeGetRequest(
-        "api/pricing/get", headers, null);
+        "pricing/get", headers, null);
   }
 
+   @override
+  Future<ApiResponse> saveOrder(String accessToken, MasterModel masterModel) async{
+     final headers = {
+       "Content-Type": "application/json;charset=UTF-8",
+       "Authorization": "Bearer $accessToken"
+     };
+
+     return makePostRequest("order/PostOrder", jsonEncode(masterModel.toJson()), headers, null);
+  }
 }

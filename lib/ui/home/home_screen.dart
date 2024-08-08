@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:order_booking/components/navigation_drawer/my_navigation_drawer.dart';
+import 'package:order_booking/db/entities/outlet/outlet.dart';
+import 'package:order_booking/model/custom_object/custom_object.dart';
+import 'package:order_booking/model/target_vs_achievement/target_vs_achievement.dart';
 import 'package:order_booking/route.dart';
 import 'package:order_booking/ui/home/home_view_model.dart';
 import 'package:order_booking/utils/Colors.dart';
@@ -23,8 +28,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final HomeViewModel controller = Get.find<HomeViewModel>();
 
+  final Rx<TargetVsAchievement> _targetVsAchievement =
+      TargetVsAchievement().obs;
+
   @override
   void initState() {
+    init();
+
     setObservers();
     controller.checkDayEnd();
     super.initState();
@@ -66,7 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       () => HomeButton(
                                         onTap: () {
                                           if (controller.startDay().value) {
-                                            return null;
+                                            showToastMessage(
+                                                "Already started your day");
                                           } else {
                                             controller.start();
                                           }
@@ -93,9 +104,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               //Planned Calls
                               HomeButton(
-                                onTap: () {
+                                onTap: () async {
                                   if (controller.isDayStarted()) {
-                                    Get.toNamed(EdsRoutes.routes);
+                                    bool isDataDownloaded = await _checkDataDownloaded();
+                                    if (isDataDownloaded) {
+                                      Get.toNamed(EdsRoutes.routes);
+                                    }else{
+                                      showToastMessage("Please download Data");
+                                    }
                                   } else {
                                     showToastMessage(
                                         Constants.ERROR_DAY_NO_STARTED);
@@ -112,20 +128,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                     showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
-                                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(5))),
-                                        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+                                        shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(5))),
+                                        insetPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 20),
                                         content: SizedBox(
-                                          width: MediaQuery.of(context).size.width,
+                                          width:
+                                              MediaQuery.of(context).size.width,
                                           child: Column(
                                             mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 "Update Routes and Outlets!",
                                                 style: GoogleFonts.roboto(
                                                     fontSize: 18,
-                                                    fontWeight: FontWeight.w400),
+                                                    fontWeight:
+                                                        FontWeight.w400),
                                               ),
                                               const SizedBox(
                                                 height: 10,
@@ -134,35 +158,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   "Are you sure you want to fetch updated routes and outlets?",
                                                   style: GoogleFonts.roboto(
                                                       fontSize: 16,
-                                                      fontWeight: FontWeight.w400)),
+                                                      fontWeight:
+                                                          FontWeight.w400)),
                                               const SizedBox(
                                                 height: 10,
                                               ),
                                               Row(
                                                 mainAxisSize: MainAxisSize.max,
                                                 mainAxisAlignment:
-                                                MainAxisAlignment.end,
+                                                    MainAxisAlignment.end,
                                                 children: [
                                                   TextButton(
                                                       onPressed: () {
-                                                        Navigator.of(context).pop();
+                                                        Navigator.of(context)
+                                                            .pop();
                                                       },
-                                                      child: Text("NO",style: GoogleFonts.roboto(
-                                                          fontSize: 16,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w400),)),
+                                                      child: Text(
+                                                        "NO",
+                                                        style:
+                                                            GoogleFonts.roboto(
+                                                                fontSize: 16,
+                                                                color: Colors
+                                                                    .black,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400),
+                                                      )),
                                                   const SizedBox(
                                                     height: 10,
                                                   ),
                                                   TextButton(
                                                       onPressed: () {
-                                                        Navigator.of(context).pop();
+                                                        Navigator.of(context)
+                                                            .pop();
                                                         controller.download();
                                                       },
-                                                      child: Text("YES",style: GoogleFonts.roboto(
-                                                          fontSize: 16,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w400)))
+                                                      child: Text("YES",
+                                                          style: GoogleFonts
+                                                              .roboto(
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                      .black,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w400)))
                                                 ],
                                               )
                                             ],
@@ -188,42 +227,27 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               // End Day
                               Expanded(
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  alignment: Alignment.bottomCenter,
-                                  children: [
-                                    HomeButton(
-                                      onTap: () {
-                                        if (controller.startDay().value) {
-                                          return null;
-                                        } else {
-                                          controller.endDay();
-                                        }
-                                      },
-                                      text: "End Day",
-                                      imagePath: "assets/images/timer_end.png",
-                                      color: /*controller.startDay().value
-                                    ? Colors.grey.shade500
-                                    :*/
-                                          secondaryColor,
-                                    ),
-                                    // Obx(() => controller.startDay().value
-                                    //     ? Positioned(
-                                    //     bottom: 20,
-                                    //     child: Text(
-                                    //       "( ${controller.lastSyncDate.value} )",
-                                    //       style: GoogleFonts.roboto(
-                                    //           color: Colors.white),
-                                    //     ))
-                                    //     : const SizedBox())
-                                  ],
+                                child: HomeButton(
+                                  onTap: () => _onDayEndClick(),
+                                  text: "End Day",
+                                  imagePath: "assets/images/timer_end.png",
+                                  color: secondaryColor,
                                 ),
                               ),
                               //Download data
                               HomeButton(
                                 onTap: () {
                                   if (controller.isDayStarted()) {
-                                    // controller.download();
+                                    _showReportsSelectionDialog(
+                                      "Select Report",
+                                      (object) {
+                                        if (object.id == 0) {
+                                          Get.toNamed(EdsRoutes.reports);
+                                        } else {
+                                          Get.toNamed(EdsRoutes.stock);
+                                        }
+                                      },
+                                    );
                                   } else {
                                     showToastMessage(
                                         Constants.ERROR_DAY_NO_STARTED);
@@ -236,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               HomeButton(
                                 onTap: () {
                                   if (controller.isDayStarted()) {
-                                    // controller.download();
+                                    Get.toNamed(EdsRoutes.upload);
                                   } else {
                                     showToastMessage(
                                         Constants.ERROR_DAY_NO_STARTED);
@@ -285,51 +309,67 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
-                              Padding(
+                              const Padding(
                                 padding: EdgeInsets.all(8.0),
-                                child: Text("Key One"),
+                                child: Text("Target Quantity"),
                               ),
-                              Text("Key One value")
+                              Obx(
+                                () => Text(_targetVsAchievement
+                                    .value.targetAmount
+                                    .toString()),
+                              ),
                             ],
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
-                              Padding(
+                              const Padding(
                                 padding: EdgeInsets.all(8.0),
-                                child: Text("Key Two"),
+                                child: Text("Achieved Quantity Percentage"),
                               ),
-                              Text("Key Two value")
+                              Obx(
+                                () => Text(_targetVsAchievement
+                                    .value.achievedQuantityPercentage
+                                    .toString()),
+                              ),
                             ],
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
-                              Padding(
+                              const Padding(
                                 padding: EdgeInsets.all(8.0),
-                                child: Text("Key Three"),
+                                child: Text("Per Day Required Sale Quantity"),
                               ),
-                              Text("Key Three value")
+                              Obx(
+                                () => Text(_targetVsAchievement
+                                    .value.perDayRequiredSaleQuantity
+                                    .toString()),
+                              ),
                             ],
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
-                              Padding(
+                              const Padding(
                                 padding: EdgeInsets.all(8.0),
-                                child: Text("Key four"),
+                                child: Text("MTD Sales"),
                               ),
-                              Text("Key four value")
+                              Obx(
+                                () => Text(_targetVsAchievement
+                                    .value.mtdSaleQuantity
+                                    .toString()),
+                              ),
                             ],
                           ),
                         ),
@@ -387,7 +427,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     debounce(controller.getTargetVsAchievement(), (aBoolean) {
       if (aBoolean) {
-        //TODO set target achievement section in UI
+        setTargetVsAchievement(TargetVsAchievement.fromJson(
+            jsonDecode(controller.getTargetVsAchievementData() ?? "")));
       }
     }, time: const Duration(milliseconds: 200));
 
@@ -444,8 +485,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }, time: const Duration(milliseconds: 200));
 
-    /*debounce(controller.endDay, (aBoolean) {
+    debounce(controller.getEndDayLiveData(), (aBoolean) {
       if (aBoolean) {
+        controller.setLoading(false);
         String endDate = Util.formatDate(
             Util.DATE_FORMAT_3, controller.getWorkSyncData().syncDate);
 
@@ -453,46 +495,170 @@ class _HomeScreenState extends State<HomeScreen> {
         showDialog(
             context: context,
             builder: (context) => AlertDialog(
-             shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(5))),
-      insetPadding: const EdgeInsets.all(20),
-              title: Text(
-                "Day Closing! ( $endDate )",
-                style: GoogleFonts.roboto(
-                    fontSize: 18, fontWeight: FontWeight.w400),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Are you sure you want to end your day? After ending your day you will not be able to take any Survey",
-                    style: GoogleFonts.roboto(fontSize: 14),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(5))),
+                  insetPadding: const EdgeInsets.all(20),
+                  title: Text(
+                    "Day Closing! ( $endDate )",
+                    style: GoogleFonts.roboto(
+                        fontSize: 18, fontWeight: FontWeight.w400),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextButton(
-                          onPressed: Navigator.of(context).pop,
-                          child: Text(
-                            "No",
-                            style: GoogleFonts.roboto(color: Colors.black),
-                          )),
-                      TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            controller.updateDayEndStatus();
-                          },
-                          child: Text(
-                            "Yes",
-                            style: GoogleFonts.roboto(color: Colors.black),
-                          )),
+                      Text(
+                        "Are you sure you want to end your day? After ending your day you will not be able to take any Survey",
+                        style: GoogleFonts.roboto(fontSize: 14),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                              onPressed: Navigator.of(context).pop,
+                              child: Text(
+                                "No",
+                                style: GoogleFonts.roboto(color: Colors.black),
+                              )),
+                          TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                controller.updateDayEndStatus();
+                              },
+                              child: Text(
+                                "Yes",
+                                style: GoogleFonts.roboto(color: Colors.black),
+                              )),
+                        ],
+                      )
                     ],
-                  )
-                ],
-              ),
-            ));
+                  ),
+                ));
       }
-    }, time: const Duration(milliseconds: 200));*/
+    }, time: const Duration(milliseconds: 200));
+  }
+
+  Future<void> _onDayEndClick() async {
+    controller.setLoading(true);
+    if (!controller.isDayStarted()) {
+      controller.setLoading(false);
+      showToastMessage(Constants.ERROR_DAY_NO_STARTED);
+      return;
+    }
+
+    final int pendingOrderCount = await controller.getUnPostedOrderCount();
+    if (pendingOrderCount > 0) {
+      controller.setLoading(false);
+      showToastMessage("Please upload all the Orders before Day end!");
+      return;
+    }
+
+    List<Outlet> outletList = await controller.findAllOutlets();
+
+    if (outletList.isNotEmpty) {
+      final List<Outlet> outlets =
+          await controller.findOutletsWithPendingTasks();
+
+      if (outlets.isNotEmpty && controller.getEndDayOnPjpCompletion()) {
+        controller.setLoading(false);
+        showToastMessage("Please complete your tasks");
+      } else if (controller.getConfig() != null) {
+        controller.setEndDayLiveData(true);
+      }
+    }
+  }
+
+  void init() {
+    if (controller.getTargetVsAchievementData() != null) {
+      setTargetVsAchievement(TargetVsAchievement.fromJson(
+          jsonDecode(controller.getTargetVsAchievementData() ?? "")));
+    }
+  }
+
+  void setTargetVsAchievement(TargetVsAchievement targetVsAchievement) {
+    _targetVsAchievement(targetVsAchievement);
+    _targetVsAchievement.refresh();
+  }
+
+  void _showReportsSelectionDialog(
+      String title, Function(CustomObject) mListener) {
+    List<CustomObject> mList = [];
+    mList.add(CustomObject(0, "KPI Reports"));
+    mList.add(CustomObject(1, "Stock Reports"));
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(5))),
+        insetPadding: const EdgeInsets.all(20),
+        title: Text(
+          title,
+          style: GoogleFonts.roboto(color: Colors.black87),
+        ),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    mListener(mList[0]);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          mList[0].text,
+                          style: GoogleFonts.roboto(
+                              color: Colors.black87, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  )),
+              InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    mListener(mList[1]);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          mList[1].text,
+                          style: GoogleFonts.roboto(
+                              color: Colors.black87, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _checkDataDownloaded() async {
+    int priceConditionClass = await controller.priceConditionClassValidation();
+    int priceCondition = await controller.priceConditionValidation();
+    int priceConditionType = await controller.priceConditionTypeValidation();
+
+    if (priceConditionClass != 0 &&
+        priceCondition != 0 &&
+        priceConditionType != 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

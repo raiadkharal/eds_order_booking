@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:order_booking/utils/positive_number_text_input_formater.dart';
 import 'package:order_booking/utils/util.dart';
 import 'package:order_booking/utils/utils.dart';
 
@@ -7,30 +8,29 @@ import '../../db/entities/product/product.dart';
 
 class OrderBookingListItem extends StatefulWidget {
   final Product product;
+  final TextEditingController? avlStockController;
+  final TextEditingController? orderQtyController;
+  final bool showMarketReturnButton;
+  final Function(Product) onReturnClick;
 
-  const OrderBookingListItem({super.key, required this.product});
+  const OrderBookingListItem(
+      {super.key,
+      required this.product,
+      required this.avlStockController,
+      required this.orderQtyController,
+      required this.showMarketReturnButton,
+      required this.onReturnClick});
 
   @override
   State<OrderBookingListItem> createState() => _OrderBookingListItemState();
 }
 
 class _OrderBookingListItemState extends State<OrderBookingListItem> {
-  final _avlStockQtyController = TextEditingController();
-  final _orderQtyController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
-    if (widget.product.avlStockCarton != null ||
-        widget.product.avlStockUnit != null) {
-      _avlStockQtyController.text = Util.convertStockToDecimalQuantity(
-          widget.product.avlStockCarton, widget.product.avlStockUnit);
-    }
 
-    if (widget.product.qtyCarton != null || widget.product.qtyUnit != null) {
-      _orderQtyController.text = Util.convertStockToDecimalQuantity(
-          widget.product.qtyCarton, widget.product.qtyUnit);
-    }
+    iniControllers();
   }
 
   @override
@@ -83,16 +83,22 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
             Expanded(
               flex: 8,
               child: TextField(
-                controller: _avlStockQtyController,
+                controller: widget.avlStockController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [PositiveNumberTextInputFormatter()],
                 onChanged: (s) {
-                  if (s.isEmpty || (s.length == 1 && s.toString() == ".")) {
+                  if (s.isEmpty ||
+                      (s.length == 1 &&
+                          (s.toString() == "." || s.toString() == "-"))) {
                     widget.product.setAvlStock(null, null);
                     return;
                   }
+
                   double qty = double.parse(s.toString());
                   if (qty > 0) {
-                    final cu = Util.convertToLongQuantity(s.toString());
-                    widget.product.setAvlStock(cu[0], cu[1]);
+                    final List<int>? cu =
+                        Util.convertToLongQuantity(s.toString());
+                    widget.product.setAvlStock(cu?[0], cu?[1]);
 //                    avlStock.add(position,new AvailableStock(product.id,cu[0]));
                   }
                 },
@@ -124,12 +130,14 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
             Expanded(
               flex: 8,
               child: TextField(
-                controller: _orderQtyController,
+                controller: widget.orderQtyController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [PositiveNumberTextInputFormatter()],
                 onChanged: (s) {
                   if (s.isEmpty ||
                       (s.length == 1 &&
                           (s.toString() == "." || s.toString() == "-"))) {
-                    widget.product.setQty(null, null);
+                    widget.product.setAvlStock(null, null);
                     return;
                   }
 
@@ -142,18 +150,21 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
                   }
                   int unitStock = widget.product.unitStockInHand ?? 0;
                   if (qty > 0) {
-                    final cu = Util.convertToLongQuantity(s.toString());
+                    final List<int>? cu =
+                        Util.convertToLongQuantity(s.toString());
                     int enteredQty = Util.convertToUnits(
-                        cu[0], widget.product.cartonQuantity, cu[1]);
+                        cu?[0], widget.product.cartonQuantity, cu?[1]);
                     if (enteredQty > unitStock) {
                       // s = s.toString().substring(0,start);
                       // itemHolder.etOrderQty.setText(s.toString());
                       // itemHolder.etOrderQty.setSelection(start);
                       // mCallback.onInvalidQtyEntered();
-                      showToastMessage("You cannot enter above maximum quantity");
-                      _orderQtyController.text=s.substring(0,s.length-1);
+                      showToastMessage(
+                          "You cannot enter above maximum quantity");
+                      widget.orderQtyController?.text =
+                          s.substring(0, s.length - 1);
                     } else {
-                      widget.product.setQty(cu[0], cu[1]);
+                      widget.product.setQty(cu?[0], cu?[1]);
                     }
                   }
                 },
@@ -180,13 +191,32 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
               ),
             ),
             const SizedBox(
-              width: 2,
+              width: 5,
             ),
-            if (false)
-              const Image(image: AssetImage("assets/images/return_icon.png"))
+            if (widget.showMarketReturnButton)
+              InkWell(
+                  onTap: () => widget.onReturnClick(widget.product),
+                  child: const Image(
+                      image: AssetImage("assets/images/return_icon.png"))),
+            const SizedBox(
+              width: 5,
+            ),
           ],
         )
       ],
     );
+  }
+
+  void iniControllers() async{
+    if (widget.product.avlStockCarton != null ||
+        widget.product.avlStockUnit != null) {
+      widget.avlStockController?.text = Util.convertStockToDecimalQuantity(
+          widget.product.avlStockCarton, widget.product.avlStockUnit);
+    }
+
+    if (widget.product.qtyCarton != null || widget.product.qtyUnit != null) {
+      widget.orderQtyController?.text = Util.convertStockToDecimalQuantity(
+          widget.product.qtyCarton, widget.product.qtyUnit);
+    }
   }
 }

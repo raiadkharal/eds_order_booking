@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:order_booking/db/dao/route_dao.dart';
 import 'package:order_booking/db/entities/asset/asset.dart';
 import 'package:order_booking/db/entities/lookup/lookup.dart';
@@ -9,17 +10,18 @@ import 'package:order_booking/db/entities/route/route.dart';
 import 'package:order_booking/db/models/outlet_order_status/outlet_order_status.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../entities/order_status/order_status.dart';
 import '../../entities/outlet/outlet.dart';
 
 class RouteDaoImp extends RouteDao {
   final Database _database;
 
-  final _outletController = StreamController<List<Outlet>>.broadcast();
+  final _outletController = StreamController<List<OutletOrderStatus>>.broadcast();
 
   RouteDaoImp(this._database);
 
   @override
-  Stream<List<Outlet>> getOutletStream() {
+  Stream<List<OutletOrderStatus>> getOutletStream() {
     return _outletController.stream;
   }
 
@@ -62,30 +64,42 @@ class RouteDaoImp extends RouteDao {
 
   @override
   Future<void> insertRoutes(List<MRoute> routeList) async {
-    for (MRoute route in routeList) {
-      _database.insert("Route", route.toJson(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-    }
+    await _database.transaction(
+      (txn) async {
+        Batch batch = txn.batch();
+        for (MRoute route in routeList) {
+          batch.insert("Route", route.toJson(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+
+        await batch.commit(noResult: true);
+      },
+    );
   }
 
   @override
   Future<void> insertOutlets(List<Outlet> outletList) async {
-    try {
-      for (Outlet outlet in outletList) {
-        _database.insert("Outlet", outlet.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-    } catch (e) {
-      print(e);
-    }
+    await _database.transaction(
+      (txn) async {
+        Batch batch = txn.batch();
+        for (Outlet outlet in outletList) {
+          batch.insert("Outlet", outlet.toJson(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+
+        await batch.commit(noResult: true);
+      },
+    );
   }
 
   @override
-  Future<void> updateOutlet(Outlet outlet) async {
-    _database.update("Outlet", outlet.toJson(),
-        where: "outletId = ?", whereArgs: [outlet.outletId]);
+  Future<void> updateOutlet(Outlet? outlet) async {
+    if (outlet != null) {
+      _database.update("Outlet", outlet.toJson(),
+          where: "outletId = ?", whereArgs: [outlet.outletId]);
 
-    refreshOutlets(outlet.routeId);
+      refreshOutlets(outlet.routeId);
+    }
   }
 
   void dispose() {
@@ -93,23 +107,31 @@ class RouteDaoImp extends RouteDao {
   }
 
   @override
-  Future<void> insertAssets(List<Asset>? assetList) async {
-    if (assetList != null) {
-      for (Asset asset in assetList) {
-        _database.insert("Asset", asset.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-    }
+  Future<void> insertAssets(List<Asset> assetList) async {
+    await _database.transaction(
+      (txn) async {
+        Batch batch = txn.batch();
+        for (Asset asset in assetList) {
+          batch.insert("Asset", asset.toJson(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+      },
+    );
   }
 
   @override
-  Future<void> insertPromotion(List<Promotion>? promosAndFOC) async {
-    if (promosAndFOC != null) {
-      for (Promotion promotion in promosAndFOC) {
-        _database.insert("Promotions", promotion.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-    }
+  Future<void> insertPromotion(List<Promotion> promosAndFOC) async {
+    await _database.transaction(
+      (txn) async {
+        Batch batch = txn.batch();
+        for (Promotion promotion in promosAndFOC) {
+          batch.insert("Promotions", promotion.toJson(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+      },
+    );
   }
 
   @override
@@ -121,25 +143,98 @@ class RouteDaoImp extends RouteDao {
   }
 
   @override
-  Future<List<Outlet>> getPendingOutlets() async {
-    // final result = await _database.rawQuery(
-    //     "SELECT Outlet.*, OrderStatus.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
-    //         " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) ) ");
+  Future<List<OutletOrderStatus>> getPendingOutlets() async {
+    return await _database.transaction(
+      (txn) async {
+        const String outletQuery =
+            "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+                " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status < 2 ) OR (Outlet.statusId < 2 ))";
 
-    final result = await _database.rawQuery(
+        List<Map<String, dynamic>> outletQueryResult =
+            await txn.rawQuery(outletQuery);
+        List<Outlet> outlets = outletQueryResult
+            .map(
+              (e) => Outlet.fromJson(e),
+            )
+            .toList();
+
+        final List<OutletOrderStatus> outletOrderStatusList = [];
+
+        for (Outlet outlet in outlets) {
+          OutletOrderStatus outletOrderStatus = OutletOrderStatus();
+          outletOrderStatus.outlet = outlet;
+          //find order status of that outlet
+          const String orderStatusQuery =
+              "SELECT * FROM OrderStatus WHERE outletId = ? and status < 2 ";
+
+          List<Map<String, dynamic>> orderStatusQueryResult =
+              await txn.rawQuery(orderStatusQuery,[outlet.outletId]);
+          if (orderStatusQueryResult.isNotEmpty) {
+            OrderStatus orderStatus =
+                OrderStatus.fromJson(orderStatusQueryResult.first);
+            outletOrderStatus.orderStatus = orderStatus;
+          }
+
+          outletOrderStatusList.add(outletOrderStatus);
+        }
+        return outletOrderStatusList;
+      },
+    );
+
+    /*final result = await _database.rawQuery(
         "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
             " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) ) ");
 
+  */ /*  final result = await _database.rawQuery(
+        "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+            " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) ) ");*/ /*
+
     return result
         .map(
-          (e) => Outlet.fromJson(e),
+          (e) => OutletOrderStatus.fromJson(e),
         )
-        .toList();
+        .toList();*/
   }
 
   @override
-  Future<List<Outlet>> getProductiveOutlets() async {
-    final result = await _database.rawQuery(
+  Future<List<OutletOrderStatus>> getProductiveOutlets() async {
+    return await _database.transaction(
+      (txn) async {
+        const String outletQuery =
+            "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+                " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status >=8 ) OR (Outlet.statusId >=8 ))";
+
+        List<Map<String, dynamic>> outletQueryResult =
+            await txn.rawQuery(outletQuery);
+        List<Outlet> outlets = outletQueryResult
+            .map(
+              (e) => Outlet.fromJson(e),
+            )
+            .toList();
+
+        final List<OutletOrderStatus> outletOrderStatusList = [];
+
+        for (Outlet outlet in outlets) {
+          OutletOrderStatus outletOrderStatus = OutletOrderStatus();
+          outletOrderStatus.outlet = outlet;
+          //find order status of that outlet
+          const String orderStatusQuery =
+              "SELECT * FROM OrderStatus WHERE outletId = ? and status >= 8 ";
+
+          List<Map<String, dynamic>> orderStatusQueryResult =
+              await txn.rawQuery(orderStatusQuery);
+          if (orderStatusQueryResult.isNotEmpty) {
+            OrderStatus orderStatus =
+                OrderStatus.fromJson(orderStatusQueryResult.first);
+            outletOrderStatus.orderStatus = orderStatus;
+          }
+
+          outletOrderStatusList.add(outletOrderStatus);
+        }
+        return outletOrderStatusList;
+      },
+    );
+    /* final result = await _database.rawQuery(
         "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
             " WHERE  Outlet.planned=1 AND  ((OrderStatus.status >=8) OR (Outlet.statusId >=8)) ");
 
@@ -147,12 +242,49 @@ class RouteDaoImp extends RouteDao {
         .map(
           (e) => Outlet.fromJson(e),
         )
-        .toList();
+        .toList();*/
   }
 
   @override
-  Future<List<Outlet>> getVisitedOutlets() async {
-    final result = await _database.rawQuery(
+  Future<List<OutletOrderStatus>> getVisitedOutlets() async {
+    return await _database.transaction(
+      (txn) async {
+        const String outletQuery =
+            "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+                " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status between 2 AND 7) OR (Outlet.statusId between 2 AND 7))";
+
+        List<Map<String, dynamic>> outletQueryResult =
+            await txn.rawQuery(outletQuery);
+        List<Outlet> outlets = outletQueryResult
+            .map(
+              (e) => Outlet.fromJson(e),
+            )
+            .toList();
+
+        final List<OutletOrderStatus> outletOrderStatusList = [];
+
+        for (Outlet outlet in outlets) {
+          OutletOrderStatus outletOrderStatus = OutletOrderStatus();
+          outletOrderStatus.outlet = outlet;
+          //find order status of that outlet
+          const String orderStatusQuery =
+              "SELECT * FROM OrderStatus WHERE outletId = ? and status between 2 and 7 ";
+
+          List<Map<String, dynamic>> orderStatusQueryResult =
+              await txn.rawQuery(orderStatusQuery);
+          if (orderStatusQueryResult.isNotEmpty) {
+            OrderStatus orderStatus =
+                OrderStatus.fromJson(orderStatusQueryResult.first);
+            outletOrderStatus.orderStatus = orderStatus;
+          }
+
+          outletOrderStatusList.add(outletOrderStatus);
+        }
+        return outletOrderStatusList;
+      },
+    );
+
+    /* final result = await _database.rawQuery(
         "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
             " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status between 2 AND 7) OR (Outlet.statusId between 2 AND 7))");
 
@@ -160,31 +292,80 @@ class RouteDaoImp extends RouteDao {
         .map(
           (e) => Outlet.fromJson(e),
         )
-        .toList();
+        .toList();*/
   }
 
   @override
-  Future<List<Outlet>> getUnplannedOutlets(int routeId) async {
+  Future<List<OutletOrderStatus>> getUnplannedOutlets(int routeId) async {
     final result = await _database.rawQuery(
         "SELECT * FROM Outlet WHERE planned=0 ORDER BY sequenceNumber");
 
-    return result
+    final outletList = result
         .map(
           (e) => Outlet.fromJson(e),
         )
         .toList();
+
+    final List<OutletOrderStatus> outletOrderStatusList = [];
+
+    for (Outlet outlet in outletList) {
+      OutletOrderStatus outletOrderStatus = OutletOrderStatus();
+      outletOrderStatus.outlet=outlet;
+      outletOrderStatus.orderStatus=null;
+
+      outletOrderStatusList.add(outletOrderStatus);
+    }
+
+    return outletOrderStatusList;
   }
 
   @override
-  Future<List<Outlet>> getAllOutletsForRoute(int routeId) async {
-    final result = await _database
+  Future<List<OutletOrderStatus>> getAllOutletsForRoute(int routeId) async {
+
+    return await _database.transaction(
+          (txn) async {
+        const String outletQuery =
+            "SELECT * FROM Outlet ORDER BY sequenceNumber";
+
+        List<Map<String, dynamic>> outletQueryResult =
+        await txn.rawQuery(outletQuery);
+        List<Outlet> outlets = outletQueryResult
+            .map(
+              (e) => Outlet.fromJson(e),
+        )
+            .toList();
+
+        final List<OutletOrderStatus> outletOrderStatusList = [];
+
+        for (Outlet outlet in outlets) {
+          OutletOrderStatus outletOrderStatus = OutletOrderStatus();
+          outletOrderStatus.outlet = outlet;
+          //find order status of that outlet
+          const String orderStatusQuery =
+              "SELECT * FROM OrderStatus";
+
+          List<Map<String, dynamic>> orderStatusQueryResult =
+          await txn.rawQuery(orderStatusQuery);
+          if (orderStatusQueryResult.isNotEmpty) {
+            OrderStatus orderStatus =
+            OrderStatus.fromJson(orderStatusQueryResult.first);
+            outletOrderStatus.orderStatus = orderStatus;
+          }
+
+          outletOrderStatusList.add(outletOrderStatus);
+        }
+        return outletOrderStatusList;
+      },
+    );
+
+    /*final result = await _database
         .rawQuery("SELECT * FROM Outlet ORDER BY sequenceNumber");
 
     return result
         .map(
           (e) => Outlet.fromJson(e),
         )
-        .toList();
+        .toList();*/
   }
 
   @override
@@ -192,7 +373,11 @@ class RouteDaoImp extends RouteDao {
     final result = await _database
         .query("Outlet", where: "outletId = ?", whereArgs: [outletId]);
 
-    return Outlet.fromJson(result.first);
+    if (result.isNotEmpty) {
+      return Outlet.fromJson(result.first);
+    }
+
+    return Outlet();
   }
 
   @override
@@ -200,9 +385,174 @@ class RouteDaoImp extends RouteDao {
     final result = await _database
         .query("Promotions", where: "outletId = ?", whereArgs: [outletId]);
 
+    if(result.isNotEmpty) {
+      return result
+          .map(
+            (e) => Promotion.fromJson(e),
+      )
+          .toList();
+    }
+
+    return [];
+  }
+
+  @override
+  Future<int?> getSalesManId() async {
+    final result = await _database.rawQuery("SELECT employeeId FROM Route");
+
+    if (result.isNotEmpty) {
+      return result.first['employeeId'] as int;
+    }
+
+    return null;
+  }
+
+  @override
+  Future<void> updateOutletVisitStatus(
+      int? outletId, int visitStatus, bool synced) async {
+    if (outletId != null) {
+      _database.rawUpdate(
+          "Update Outlet SET visitStatus= ?, synced= ? where outletId= ?",
+          [visitStatus, synced, outletId]);
+    }
+  }
+
+  @override
+  Future<void> updateOutletStatus(int statusId, int outletId) async {
+    _database.rawUpdate("Update Outlet set statusId = ? WHERE outletId = ?",
+        [statusId, outletId]);
+  }
+
+  @override
+  Future<LookUp?> getLookUpData() async {
+    final result = await _database.rawQuery("SELECT * FROM LookUp");
+
+    if (result.isNotEmpty) {
+      return LookUp.fromJson(result.first);
+    }
+
+    return null;
+  }
+
+  @override
+  Future<void> updateOutletCnic(
+      int? outletId, String? mobileNumber, String? cnic, String? strn) async {
+    if (outletId != null) {
+      _database.rawUpdate(
+          "Update Outlet SET mobileNumber=?, cnic= ?, strn= ? where outletId= ?",
+          [mobileNumber, cnic, strn, outletId]);
+    }
+  }
+
+  @override
+  Future<List<OrderStatus>> findPendingOrderToSync(bool synced) async {
+    final result = await _database.rawQuery(
+        "SELECT * FROM OrderStatus WHERE sync= ? AND status between 2 AND 7 ",
+        [synced]);
+
     return result
         .map(
-          (e) => Promotion.fromJson(e),
+          (e) => OrderStatus.fromJson(e),
+        )
+        .toList();
+  }
+
+  @override
+  Future<List<Outlet>> findAllOutlets() async {
+    final result = await _database
+        .rawQuery("SELECT * FROM Outlet ORDER BY outletName ASC");
+
+    return result
+        .map(
+          (e) => Outlet.fromJson(e),
+        )
+        .toList();
+  }
+
+  @override
+  Future<List<Outlet>> findOutletsWithPendingTasks() async {
+    final result = await _database.rawQuery(
+        "SELECT Outlet.*, OrderStatus.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+            " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) )");
+
+    return result
+        .map(
+          (e) => Outlet.fromJson(e),
+        )
+        .toList();
+  }
+
+  @override
+  Future<List<MRoute>> findAllRoutes() async {
+    final result =
+        await _database.rawQuery("SELECT * FROM Route ORDER BY routeName ASC");
+
+    return result
+        .map(
+          (e) => MRoute.fromJson(e),
+        )
+        .toList();
+  }
+
+  @override
+  Future<int> getPendingCount() async {
+    final result = await _database.rawQuery(
+        "SELECT COUNT() FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+            " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) )");
+
+    if (result.isNotEmpty) {
+      return Sqflite.firstIntValue(result) ?? 0;
+    }
+
+    return 0;
+  }
+
+  @override
+  Future<int> getProductiveCount() async {
+    final result = await _database.rawQuery(
+        "SELECT COUNT() FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+            " WHERE  Outlet.planned=1 AND  ((OrderStatus.status >=8) OR (Outlet.statusId >=8))");
+
+    if (result.isNotEmpty) {
+      return Sqflite.firstIntValue(result) ?? 0;
+    }
+
+    return 0;
+  }
+
+  @override
+  Future<int> getCompletedCount() async {
+    final result = await _database.rawQuery(
+        "SELECT COUNT() FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
+            " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status between 2 AND 7) OR (Outlet.statusId between 2 AND 7))");
+
+    if (result.isNotEmpty) {
+      return Sqflite.firstIntValue(result) ?? 0;
+    }
+
+    return 0;
+  }
+
+  @override
+  Future<int> getPjpCount() async {
+    final result =
+        await _database.rawQuery("SELECT COUNT() FROM Outlet WHERE planned=1");
+
+    if (result.isNotEmpty) {
+      return Sqflite.firstIntValue(result) ?? 0;
+    }
+
+    return 0;
+  }
+
+  @override
+  Future<List<OrderStatus>> findPendingOrderToSyncEx() async {
+    final result = await _database.rawQuery(
+        "SELECT * FROM OrderStatus WHERE status between 2 AND 8 AND requestStatus<3 ");
+
+    return result
+        .map(
+          (e) => OrderStatus.fromJson(e),
         )
         .toList();
   }

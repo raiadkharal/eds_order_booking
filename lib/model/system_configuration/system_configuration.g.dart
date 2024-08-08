@@ -12,7 +12,7 @@ SystemConfiguration _$SystemConfigurationFromJson(Map<String, dynamic> json) {
     hideCustomerInfoInOrderingApp: json['hideCustomerInfoInOrderingApp'] as bool?,
     productFilter: json['productFilter'] as String?,
     productView: json['productView'] as String?,
-    showMarketReturnsButton: json['showMarketReturnsButton'] as bool,
+    showMarketReturnsButton: json['showMarketReturnsButton'] as bool?,
   );
 }
 

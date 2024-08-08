@@ -4,10 +4,12 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:get/get_rx/get_rx.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:order_booking/db/models/merchandise_images/merchandise_image.dart';
 import 'package:order_booking/route.dart';
+import 'package:order_booking/ui/asset_verification/asset_verification_screen.dart';
 import 'package:order_booking/ui/route/outlet/merchandising/planogram/image_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -18,9 +20,11 @@ import 'dart:math' as math;
 import '../../../../components/button/cutom_button.dart';
 import '../../../../components/navigation_drawer/my_navigation_drawer.dart';
 import '../../../../components/progress_dialog/PregressDialog.dart';
+import '../../../../db/entities/asset/asset.dart';
 import '../../../../utils/Colors.dart';
 import '../../../../utils/Constants.dart';
 import '../../../../utils/utils.dart';
+import 'asset_verification/asset_verification_screen.dart';
 import 'merchandising_view_model.dart';
 import 'merchandising_list_item.dart';
 
@@ -31,18 +35,27 @@ class MerchandisingScreen extends StatefulWidget {
   State<MerchandisingScreen> createState() => _MerchandisingScreenState();
 }
 
-class _MerchandisingScreenState extends State<MerchandisingScreen> {
+class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsBindingObserver{
   final MerchandisingViewModel controller =
-  Get.put(MerchandisingViewModel(Get.find()));
+      Get.put(MerchandisingViewModel(Get.find(), Get.find()));
 
-  bool isAssets = true,
-      assetsVerified = true;
+  final TextEditingController _remarksController = TextEditingController();
 
-  // final MerchandisingViewModel controller =
-  // Get.put(MerchandisingViewModel(Get.find()));
+  bool isAssets = true;
+  bool assetsVerified = true;
+
+  final RxBool _disableAssetScanningBtn = false.obs;
 
   late final int outletId;
 
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if(state==AppLifecycleState.resumed){
+      controller.getAssets(outletId);
+    }
+    super.didChangeAppLifecycleState(state);
+  }
   @override
   void initState() {
     if (Get.arguments != null) {
@@ -51,7 +64,9 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
     } else {
       outletId = 0;
     }
-    setObservers();
+
+    controller.loadOutlet(outletId);
+    _setObservers();
     super.initState();
   }
 
@@ -59,14 +74,11 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      drawer: NavDrawer(
-        baseContext: context,
-      ),
       appBar: AppBar(
           foregroundColor: Colors.white,
           backgroundColor: primaryColor,
           title: Text(
-            "EDS Survey",
+            "Merchandising",
             style: GoogleFonts.roboto(color: Colors.white),
           )),
       body: Stack(
@@ -87,7 +99,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
                         child: Row(
                           children: [
                             Expanded(
-                              flex: 5,
+                              flex: 3,
                               child: Text(
                                 "OutletName: ",
                                 style: GoogleFonts.roboto(
@@ -98,11 +110,15 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
                               width: 10,
                             ),
                             Expanded(
-                              flex: 9,
-                              child: Text(
-                                "",
-                                style: GoogleFonts.roboto(
-                                    fontSize: 14, color: Colors.grey.shade600),
+                              flex: 10,
+                              child: Obx(
+                                () => Text(
+                                  "${controller.outlet.value.outletName}-${controller.outlet.value.location}",
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade600),
+                                  textAlign: TextAlign.start,
+                                ),
                               ),
                             )
                           ],
@@ -130,6 +146,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
                               child: TextField(
                                 style: GoogleFonts.roboto(fontSize: 14),
                                 maxLines: 3,
+                                controller: _remarksController,
                                 decoration: InputDecoration(
                                   isDense: true,
                                   contentPadding: const EdgeInsets.symmetric(
@@ -194,18 +211,29 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
                         ),
                         Expanded(
                           flex: 4,
-                          child: InkWell(
-                            onTap: () {
-                              Get.toNamed(EdsRoutes.assetVerification);
-                            },
-                            child: Container(
-                              alignment: Alignment.center,
-                              color: Colors.blueAccent,
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                "Asset Verification",
-                                style: GoogleFonts.roboto(
-                                    color: Colors.white, fontSize: 16),
+                          child: Obx(
+                            () => Opacity(
+                              opacity:
+                                  _disableAssetScanningBtn.value ? 0.5 : 1.0,
+                              child: InkWell(
+                                onTap: _disableAssetScanningBtn.value
+                                    ? null
+                                    : () {
+                                        Get.toNamed(EdsRoutes.assetVerification,
+                                            arguments: [outletId]);
+                                      },
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  color: Colors.blueAccent,
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    _disableAssetScanningBtn.value
+                                        ? "No Assets"
+                                        : "Asset Verification",
+                                    style: GoogleFonts.roboto(
+                                        color: Colors.white, fontSize: 16),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -223,25 +251,24 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Obx(
-                            () =>
-                            SizedBox(
-                              height: 120,
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: controller.beforeImages.value.length,
-                                itemBuilder: (context, index) {
-                                  return MerchandisingListItem(
-                                    merchandiseImage:
+                        () => SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            itemCount: controller.beforeImages.value.length,
+                            itemBuilder: (context, index) {
+                              return MerchandisingListItem(
+                                merchandiseImage:
                                     controller.beforeImages.value[index],
-                                    deleteCallback: () {
-                                      controller.removeMerchandiseImage(
-                                          controller.beforeImages.value[index]);
-                                    },
-                                  );
+                                deleteCallback: () {
+                                  controller.removeMerchandiseImage(
+                                      controller.beforeImages.value[index]);
                                 },
-                              ),
-                            ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                       CustomButton(
                         onTap: () => getImageFromCamera(true),
@@ -250,28 +277,26 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
                         minWidth: 180,
                       ),
                       Obx(
-                            () =>
-                            SizedBox(
-                              height: 120,
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: controller.afterImages.value.length,
-                                itemBuilder: (context, index) {
-                                  return MerchandisingListItem(
-                                    merchandiseImage:
+                        () => SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            itemCount: controller.afterImages.value.length,
+                            itemBuilder: (context, index) {
+                              return MerchandisingListItem(
+                                merchandiseImage:
                                     controller.afterImages.value[index],
-                                    deleteCallback: () {
-                                      controller.removeMerchandiseImage(
-                                          controller.afterImages.value[index]);
-                                    },
-                                  );
+                                deleteCallback: () {
+                                  controller.removeMerchandiseImage(
+                                      controller.afterImages.value[index]);
                                 },
-                              ),
-                            ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
-                      Obx(() =>
-                          CustomButton(
+                      Obx(() => CustomButton(
                             onTap: () => getImageFromCamera(false),
                             text: "After Merchandising",
                             horizontalPadding: 80,
@@ -283,15 +308,14 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
                 ),
               ),
               Obx(
-                    () =>
-                    CustomButton(
-                      onTap: () => onNextClick(),
-                      text: "Next",
-                      enabled: controller.beforeImages.value.isNotEmpty &&
-                          controller.afterImages.value.isNotEmpty,
-                      fontSize: 22,
-                      horizontalPadding: 10,
-                    ),
+                () => CustomButton(
+                  onTap: () => _onNextClick(),
+                  text: "Next",
+                  enabled: controller.beforeImages.value.isNotEmpty &&
+                      controller.afterImages.value.isNotEmpty,
+                  fontSize: 22,
+                  horizontalPadding: 10,
+                ),
               ),
               const SizedBox(
                 height: 10,
@@ -299,8 +323,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
             ],
           ),
           Obx(
-                () =>
-            controller.isLoading.value
+            () => controller.isLoading.value
                 ? const SimpleProgressDialog()
                 : const SizedBox(),
           )
@@ -309,28 +332,62 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
     );
   }
 
-  void setObservers() {
-    ever(controller.loadMerchandise(outletId), (merchandise) {
-      updateMerchandiseList(merchandise.merchandiseImages);
-    });
+  void _setObservers() {
+    debounce(controller.loadMerchandise(outletId), (merchandise) {
+      _updateMerchandiseList(merchandise.merchandiseImages);
+    }, time: const Duration(milliseconds: 200));
 
-    ever(
-      controller.imagesLiveData,
-          (merchandiseImages) => updateMerchandiseList(merchandiseImages),
-    );
+    debounce(controller.imagesLiveData,
+        (merchandiseImages) => _updateMerchandiseList(merchandiseImages),
+        time: const Duration(milliseconds: 200));
 
-    ever(controller.isSaved, (aBoolean) async {
-      if (aBoolean && assetsVerified) {
-        showToastMessage("Saved");
-        final taskList = await controller.getTasksByOutletId(outletId);
+    debounce(controller.getAssets(outletId), (assets) {
+      if (assets.isEmpty) {
+        _disableAssetsScanningBtn(true);
+        isAssets = false;
+      } else {
+        _disableAssetsScanningBtn(false);
+        isAssets = true;
+        int assetVerified = 0;
 
-        if (taskList != null && taskList.isNotEmpty){
-          Get.toNamed(EdsRoutes.pendingTask);
-        }else{
-          Get.toNamed(EdsRoutes.orderBooking);
+        for (Asset asset in assets) {
+          if (asset.getVerified()) {
+            assetVerified++;
+          }
+
+          if (assetVerified == assets.length) {
+            controller.setAssetsScannedInLastMonth(true);
+          }
         }
       }
-    });
+    }, time: const Duration(milliseconds: 200));
+
+    debounce(controller.isSaved, (aBoolean) async {
+      if (aBoolean && assetsVerified) {
+        final taskList = await controller.getTasksByOutletId(outletId);
+        if (taskList != null && taskList.isNotEmpty) {
+          final result =
+              await Get.toNamed(EdsRoutes.pendingTask, arguments: [outletId]);
+          if (result != null) {
+            Get.back(result: result);
+          }
+        } else {
+          final result =
+              await Get.toNamed(EdsRoutes.orderBooking, arguments: [outletId]);
+          //send result back to the previous screen
+          if (result != null) {
+            Get.back(result: result);
+          }
+        }
+      } else {
+        Map<String, dynamic> extraParams = {
+          Constants.WITHOUT_VERIFICATION: true,
+          Constants.EXTRA_PARAM_NO_ORDER_FROM_BOOKING: true,
+          Constants.EXTRA_PARAM_OUTLET_ID: outletId,
+        };
+        Get.back(result: extraParams);
+      }
+    }, time: const Duration(milliseconds: 200));
   }
 
   Future<void> getImageFromCamera(bool beforeMerchandising) async {
@@ -352,7 +409,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
       if (pickedFile != null) {
         setLoading(true);
 
-        File? watermarkedImage = await addWatermark(pickedFile.path);
+        File? watermarkedImage = await _addWatermark(pickedFile.path);
         setLoading(false);
         if (beforeMerchandising) {
           controller.saveImages(
@@ -371,49 +428,49 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
     }
   }
 
-  // Future<File?> addWatermark(String imagePath) async {
-  //   try {
-  //     // Get the current date and time
-  //     DateTime now = DateTime.now();
-  //     String formattedDateTime =
-  //         "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
-  //
-  //     // Read the original image
-  //     File file = File(imagePath);
-  //     List<int> imageBytes = file.readAsBytesSync();
-  //     img.Image? originalImage =
-  //         img.decodeImage(Uint8List.fromList(imageBytes));
-  //
-  //     // Scale the image to adjust the font size
-  //     double scaleFactor = calculateScaleFactor(
-  //         originalImage); // Adjust the scale factor as needed
-  //     img.Image resizedImage = img.copyResize(originalImage!,
-  //         width: (originalImage.width * scaleFactor).round());
-  //
-  //     // Add watermark text
-  //     img.drawString(resizedImage, img.arial_48, 20, 20, formattedDateTime,
-  //         color: img.getColor(255, 0, 0));
-  //
-  //     // Create a new File for the watermarked image
-  //     String outputImagePath = imagePath.replaceAll('.jpg',
-  //         '_watermarked.png'); // Customize the output file name if needed
-  //     File watermarkedFile = File(outputImagePath);
-  //
-  //     // Save the watermarked image
-  //     watermarkedFile.writeAsBytesSync(img.encodePng(resizedImage));
-  //     // Return the File representing the watermarked image
-  //     return watermarkedFile;
-  //   } catch (e) {
-  //     showToastMessage(e.toString());
-  //   }
-  //   return null;
-  // }
+  /*Future<File?> addWatermark(String imagePath) async {
+    try {
+      // Get the current date and time
+      DateTime now = DateTime.now();
+      String formattedDateTime =
+          "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
 
-  Future<File?> addWatermark(String imagePath) async {
+      // Read the original image
+      File file = File(imagePath);
+      List<int> imageBytes = file.readAsBytesSync();
+      img.Image? originalImage =
+          img.decodeImage(Uint8List.fromList(imageBytes));
+
+      // Scale the image to adjust the font size
+      double scaleFactor = calculateScaleFactor(
+          originalImage); // Adjust the scale factor as needed
+      img.Image resizedImage = img.copyResize(originalImage!,
+          width: (originalImage.width * scaleFactor).round());
+
+      // Add watermark text
+      img.drawString(resizedImage, img.arial_48, 20, 20, formattedDateTime,
+          color: img.getColor(255, 0, 0));
+
+      // Create a new File for the watermarked image
+      String outputImagePath = imagePath.replaceAll('.jpg',
+          '_watermarked.png'); // Customize the output file name if needed
+      File watermarkedFile = File(outputImagePath);
+
+      // Save the watermarked image
+      watermarkedFile.writeAsBytesSync(img.encodePng(resizedImage));
+      // Return the File representing the watermarked image
+      return watermarkedFile;
+    } catch (e) {
+      showToastMessage(e.toString());
+    }
+    return null;
+  }*/
+
+  Future<File?> _addWatermark(String imagePath) async {
     final ReceivePort receivePort = ReceivePort();
 
     await Isolate.spawn(
-      processImageInIsolate,
+      _processImageInIsolate,
       [receivePort.sendPort, imagePath],
     );
     return await receivePort.first as File?;
@@ -437,14 +494,37 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
     return 0.5;
   }
 
-  void onNextClick() {
+  void _onNextClick() {
     if (!controller.validateImageCount()) {
       return;
     }
-    controller.insertMerchandiseIntoDB(outletId);
+    if (isAssets) {
+      if (controller.getEnforceAssetScan() ||
+          (controller.getEnforceAssetScan() &&
+              controller.getAssetsScanned() &&
+              controller.getAssetsVerifiedCount() > 0) ||
+          controller.isTestUser()) {
+        controller.outlet.value.isAssetsScennedInTheLastMonth = true;
+        controller.updateOutlet(controller.outlet.value);
+        String remarks = _remarksController.text.toString();
+        int? statusId = controller.outlet.value.statusId;
+        controller.insertMerchandiseIntoDB(outletId, remarks, statusId);
+      } else {
+        if (controller.getAssetsScanned() ||
+            controller.getAssetsVerifiedCount() == 0) {
+          _showAlertDialog();
+        } else {
+          showToastMessage("Please scan all assets");
+        }
+      }
+    } else {
+      String remarks = _remarksController.text.toString();
+      int? statusId = controller.outlet.value.statusId;
+      controller.insertMerchandiseIntoDB(outletId, remarks, statusId);
+    }
   }
 
-  static Future<void> processImageInIsolate(List<dynamic> args) async {
+  static Future<void> _processImageInIsolate(List<dynamic> args) async {
     SendPort sendPort = args[0];
     String imagePath = args[1];
 
@@ -453,14 +533,13 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
       // Get the current date and time
       DateTime now = DateTime.now();
       String formattedDateTime =
-          "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now
-          .second}";
+          "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
 
       // Read the original image
       File file = File(imagePath);
       List<int> imageBytes = file.readAsBytesSync();
       img.Image? originalImage =
-      img.decodeImage(Uint8List.fromList(imageBytes));
+          img.decodeImage(Uint8List.fromList(imageBytes));
 
       // Scale the image to adjust the font size
       double scaleFactor = calculateScaleFactor(
@@ -487,7 +566,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
     }
   }
 
-  void updateMerchandiseList(List<MerchandiseImage>? merchandiseImages) {
+  void _updateMerchandiseList(List<MerchandiseImage>? merchandiseImages) {
     List<MerchandiseImage> merchandiseImagesBefore = [];
     List<MerchandiseImage> merchandiseImagesAfter = [];
     if (merchandiseImages != null) {
@@ -506,5 +585,114 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> {
 
   void setLoading(bool value) {
     controller.setLoading(value);
+  }
+
+  void _disableAssetsScanningBtn(bool enable) {
+    _disableAssetScanningBtn(enable);
+    _disableAssetScanningBtn.refresh();
+  }
+
+  void _showAlertDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title:
+        Text("Info", style: GoogleFonts.roboto(color: Colors.black)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Please scan at least one asset to proceed.",
+                style: GoogleFonts.roboto(color: Colors.black87)),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                    onPressed: () {
+                    _showConfirmationDialog();
+                    },
+                    child: Text("Back to PJP",
+                        style:
+                        GoogleFonts.roboto(color: Colors.black87))),
+                const SizedBox(
+                  width: 10,
+                ),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Get.toNamed(EdsRoutes.assetVerification,
+                          arguments: [outletId]);
+                    },
+                    child: Text("Scan Again",
+                        style:
+                        GoogleFonts.roboto(color: Colors.black87))),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Confirmation",
+            style: GoogleFonts.roboto(
+                color: Colors.black)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Are you sure you want to Back to PJP",
+                style: GoogleFonts.roboto(
+                    color: Colors.black87)),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Cancel",
+                        style: GoogleFonts.roboto(
+                            color: Colors.black87))),
+                const SizedBox(
+                  width: 10,
+                ),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+
+                      controller.outlet.value
+                          .isAssetsScennedInTheLastMonth =
+                      true;
+                      controller.outlet.value.synced =
+                      false;
+                      controller.updateOutlet(
+                          controller.outlet.value);
+                      String remarks =
+                      _remarksController.text
+                          .toString();
+                      int? statusId = controller
+                          .outlet.value.statusId;
+                      controller
+                          .insertMerchandiseIntoDB(
+                          outletId,
+                          remarks,
+                          statusId);
+
+                      assetsVerified = false;
+                    },
+                    child: Text("Ok",
+                        style: GoogleFonts.roboto(
+                            color: Colors.black87))),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
   }
 }

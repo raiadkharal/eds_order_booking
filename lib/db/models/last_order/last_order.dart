@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-
-import '../../entities/order_detail/order_detail.dart';
+import 'package:order_booking/db/models/last_order/order_detail.dart';
 
 part 'last_order.g.dart';
 

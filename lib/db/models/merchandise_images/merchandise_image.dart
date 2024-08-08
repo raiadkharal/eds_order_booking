@@ -24,7 +24,7 @@ class MerchandiseImage {
     this.path,
     this.image,
     this.type,
-    this.status,
+    this.status = 0,
   });
 
   factory MerchandiseImage.fromJson(Map<String, dynamic> json) =>

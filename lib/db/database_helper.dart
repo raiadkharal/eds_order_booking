@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
-  static const int _databaseVersion = 1;
+  static const int _databaseVersion = 2;
   static const String _databaseName = "eds";
 
   DatabaseHelper._privateConstructor();
@@ -71,6 +71,8 @@ class DatabaseHelper {
     database.execute(SqlQueries.createPricingAreaTable);
     database.execute(SqlQueries.createPricingGroupsTable);
     database.execute(SqlQueries.createPricingLevelsTable);
+    database.execute(SqlQueries.createProductQuantityTable);
+    database.execute(SqlQueries.createOrderAndAvailableQuantityTable);
 
   }
 
@@ -120,6 +122,7 @@ class DatabaseHelper {
     database.execute(SqlQueries.dropPricingAreaTable);
     database.execute(SqlQueries.dropPricingGroupsTable);
     database.execute(SqlQueries.dropPricingLevelsTable);
+    database.execute(SqlQueries.dropProductQuantityTable);
 
     //again create new tables
     createTables(database);

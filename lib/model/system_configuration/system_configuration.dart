@@ -17,7 +17,7 @@ class SystemConfiguration {
   final String? productView;
 
   @JsonKey(name: 'showMarketReturnsButton')
-  final bool showMarketReturnsButton;
+  final bool? showMarketReturnsButton;
 
   SystemConfiguration({
     this.canNotPunchOrderInUnits,

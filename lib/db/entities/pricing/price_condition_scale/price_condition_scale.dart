@@ -5,7 +5,7 @@ part 'price_condition_scale.g.dart';
 @JsonSerializable()
 class PriceConditionScale {
   @JsonKey(name: 'priceConditionScaleId')
-  final int priceConditionScaleId;
+  final int? priceConditionScaleId;
   final double? from;
   @JsonKey(name: "amount")
   final double? amount;
@@ -13,10 +13,10 @@ class PriceConditionScale {
   final double? cartonAmount;
 
   PriceConditionScale({
-    required this.priceConditionScaleId,
+    this.priceConditionScaleId,
     this.from,
-    required this.amount,
-    required this.priceConditionDetailId,
+     this.amount,
+     this.priceConditionDetailId,
     this.cartonAmount,
   });
 

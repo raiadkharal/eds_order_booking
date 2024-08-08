@@ -10,9 +10,9 @@ part 'outlet_order_status.g.dart';
 @JsonSerializable()
 class OutletOrderStatus {
   @JsonKey(name: 'orderStatus')
-  final OrderStatus? orderStatus;
+  OrderStatus? orderStatus;
   @JsonKey(name: 'outlet')
-  final Outlet? outlet;
+  Outlet? outlet;
 
   OutletOrderStatus({
     this.orderStatus,

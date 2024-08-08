@@ -19,14 +19,19 @@ LogModel _$LogModelFromJson(Map<String, dynamic> json) => LogModel()
       ?.map((e) => DeviceInfoModel.fromJson(e as Map<String, dynamic>))
       .toList();
 
-Map<String, dynamic> _$LogModelToJson(LogModel instance) => <String, dynamic>{
-  'errorMessage': instance.errorMessage,
-  'success': instance.success,
-  'errorCode': instance.errorCode,
-  'distributionId': instance.distributionId,
-  'operationTypeId': instance.operationTypeId,
-  'salesmanId': instance.salesmanId,
-  'startDay': instance.startDay,
-  'appVersion': instance.appVersion,
-  'deviceInfo': instance.deviceInfo?.map((e) => e.toJson()).toList(),
-};
+Map<String, dynamic> _$LogModelToJson(LogModel instance){
+    Map<String, dynamic>  jsonMap= {
+      'errorMessage': instance.errorMessage,
+      'success': instance.success,
+      'errorCode': instance.errorCode,
+      'distributionId': instance.distributionId,
+      'operationTypeId': instance.operationTypeId,
+      'salesmanId': instance.salesmanId,
+      'startDay': instance.startDay,
+      'appVersion': instance.appVersion,
+      'deviceInfo': instance.deviceInfo?.map((e) => e.toJson()).toList(),
+    };
+
+    jsonMap.removeWhere((key, value) => value == null);
+ return jsonMap;
+}

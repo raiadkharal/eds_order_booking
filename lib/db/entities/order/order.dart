@@ -9,7 +9,7 @@ part 'order.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Order {
-  @JsonKey(name: 'mobileOrderId')
+  @JsonKey(name: 'pk_oid')
   int? id;
 
   @JsonKey(name: 'orderId')

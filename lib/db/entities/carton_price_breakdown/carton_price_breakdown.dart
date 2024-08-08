@@ -11,7 +11,7 @@ class CartonPriceBreakDown {
   @JsonKey(name: 'orderId')
   final int? orderId;
 
-  @JsonKey(name: 'mobileOrderDetailId', includeIfNull: false)
+  @JsonKey(name: 'mobileOrderDetailId')
   final int? orderDetailId;
 
   @JsonKey(name: 'priceCondition')

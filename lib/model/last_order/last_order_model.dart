@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:order_booking/model/order_detail_model/order_detail_model.dart';
 

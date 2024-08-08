@@ -6,76 +6,76 @@ part 'asset.g.dart';
 @JsonSerializable()
 class Asset {
   @JsonKey(name: 'assetId')
-  final int? assetId;
+  int? assetId;
 
   @JsonKey(name: 'outletId')
-  final int? outletId;
+  int? outletId;
 
   @JsonKey(name: 'organizationId')
-  final int? organizationId;
+  int? organizationId;
 
   @JsonKey(name: 'assetTypeMainId')
-  final int? assetTypeMainId;
+  int? assetTypeMainId;
 
   @JsonKey(name: 'longitude')
-  final double? longitude;
+  double? longitude;
 
   @JsonKey(name: 'latitude')
-  final double? latitude;
+  double? latitude;
 
   @JsonKey(name: 'assetModel')
-  final String? assetModel;
+  String? assetModel;
 
   @JsonKey(name: 'assetModelId')
-  final int? assetModelId;
+  int? assetModelId;
 
   @JsonKey(name: 'assetName')
-  final String? assetName;
+  String? assetName;
 
   @JsonKey(name: 'assetNumber')
-  final String? assetNumber;
+  String? assetNumber;
 
   @JsonKey(name: 'assetType')
-  final String? assetType;
+  String? assetType;
 
   @JsonKey(name: 'assetTypeId')
-  final int? assetTypeId;
+  int? assetTypeId;
 
   @JsonKey(name: 'assignedDate')
-  final int? assignedDate;
+  int? assignedDate;
 
   @JsonKey(name: 'assignmentCode')
-  final String? assignmentCode;
+  String? assignmentCode;
 
   @JsonKey(name: 'cost')
-  final double? cost;
+  double? cost;
 
   @JsonKey(name: 'deposit')
-  final double? deposit;
+  double? deposit;
 
   @JsonKey(name: 'documentNumber')
-  final String? documentNumber;
+  String? documentNumber;
 
   @JsonKey(name: 'statusid')
-  final int? statusid;
+  int? statusid;
 
   @JsonKey(name: 'expiryDate')
-  final int? expiryDate;
+  int? expiryDate;
 
   @JsonKey(name: 'returnDate')
-  final int? returnDate;
+  int? returnDate;
 
   @JsonKey(name: 'barcode')
-  final String? serialNumber;
+  String? serialNumber;
 
   @JsonKey(name: 'TransactionType')
-  final String? transactionType;
+  String? transactionType;
 
   @JsonKey(name: 'reason')
-  final String? reason;
+  String? reason;
 
   @JsonKey(name: 'verified',fromJson:boolFromInt,toJson: boolToInt)
-  final bool? verified;
+  bool? verified;
 
   Asset({
     this.assetId,
@@ -103,6 +103,10 @@ class Asset {
     this.reason,
     this.verified,
   });
+
+  bool getVerified(){
+    return verified??false;
+  }
 
   factory Asset.fromJson(Map<String, dynamic> json) => _$AssetFromJson(json);
   Map<String, dynamic> toJson() => _$AssetToJson(this);

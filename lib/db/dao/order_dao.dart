@@ -1,4 +1,7 @@
+import 'package:order_booking/db/entities/carton_price_breakdown/carton_price_breakdown.dart';
+import 'package:order_booking/db/entities/order_quantity/order_quantity.dart';
 import 'package:order_booking/db/entities/order_status/order_status.dart';
+import 'package:order_booking/db/entities/unit_price_breakdown/unit_price_breakdown.dart';
 import 'package:order_booking/model/order_detail_model/order_detail_model.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 
@@ -13,8 +16,31 @@ abstract class OrderDao {
 
   Future<void> deleteOrderItemsByPkg(int? id, int? packageId);
 
-  Future<void> insertOrderItems(List<OrderDetail> orderDetails);
+  Future<void> insertOrderItems(List<OrderDetail>? orderDetails);
 
   Future<OrderEntityModel?> getOrderWithItems(int? outletId);
 
+  Future<Order> findOrderById(int? mobileOrderId);
+
+  Future<void> updateOrder(Order? order);
+
+  Future<void> deleteOrderItems(int? orderId);
+
+  Future<void> insertUnitPriceBreakDown(List<UnitPriceBreakDown>? unitPriceBreakDown);
+
+  Future<void> insertCartonPriceBreakDown(List<CartonPriceBreakDown>? cartonPriceBreakDown);
+
+  Future<void> deleteAllOrders();
+
+  Future<void> deleteOrderUnitPriceBreakdown(int? orderDetailId);
+
+  Future<void> deleteOrderCartonPriceBreakdown(int? orderDetailId);
+
+  Future<void> insertOrderAndAvailableStockData(List<OrderAndAvailableQuantity> orderQuantityList);
+
+  Future<void> deleteOrderAndAvailableStockByOutlet(int? outletId);
+
+  Future<List<OrderAndAvailableQuantity>> getOrderAndAvailableQuantityDataByOutlet(int? outletId);
+
+  Future<List<OrderEntityModel>> findAllOrders();
 }
