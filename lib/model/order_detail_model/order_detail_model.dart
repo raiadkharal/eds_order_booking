@@ -95,6 +95,12 @@ class OrderDetailModel {
   @JsonKey(name: 'cartonFreeQuantityTypeId')
   int? cartonFreeQuantityTypeId;
 
+  @JsonKey(name: 'unitFreeGoodExclusiveId')
+  int? unitFreeGoodExclusiveId;
+
+  @JsonKey(name: 'cartonFreeGoodExclusiveId')
+  int? cartonFreeGoodExclusiveId;
+
   int? unitFreeGoodQuantity;
 
   int? cartonFreeGoodQuantity;

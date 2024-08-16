@@ -35,7 +35,7 @@ class OrderResponseModel extends BaseResponse{
   int? orderDate;
 
   @JsonKey(name: 'orderDetails')
-  List<OrderDetail>? orderDetails;
+  List<OrderDetailModel>? orderDetails;
 
   @JsonKey(name: 'priceBreakDown')
   List<UnitPriceBreakDownModel>? priceBreakDown;

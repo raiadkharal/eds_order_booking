@@ -4,11 +4,11 @@ part 'upload_status_model.g.dart';
 
 @JsonSerializable()
 class UploadStatusModel {
-  int outletId;
-  String outletName;
-  int synced;
-  int imageStatus;
-  int requestStatus;
+  int? outletId;
+  String? outletName;
+  int? synced;
+  int? imageStatus;
+  int? requestStatus;
 
   UploadStatusModel({
     required this.outletId,

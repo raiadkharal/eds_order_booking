@@ -134,7 +134,7 @@ class CashMemoViewModel extends GetxController {
             }
 
             //                String freeQtyStr = Util.convertToDecimalQuantity(cartonFreeQty==null?0:cartonFreeQty,unitFreeQty==null?0:unitFreeQty);
-            freeQty = freeQty + unitFreeQty!; //Double.parseDouble(freeQtyStr);
+            freeQty = freeQty +(unitFreeQty??0); //Double.parseDouble(freeQtyStr);
 
             //freeGoods.addAll(orderWithDetails.getOrderDetail().getCartonFreeGoods());
             // freeGoods.addAll(orderWithDetails.getOrderDetail().getUnitFreeGoods());

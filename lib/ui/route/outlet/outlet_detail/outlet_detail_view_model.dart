@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -14,6 +15,7 @@ import 'package:order_booking/db/entities/market_returns/market_returns.dart';
 import 'package:order_booking/db/entities/promotion/promotion.dart';
 import 'package:order_booking/model/configuration/configurations_model.dart';
 import 'package:order_booking/model/market_return_model/market_return_model.dart';
+import 'package:order_booking/model/merchandise_model/merchandise_model.dart';
 import 'package:order_booking/route.dart';
 import 'package:order_booking/status_repository.dart';
 import 'package:order_booking/ui/market_return/market_return_repository.dart';
@@ -31,7 +33,7 @@ import '../../../../db/entities/task/task.dart';
 import '../../../../db/models/configuration/configurations.dart';
 import '../../../../db/models/merchandise_images/merchandise_image.dart';
 import '../../../../model/master_model/master_model.dart';
-import '../../../../model/merchandise_model/merchandise_model.dart';
+import '../../../../model/merchandise_upload_model/merchandise_upload_model.dart';
 import '../../../../model/order_response_model/order_response_model.dart';
 import '../../../../utils/util.dart';
 import '../../../../utils/utils.dart';
@@ -196,9 +198,9 @@ class OutletDetailViewModel extends GetxController {
     masterModel.setLocation(currentLatLng?.latitude, currentLatLng?.longitude);
     masterModel.outletLatitude = outletLatLng?.latitude;
     masterModel.outletLongitude = outletLatLng?.longitude;
-    masterModel.outletDistance = distance;
+    masterModel.outletDistance = distance.toInt();
 
-    MerchandiseModel? merchandiseModel = await saveMerchandiseSync(
+    MerchandiseUploadModel? merchandiseModel = await saveMerchandiseSync(
         masterModel.outletId, masterModel.outletStatus); //get merchandise
 
     masterModel.dailyOutletVisit = merchandiseModel;
@@ -209,7 +211,7 @@ class OutletDetailViewModel extends GetxController {
     masterModel.outletCode = outlet.outletCode;
     if (outlet.avlStockDetail != null) {
       masterModel.dailyOutletVisit ??=
-          MerchandiseModel(merchandise: Merchandise());
+          MerchandiseUploadModel(merchandise: MerchandiseModel());
       masterModel.dailyOutletVisit?.dailyOutletStock = outlet.avlStockDetail;
     }
 
@@ -228,7 +230,7 @@ class OutletDetailViewModel extends GetxController {
     setSingleOrderUpdate(outletId);
   }
 
-  Future<MerchandiseModel?> saveMerchandiseSync(
+  Future<MerchandiseUploadModel?> saveMerchandiseSync(
       int? outletId, int? statusId) async {
     Merchandise? merchandise =
         await _repository.findMerchandiseByOutletId(outletId);
@@ -262,8 +264,8 @@ class OutletDetailViewModel extends GetxController {
     readyToPostMerchandise.assetList = merchandise.assetList;
     readyToPostMerchandise.outletId = outletId;
     readyToPostMerchandise.remarks = merchandise.remarks;
-    MerchandiseModel merchandiseModel =
-        MerchandiseModel(merchandise: readyToPostMerchandise);
+    MerchandiseUploadModel merchandiseModel =
+    MerchandiseUploadModel(merchandise:  MerchandiseModel.fromJson(readyToPostMerchandise.toJson()));
     merchandiseModel.statusId = statusId;
 
     debugPrint("AssetsJson ${jsonEncode(merchandiseModel)}");

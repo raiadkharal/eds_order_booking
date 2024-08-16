@@ -1,15 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:order_booking/db/dao/route_dao.dart';
 import 'package:order_booking/db/entities/asset/asset.dart';
 import 'package:order_booking/db/entities/lookup/lookup.dart';
 import 'package:order_booking/db/entities/promotion/promotion.dart';
 import 'package:order_booking/db/entities/route/route.dart';
 import 'package:order_booking/db/models/outlet_order_status/outlet_order_status.dart';
+import 'package:order_booking/utils/Constants.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../../model/outlet_model/outlet_model.dart';
+import '../../entities/available_stock/available_stock.dart';
 import '../../entities/order_status/order_status.dart';
 import '../../entities/outlet/outlet.dart';
 
@@ -342,10 +343,10 @@ class RouteDaoImp extends RouteDao {
           outletOrderStatus.outlet = outlet;
           //find order status of that outlet
           const String orderStatusQuery =
-              "SELECT * FROM OrderStatus";
+              "SELECT * FROM OrderStatus where outletId = ?";
 
           List<Map<String, dynamic>> orderStatusQueryResult =
-          await txn.rawQuery(orderStatusQuery);
+          await txn.rawQuery(orderStatusQuery,[outlet.outletId]);
           if (orderStatusQueryResult.isNotEmpty) {
             OrderStatus orderStatus =
             OrderStatus.fromJson(orderStatusQueryResult.first);
@@ -555,5 +556,34 @@ class RouteDaoImp extends RouteDao {
           (e) => OrderStatus.fromJson(e),
         )
         .toList();
+  }
+
+  @override
+  Future<void> deleteOrderAndAvailableTempQty() async{
+    _database.rawQuery("DELETE FROM OrderAndAvailableQuantity");
+  }
+
+  @override
+  Future<void> updateAvailableStockInOutlet(List<OutletModel>? outletList,List<AvailableStock> availableStock) async{
+    _database.transaction((txn) async{
+      Batch batch = txn.batch();
+      for (OutletModel outlet in outletList ?? []) {
+        List<AvailableStock> availableStockList = [];
+        for (AvailableStock availableStock in availableStock) {
+          if (availableStock.outletId == outlet.outletId) {
+            availableStockList.add(availableStock);
+          }
+        }
+        //Update avlStock Data in outlet
+        outlet.avlStockDetail = availableStockList;
+        batch.update("Outlet", outlet.toJson(),
+            where: "outletId = ?", whereArgs: [outlet.outletId]);
+        if (outlet.outletId != null) {
+         Constants.outletIds.add(outlet.outletId!);
+        }
+      }
+      await batch.commit(noResult: true);
+    },);
+
   }
 }

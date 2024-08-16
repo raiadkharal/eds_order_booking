@@ -1,28 +1,36 @@
-import 'package:json_annotation/json_annotation.dart';
-import 'package:order_booking/db/entities/available_stock/available_stock.dart';
+import 'dart:convert';
 
-import '../../db/entities/merchandise/merchandise.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:order_booking/db/entities/asset/asset.dart';
+import 'package:order_booking/model/asset_model/asset_model.dart';
+
+import '../../db/models/merchandise_images/merchandise_image.dart';
+
 part 'merchandise_model.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable()
 class MerchandiseModel {
-  @JsonKey(name: 'merchandise')
-  Merchandise? merchandise;
+  @JsonKey(name: 'outletId')
+  int? outletId;
 
-  @JsonKey(name: 'dailyOutletStock')
-  List<AvailableStock>? dailyOutletStock;
+  @JsonKey(name: 'remarks')
+  String? remarks;
 
-  @JsonKey(name: 'statusId')
-  int? statusId;
+  @JsonKey(name: 'merchandiseImages')
+  List<MerchandiseImage>? merchandiseImages;
+
+  @JsonKey(name: 'assets')
+  List<AssetModel>? assetList;
 
   MerchandiseModel({
-    this.merchandise,
-    this.dailyOutletStock,
-    this.statusId,
+    this.outletId,
+    this.remarks,
+    this.merchandiseImages,
+    this.assetList,
   });
 
   factory MerchandiseModel.fromJson(Map<String, dynamic> json) =>
-      _$MerchandiseModelFromJson(json);
+      _$MerchandiseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MerchandiseModelToJson(this);
+  Map<String, dynamic> toJson() => _$MerchandiseToJson(this);
 }

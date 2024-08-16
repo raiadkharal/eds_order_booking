@@ -1,6 +1,8 @@
+import 'package:order_booking/db/dao/task_dao.dart';
 import 'package:order_booking/db/entities/asset/asset.dart';
 import 'package:order_booking/db/entities/lookup/lookup.dart';
 import 'package:order_booking/db/entities/outlet/outlet.dart';
+import 'package:order_booking/db/entities/task/task.dart';
 import 'package:order_booking/utils/PreferenceUtil.dart';
 
 import 'db/dao/merchandise_dao.dart';
@@ -13,9 +15,10 @@ class StatusRepository {
   final RouteDao _routeDao;
   final OrderStatusDao _orderStatusDao;
   final MerchandiseDao _merchandiseDao;
+  final TaskDao _taskDao;
   final PreferenceUtil _preferenceUtil;
 
-  StatusRepository(this._routeDao, this._orderStatusDao, this._merchandiseDao, this._preferenceUtil);
+  StatusRepository(this._routeDao, this._orderStatusDao, this._merchandiseDao, this._preferenceUtil, this._taskDao);
 
   Future<void> updateOutlet(Outlet? outlet) async {
     _routeDao.updateOutlet(outlet);
@@ -101,6 +104,14 @@ class StatusRepository {
 
   void setAssetScanned(bool scanned) {
     _preferenceUtil.setAssetScanned(scanned);
+  }
+
+  Future<List<Task>?> getTasksByOutletId(int outletId) {
+    return _taskDao.getTaskByOutletId(outletId);
+  }
+
+  void updateTask(Task taskParam) {
+    _taskDao.updateTask(taskParam);
   }
 
 }

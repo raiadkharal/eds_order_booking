@@ -84,7 +84,7 @@ class EdsBindings extends Bindings {
             Get.find(),
             Get.find()),
         permanent: true);
-    Get.put<StatusRepository>(StatusRepository(Get.find(), Get.find(),Get.find(),Get.find()),
+    Get.put<StatusRepository>(StatusRepository(Get.find(), Get.find(),Get.find(),Get.find(),Get.find()),
         permanent: true);
     Get.put<MarketReturnRepository>(
         MarketReturnRepository(Get.find(), Get.find(), Get.find()),

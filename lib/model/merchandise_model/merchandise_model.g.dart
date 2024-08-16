@@ -6,21 +6,27 @@ part of 'merchandise_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-MerchandiseModel _$MerchandiseModelFromJson(Map<String, dynamic> json) =>
-    MerchandiseModel(
-      merchandise: json['merchandise'] == null
-          ? null
-          : Merchandise.fromJson(json['merchandise'] as Map<String, dynamic>),
-      dailyOutletStock: (json['dailyOutletStock'] as List<dynamic>?)
-          ?.map((e) => AvailableStock.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      statusId: json['statusId'] as int?,
-    );
+MerchandiseModel _$MerchandiseFromJson(Map<String, dynamic> json) {
+  return MerchandiseModel(
+    outletId: json['outletId'] as int?,
+    remarks: json['remarks'] as String?,
+    merchandiseImages: ((json['merchandiseImages'] is String)
+            ? jsonDecode(json['merchandiseImages'])
+            : json['merchandiseImages'] as List<dynamic>?)
+        ?.map<MerchandiseImage>((e) => MerchandiseImage.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    assetList: ((json['assets'] is String)
+            ? jsonDecode(json['assets'])
+            : json['assets'] as List<dynamic>?)
+        ?.map<AssetModel>((e) => AssetModel.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
 
-Map<String, dynamic> _$MerchandiseModelToJson(MerchandiseModel instance) =>
+Map<String, dynamic> _$MerchandiseToJson(MerchandiseModel instance) =>
     <String, dynamic>{
-      'merchandise': instance.merchandise?.toJson(),
-      'dailyOutletStock':
-      instance.dailyOutletStock?.map((e) => e.toJson()).toList(),
-      'statusId': instance.statusId,
+      'outletId': instance.outletId,
+      'remarks': instance.remarks,
+      'merchandiseImages': instance.merchandiseImages?.map((e) => e.toJson(),).toList(),
+      'assets': instance.assetList?.map((e) => e.toJson(),).toList(),
     };

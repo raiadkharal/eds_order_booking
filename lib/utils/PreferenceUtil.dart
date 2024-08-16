@@ -30,6 +30,7 @@ class PreferenceUtil {
   static const String _assetScannedInLastMonth = "assetScannedInLastMonth";
   static const String _enForcedAssetScan = "enForcedAssetScan";
   static const String _assetVerifiedCount = "assetVerifiedCount";
+  static const String _assetScannedWithoutVerified = "assetScannedWithoutVerified";
 
   PreferenceUtil._(this._sharedPreferences);
 
@@ -260,6 +261,14 @@ class PreferenceUtil {
 
   void setAssetsVerifiedCount(int count) {
     _sharedPreferences.setInt(_assetVerifiedCount, count);
+  }
+
+  void setAssetsScannedWithoutVerified(bool value) {
+    _sharedPreferences.setBool(_assetScannedWithoutVerified, value);
+  }
+
+  bool getAssetsScannedWithoutVerified() {
+    return _sharedPreferences.getBool(_assetScannedWithoutVerified)??false;
   }
 
 }

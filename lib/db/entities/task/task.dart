@@ -5,28 +5,28 @@ part 'task.g.dart';
 @JsonSerializable()
 class Task {
   @JsonKey(name: 'taskId')
-  final int? taskId;
+  int? taskId;
 
   @JsonKey(name: 'taskTypeId')
-  final int? taskTypeId;
+  int? taskTypeId;
 
   @JsonKey(name: 'taskName')
-  final String? taskName;
+  String? taskName;
 
   @JsonKey(name: 'taskDate')
-  final String? taskDate;
+  String? taskDate;
 
   @JsonKey(name: 'outletId')
-  final int? outletId;
+  int? outletId;
 
   @JsonKey(name: 'completedDate')
-  final String? completedDate;
+  String? completedDate;
 
   @JsonKey(name: 'status')
-  final String? status;
+  String? status;
 
   @JsonKey(name: 'remarks')
-  final String? remarks;
+  String? remarks;
 
   Task({
     required this.taskId,

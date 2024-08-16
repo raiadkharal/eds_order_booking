@@ -4,7 +4,7 @@ part 'product.g.dart';
 
 @JsonSerializable()
 class Product {
-  @JsonKey(name: 'pk_pid')
+  @JsonKey(name: 'productId')
   int? id;
 
   String? productName;

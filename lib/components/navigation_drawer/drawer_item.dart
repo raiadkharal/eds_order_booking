@@ -4,7 +4,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:order_booking/route.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../ui/login/login_screen.dart';

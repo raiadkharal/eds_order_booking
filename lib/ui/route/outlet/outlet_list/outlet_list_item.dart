@@ -71,7 +71,6 @@ class OutletListItem extends StatelessWidget {
                 ],
               ),
             ),
-            if (outlet.synced ?? false)
               SizedBox(
                   height: 20,
                   width: 20,
@@ -123,7 +122,7 @@ class OutletListItem extends StatelessWidget {
 
     // show outlet pending or uploaded status icon color
     if (orderStatus!=null){
-      if (orderStatus!.requestStatus==0){
+      if (orderStatus?.requestStatus==null||orderStatus!.requestStatus==0){
         imageWidget=Image.asset("assets/images/ic_done.png",color: Colors.red,colorBlendMode: BlendMode.color,);
         if(orderStatus!.data==null){
           imageWidget=Image.asset("assets/images/ic_empty_order.png");
@@ -131,7 +130,7 @@ class OutletListItem extends StatelessWidget {
       }else if (orderStatus!.requestStatus==3){
         imageWidget=Image.asset("assets/images/ic_done.png",color: Colors.green,colorBlendMode: BlendMode.color,);
       }else {
-        imageWidget=Image.asset("assets/images/ic_done.png",color: Colors.green,colorBlendMode: BlendMode.color,);
+        imageWidget=Image.asset("assets/images/ic_done.png",color: Colors.amber,colorBlendMode: BlendMode.screen,);
       }
     }
 

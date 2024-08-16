@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:order_booking/model/configuration/configurations_model.dart';
+import 'package:order_booking/model/merchandise_model/merchandise_model.dart';
 import 'package:order_booking/model/upload_message_model/upload_message_model.dart';
 import 'package:order_booking/ui/home/home_repository.dart';
 
@@ -14,7 +15,7 @@ import '../../db/entities/outlet/outlet.dart';
 import '../../db/models/work_status/work_status.dart';
 import '../../model/market_return_model/market_return_model.dart';
 import '../../model/master_model/master_model.dart';
-import '../../model/merchandise_model/merchandise_model.dart';
+import '../../model/merchandise_upload_model/merchandise_upload_model.dart';
 import '../../status_repository.dart';
 import '../../utils/Constants.dart';
 import '../../utils/PreferenceUtil.dart';
@@ -73,20 +74,24 @@ class HomeViewModel extends GetxController {
   Future<String?> uploadSingleOrder(int outletId) async {
 
     String retValue = "";
-    OrderStatus? status = await _statusRepository.findOrderStatus(outletId);
+    try {
+      OrderStatus? status = await _statusRepository.findOrderStatus(outletId);
 
-    if (status != null) {
-      MasterModel? model = await saveOrderObservableSync(status);
-      //error(model);
-      onUploadSync(model, model?.outletId, model?.outletStatus);
-      if (model?.success == "true") {
-      } else {
-        if (model?.errorCode != 3) {
-          retValue = model?.errorMessage == null
-              ? "Something went wrong.Please retry."
-              : model?.errorMessage ?? "";
-        }
-      }
+      if (status != null) {
+            MasterModel? model = await saveOrderObservableSync(status);
+            //error(model);
+            onUploadSync(model, model?.outletId, model?.outletStatus);
+            if (model?.success == "true") {
+            } else {
+              if (model?.errorCode != 3) {
+                retValue = model?.errorMessage == null
+                    ? "Something went wrong.Please retry."
+                    : model?.errorMessage ?? "";
+              }
+            }
+          }
+    } catch (e) {
+      showToastMessage(e.toString());
     }
     return retValue;
   }
@@ -128,7 +133,7 @@ class HomeViewModel extends GetxController {
       masterModel.outletCode = outlet.outletCode;
       if (outlet.avlStockDetail != null) {
         masterModel.dailyOutletVisit ??=
-            MerchandiseModel(merchandise: Merchandise());
+            MerchandiseUploadModel(merchandise: MerchandiseModel());
         masterModel.dailyOutletVisit?.dailyOutletStock = outlet.avlStockDetail;
       }
 
@@ -146,15 +151,17 @@ class HomeViewModel extends GetxController {
 
       _homeRepository.setRequestCounter(masterModel.requestCounter);
 
+      final finalJson = masterModel.toJson();
+      // final finalJson = Util.removeNulls(json);
       //upload order request
-      final response = await _homeRepository.saveOrder(masterModel);
+      final response = await _homeRepository.saveOrder(MasterModel.fromJson(finalJson));
 
       if (response.status == RequestStatus.ERROR) {
         showToastMessage(response.message.toString());
         return null;
       }
 
-      model = MasterModel.fromJson(response.data);
+      model = MasterModel.fromJson(jsonDecode(response.data));
 
       if (model.outletId == 0) {
         model.outletId = masterModel.outletId;
@@ -188,7 +195,7 @@ class HomeViewModel extends GetxController {
     }
     if (bool.parse(model.success ?? "true")) {
       //scheduleMerchandiseJob(getApplication().getApplicationContext() , model.getOutletId() , PreferenceUtil.getInstance(getApplication()).getToken() , model.getOutletStatus()!=null? model.getOutletStatus():0);
-      /* if (saveMerchandiseSync(model.outletId, model.outletStatus ?? 0)) {
+       if (saveMerchandiseSync(model.outletId, model.outletStatus ?? 0)) {
         model.outletId = masterModel.outletId;
         model.outletStatus=orderStatus.status;
         orderStatus.imageStatus=1;
@@ -203,7 +210,7 @@ class HomeViewModel extends GetxController {
         errorModel.outletStatus=orderStatus.status;
         return errorModel;
 //
-      }*/
+      }
     } else {
       if (model.errorCode == 3) {
         MasterModel errorModel = MasterModel();
@@ -509,5 +516,10 @@ class HomeViewModel extends GetxController {
 
   Rx<UploadMessageModel> getUploadMessages() {
     return _homeRepository.getUploadMessages();
+  }
+
+  bool saveMerchandiseSync(int? outletId, int statusId) {
+    //TODO-implement this method later
+    return true;
   }
 }

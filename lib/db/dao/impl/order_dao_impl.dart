@@ -1,12 +1,15 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:order_booking/db/dao/order_dao.dart';
 import 'package:order_booking/db/entities/order_status/order_status.dart';
 import 'package:order_booking/model/order_detail_and_price_breakdown/order_detail_and_price_breakdown.dart';
-import 'package:order_booking/model/outlet_model/outlet_model.dart';
 import 'package:order_booking/utils/utils.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../../model/master_model/master_model.dart';
+import '../../../model/order_detail_model/order_detail_model.dart';
+import '../../../model/order_model/order_model.dart';
 import '../../../model/order_model_response/order_model_response.dart';
 import '../../entities/carton_price_breakdown/carton_price_breakdown.dart';
 import '../../entities/order/order.dart';
@@ -49,15 +52,105 @@ class OrderDaoImpl extends OrderDao {
     if (orderDetails != null) {
       await _database.transaction(
         (txn) async {
-          Batch batch = txn.batch();
-          for (OrderDetail orderDetail in orderDetails) {
-            batch.insert("OrderDetail", orderDetail.toJson(),
-                conflictAlgorithm: ConflictAlgorithm.replace);
+          try {
+            Batch batch = txn.batch();
+            for (OrderDetail orderDetail in orderDetails) {
+              batch.insert("OrderDetail", orderDetail.toJson(),
+                  conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+            await batch.commit(noResult: true);
+          } catch (e) {
+            print(e);
           }
-          await batch.commit(noResult: true);
         },
       );
     }
+  }
+
+
+  @override
+  Future<void> insertOrders(List<OrderModel>? orders,List<int> outletIds) async{
+    _database.transaction((txn) async{
+      Batch batch = txn.batch();
+
+      int mobileOrderId = 1;
+      for (OrderModel order in orders ?? []) {
+        if (!outletIds.contains(order.outletId)) {
+          continue;
+        }
+        order.id = mobileOrderId;
+        batch.insert("`Order`", order.toJson(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
+        mobileOrderId++;
+      }
+      await batch.commit(noResult: true);
+
+    },);
+  }
+
+
+  @override
+  Future<void> insertOrderStatuses(List<OrderModel>? orders,List<int> outletIds) async{
+    _database.transaction((txn) async{
+      Batch batch = txn.batch();
+
+      for (OrderModel order in orders ?? []) {
+        if (!outletIds.contains(order.outletId)) {
+          continue;
+        }
+
+        OrderStatus orderStatus = OrderStatus();
+        orderStatus.orderId = order.serverOrderId;
+        orderStatus.outletId = order.outletId;
+
+        MasterModel masterModel = MasterModel();
+        masterModel.outletId = order.outletId;
+        masterModel.outletStatus = 8;
+
+        orderStatus.synced = false;
+        orderStatus.data = jsonEncode(masterModel);
+        orderStatus.status = 8;
+        orderStatus.orderAmount = order.payable;
+        orderStatus.outletVisitEndTime = 0;
+        orderStatus.outletVisitStartTime = null;
+        orderStatus.requestStatus = 3;
+        batch.insert("OrderStatus", orderStatus.toJson(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+      await batch.commit(noResult: true);
+
+    },);
+  }
+
+
+  @override
+  Future<void> insertOrderDetails(List<OrderModel>? orders,List<int> outletIds, HashMap<String, int> productH) async{
+    _database.transaction((txn) async{
+      Batch batch = txn.batch();
+
+      int mobileOrderId = 1;
+
+      for (OrderModel order in orders ?? []) {
+        if (!outletIds.contains(order.outletId)) {
+          continue;
+        }
+        for (OrderDetailModel orderDetail in order.orderDetails ?? []) {
+          //check cartonSize is null or not from the server if null and product hashMap is not null then set cartonSize from hashMap in order Detail
+          if (orderDetail.cartonSize == null &&
+              productH[orderDetail.mProductId.toString()] != null) {
+            orderDetail.cartonSize = productH[
+            productH[orderDetail.mProductId.toString()].toString()];
+          }
+          orderDetail.mLocalOrderId = mobileOrderId;
+
+          batch.insert("OrderDetail", orderDetail.toJson(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        mobileOrderId++;
+      }
+
+      await batch.commit(noResult: true);
+    },);
   }
 
   @override
@@ -160,7 +253,8 @@ class OrderDaoImpl extends OrderDao {
   Future<void> updateOrder(Order? order) async {
     try {
       if (order != null) {
-        _database.update("`Order`", order.toJson(),where: "pk_oid=?",whereArgs: [order.id]);
+        _database.update("`Order`", order.toJson(),
+            where: "pk_oid=?", whereArgs: [order.id]);
         // _database.rawQuery(
         // "update  `Order` set outletId = ${order.outletId}, serverOrderId = ${order.serverOrderId}, routeId = ${order.routeId},code = ${order.code},orderStatusId = ${order.orderStatus},visitDayId = ${order.visitDayId},latitude = ${order.latitude},longitude = ${order.longitude},subtotal = ${order.subTotal},payable = ${order.payable},orderDate = ${order.orderDate},deliveryDate = ${order.deliveryDate},distributionId = ${order.distributionId},priceBreakDown = ${jsonEncode(order.priceBreakDown)},orderDetails = '' where outletId = ${order.outletId}");
       }
@@ -219,61 +313,72 @@ class OrderDaoImpl extends OrderDao {
   }
 
   @override
-  Future<void> deleteOrderCartonPriceBreakdown(int? orderDetailId) async{
-    _database.delete("CartonPriceBreakDown",where: "mobileOrderDetailId = ?",whereArgs: [orderDetailId]);
+  Future<void> deleteOrderCartonPriceBreakdown(int? orderDetailId) async {
+    _database.delete("CartonPriceBreakDown",
+        where: "mobileOrderDetailId = ?", whereArgs: [orderDetailId]);
   }
 
   @override
-  Future<void> deleteOrderUnitPriceBreakdown(int? orderDetailId) async{
-    _database.delete("UnitPriceBreakDown",where: "mobileOrderDetailId = ?",whereArgs: [orderDetailId]);
+  Future<void> deleteOrderUnitPriceBreakdown(int? orderDetailId) async {
+    _database.delete("UnitPriceBreakDown",
+        where: "mobileOrderDetailId = ?", whereArgs: [orderDetailId]);
   }
 
   @override
   Future<void> insertOrderAndAvailableStockData(
-      List<OrderAndAvailableQuantity> orderQuantityList) async{
-    await _database.transaction((txn) async{
-      Batch batch = txn.batch();
+      List<OrderAndAvailableQuantity> orderQuantityList) async {
+    await _database.transaction(
+      (txn) async {
+        Batch batch = txn.batch();
 
-      for(OrderAndAvailableQuantity orderQuantity in orderQuantityList){
-        batch.insert("OrderAndAvailableQuantity", orderQuantity.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-      await batch.commit(noResult: true);
-
-    },);
+        for (OrderAndAvailableQuantity orderQuantity in orderQuantityList) {
+          batch.insert("OrderAndAvailableQuantity", orderQuantity.toJson(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+      },
+    );
   }
 
   @override
-  Future<void> deleteOrderAndAvailableStockByOutlet(int? outletId)async {
-    _database.delete("OrderAndAvailableQuantity",where: "outletId = ?",whereArgs: [outletId]);
+  Future<void> deleteOrderAndAvailableStockByOutlet(int? outletId) async {
+    _database.delete("OrderAndAvailableQuantity",
+        where: "outletId = ?", whereArgs: [outletId]);
   }
 
   @override
-  Future<List<OrderAndAvailableQuantity>> getOrderAndAvailableQuantityDataByOutlet(int? outletId) async{
+  Future<List<OrderAndAvailableQuantity>>
+      getOrderAndAvailableQuantityDataByOutlet(int? outletId) async {
+    if (outletId == null) return [];
 
-    if(outletId==null) return [];
+    final result = await _database.query("OrderAndAvailableQuantity",
+        where: "outletId = ?", whereArgs: [outletId]);
 
-    final result = await _database.query("OrderAndAvailableQuantity",where: "outletId = ?",whereArgs: [outletId]);
-
-    return result.map((e) => OrderAndAvailableQuantity.fromJson(e),).toList();
+    return result
+        .map(
+          (e) => OrderAndAvailableQuantity.fromJson(e),
+        )
+        .toList();
   }
 
   @override
-  Future<List<OrderEntityModel>> findAllOrders() async{
+  Future<List<OrderEntityModel>> findAllOrders() async {
     return await _database.transaction((txn) async {
-
       List<OrderEntityModel> orderList = [];
       // Query to get the order
       const String orderQuery = '''
       SELECT * FROM 'Order' WHERE outletId IN (SELECT outletId From Outlet where visitStatus in (7,8) OR statusId in (7, 8))
     ''';
 
-      List<Map<String, dynamic>> orderResult =
-      await txn.rawQuery(orderQuery);
+      List<Map<String, dynamic>> orderResult = await txn.rawQuery(orderQuery);
 
       if (orderResult.isNotEmpty) {
         // Map the order result to an Order object
-        List<Order> orders = orderResult.map((e) => Order.fromJson(e),).toList();
+        List<Order> orders = orderResult
+            .map(
+              (e) => Order.fromJson(e),
+            )
+            .toList();
         for (Order order in orders) {
           // Query to get the outlet of order
           const String outletQuery = '''
@@ -282,7 +387,7 @@ class OrderDaoImpl extends OrderDao {
         ''';
 
           List<Map<String, dynamic>> outletResult =
-          await txn.rawQuery(outletQuery, [order.outletId]);
+              await txn.rawQuery(outletQuery, [order.outletId]);
 
           Outlet outlet = Outlet.fromJson(outletResult.first);
 
@@ -293,50 +398,52 @@ class OrderDaoImpl extends OrderDao {
         ''';
 
           List<Map<String, dynamic>> orderStatusResult =
-          await txn.rawQuery(orderStatusQuery, [order.id]);
+              await txn.rawQuery(orderStatusQuery, [order.id]);
 
-          OrderStatus orderStatus = OrderStatus.fromJson(orderStatusResult.first);
+          OrderStatus orderStatus =
+              OrderStatus.fromJson(orderStatusResult.first);
 
           List<OrderDetailAndPriceBreakdown> orderDetailAndPriceBreakdownList =
-          [];
+              [];
 
           //fetch order detail by order id
           const String orderDetailQuery =
               "select * from OrderDetail where fk_oid = ?";
           List<Map<String, dynamic>> orderDetailResult =
-          await txn.rawQuery(orderDetailQuery, [order.id]);
+              await txn.rawQuery(orderDetailQuery, [order.id]);
           List<OrderDetail> orderDetails = orderDetailResult
               .map(
                 (e) => OrderDetail.fromJson(e),
-          )
+              )
               .toList();
 
           //fetch breakdown using orderDetail id
           for (OrderDetail orderDetail in orderDetails) {
             OrderDetailAndPriceBreakdown orderDetailAndPriceBreakdown =
-            OrderDetailAndPriceBreakdown(orderDetail: OrderDetail());
+                OrderDetailAndPriceBreakdown(orderDetail: OrderDetail());
 
             const String cartonPriceBreakdownQuery =
                 "select * from CartonPriceBreakDown where mobileOrderDetailId = ?";
             List<Map<String, dynamic>> cartonPriceBreakdownResult = await txn
-                .rawQuery(cartonPriceBreakdownQuery, [orderDetail.orderDetailId]);
+                .rawQuery(
+                    cartonPriceBreakdownQuery, [orderDetail.orderDetailId]);
             List<CartonPriceBreakDown> cartonPriceBreakDownList =
-            cartonPriceBreakdownResult
-                .map(
-                  (e) => CartonPriceBreakDown.fromJson(e),
-            )
-                .toList();
+                cartonPriceBreakdownResult
+                    .map(
+                      (e) => CartonPriceBreakDown.fromJson(e),
+                    )
+                    .toList();
 
             const String unitPriceBreakdownQuery =
                 "select * from UnitPriceBreakDown where mobileOrderDetailId = ?";
             List<Map<String, dynamic>> unitPriceBreakdownResult = await txn
                 .rawQuery(unitPriceBreakdownQuery, [orderDetail.orderDetailId]);
             List<UnitPriceBreakDown> unitPriceBreakDownList =
-            unitPriceBreakdownResult
-                .map(
-                  (e) => UnitPriceBreakDown.fromJson(e),
-            )
-                .toList();
+                unitPriceBreakdownResult
+                    .map(
+                      (e) => UnitPriceBreakDown.fromJson(e),
+                    )
+                    .toList();
 
             orderDetailAndPriceBreakdown.orderDetail = orderDetail;
             orderDetailAndPriceBreakdown.cartonPriceBreakDownList =
@@ -348,7 +455,7 @@ class OrderDaoImpl extends OrderDao {
           }
 
           // Return the combined result
-          final OrderEntityModel orderModel  = OrderEntityModel(
+          final OrderEntityModel orderModel = OrderEntityModel(
               order: order,
               outlet: outlet,
               orderStatus: orderStatus,
@@ -361,4 +468,6 @@ class OrderDaoImpl extends OrderDao {
       return orderList;
     });
   }
+
+
 }

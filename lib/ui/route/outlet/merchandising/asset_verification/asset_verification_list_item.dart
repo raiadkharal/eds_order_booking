@@ -1,3 +1,4 @@
+import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:order_booking/db/entities/asset/asset.dart';
@@ -46,7 +47,7 @@ class AssetVerificationListItem extends StatelessWidget {
                     canvasColor: Colors.white
                 ),
                 child: DropdownButtonFormField(
-                  onChanged:(value) {},
+                  onChanged:(value) => _updateAssetStatus(value),
                   isDense: true,
                   isExpanded: true,
                   decoration: InputDecoration(
@@ -75,4 +76,8 @@ class AssetVerificationListItem extends StatelessWidget {
       ),
     );
   }
+
+ void  _updateAssetStatus(AssetStatus? assetStatus) {
+
+ }
 }

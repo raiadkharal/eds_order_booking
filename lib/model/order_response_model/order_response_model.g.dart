@@ -16,7 +16,7 @@ OrderResponseModel _$OrderResponseModelFromJson(Map<String, dynamic> json) =>
       mobileOrderId: json['pk_oid'] as int?,
       orderDate: json['orderDate'] as int?,
       orderDetails: ((json['orderDetails'] is String)? jsonDecode(json['orderDetails']):json['orderDetails'] as List<dynamic>?)
-          ?.map<OrderDetail>((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+          ?.map<OrderDetailModel>((e) => OrderDetailModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       priceBreakDown: ((json['priceBreakDown'] is String)? jsonDecode(json['priceBreakDown']):json['priceBreakDown'] as List<dynamic>?)
           ?.map<UnitPriceBreakDownModel>((e) => UnitPriceBreakDownModel.fromJson(e as Map<String, dynamic>))

@@ -1,7 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_rx/get_rx.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:order_booking/components/button/cutom_button.dart';
@@ -11,8 +11,6 @@ import 'package:order_booking/model/order_model_response/order_model_response.da
 import 'package:order_booking/ui/customer_input/customer_input_repository.dart';
 import 'package:order_booking/ui/customer_input/customer_input_view_model.dart';
 import 'package:order_booking/ui/home/home_view_model.dart';
-import 'package:order_booking/ui/order/order_booking_repository.dart';
-import 'package:order_booking/ui/sample.dart';
 import 'package:order_booking/utils/Colors.dart';
 import 'package:order_booking/utils/network_manager.dart';
 import 'package:order_booking/utils/util.dart';
@@ -63,7 +61,7 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
     if (Get.arguments != null) {
       List<dynamic> args = Get.arguments;
       _outletId = args[0];
-      controller.outletId=_outletId;
+      controller.outletId = _outletId;
     }
 
     _setObservers();
@@ -377,9 +375,9 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
                                           onTap: () async {
                                             final selectedDate =
                                                 await _selectDeliveryDate();
-                                            if (selectedDate!=null) {
+                                            if (selectedDate != null) {
                                               _deliveryDateController.text =
-                                                                                              selectedDate ?? "";
+                                                  selectedDate ?? "";
                                             }
                                             // showToastMessage(selectedDate ?? "");
                                           },
@@ -387,12 +385,13 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
                                             controller: _deliveryDateController,
                                             readOnly: true,
                                             style: GoogleFonts.roboto(
-                                              color: Colors.black87,
+                                                color: Colors.black87,
                                                 fontSize: 14),
                                             decoration: InputDecoration(
                                               isDense: true,
                                               enabled: false,
-                                              suffixIcon: const Icon(Icons.calendar_today),
+                                              suffixIcon: const Icon(
+                                                  Icons.calendar_today),
                                               contentPadding:
                                                   const EdgeInsets.symmetric(
                                                       horizontal: 10,
@@ -614,7 +613,7 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
 
     //ask user to confirm his action
     _showConfirmationDialog(
-      () {
+      () async {
         Navigator.of(context).pop();
         //user confirmed his action
         String mobileNumber = _mobileNumberController.text;
@@ -622,10 +621,11 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
         String cnic = _cnicController.text;
         String strn = _strnController.text;
 
-        _signatureController.toPngBytes();
-        String base64Sign = ""; //compress signature and convert into base64
-
-        //TODO- show progress
+        final signature = await _signatureController.toPngBytes();
+        String base64Sign="";
+        if (signature != null) {
+          base64Sign = base64Encode(signature); //compress signature and convert into base64
+        }
 
         //disable next button
         _isBtnNextEnabled(false);
@@ -696,45 +696,52 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
           String? msg = await _homeController.uploadSingleOrder(outletId);
 
           if (msg != null && msg.isNotEmpty) {
-            showToastMessage(msg);
+            // Show a toast message
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+
+              showToastMessage(msg);
+
+             /* ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(msg)),
+              );*/
+
+            });
           }
 
-          //disable keep screen ON flag
-          WakelockPlus.disable();
-          controller.setOrderSaved(true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            //Clear screen on flag
+            WakelockPlus.disable();
+            controller.setOrderSaved(true);
 
-          //TODO-set result ok
+            //pop stack until outlet list screen
+            Get.until((route) => Get.currentRoute == EdsRoutes.outletList);
+          });
 
-          //pop stack until outlet list screen
-          Get.until((route) => Get.currentRoute==EdsRoutes.outletList);
+
+
         }
       } else {
         showToastMessage("No Internet Connection");
         controller.setIsSaving(false);
         controller.setOrderSaved(false);
 
-        //TODO-set result ok
-
         //pop stack until outlet list screen
-        Get.until((route) => Get.currentRoute==EdsRoutes.outletList);
+        Get.until((route) => Get.currentRoute == EdsRoutes.outletList);
       }
     }, time: const Duration(milliseconds: 200));
 
     debounce(controller.getStartUploadService(), (outletId) {},
         time: const Duration(milliseconds: 200));
 
-    debounce(controller.getMessage(), (msg)  {
+    debounce(controller.getMessage(), (msg) {
       showToastMessage(msg);
     }, time: const Duration(milliseconds: 200));
 
     debounce(controller.orderSaved(), (aBoolean) {
-      if(aBoolean){
-        //TODO-set result ok
-
+      if (aBoolean) {
         //pop stack until outlet list screen
-        Get.until((route) => Get.currentRoute==EdsRoutes.outletList);
-
-      }else{
+        Get.until((route) => Get.currentRoute == EdsRoutes.outletList);
+      } else {
         _isBtnNextEnabled(true);
       }
     }, time: const Duration(milliseconds: 200));

@@ -343,7 +343,10 @@ class OrderBookingViewModel extends GetxController {
 
       OrderResponseModel responseModel =
           OrderResponseModel.fromJson(mOrder.toJson());
-      responseModel.orderDetails = _order?.orderDetails;
+      responseModel.orderDetails = _order?.orderDetails?.map(
+            (e) => OrderDetailModel.fromJson(e.toJson()),
+      )
+          .toList();
 //            responseModel.setAvailableStocks(order.getAvailableStockDetails());
       responseModel.distributionId = _distributionId;
       responseModel.organizationId = _order?.outlet?.organizationId;
@@ -363,7 +366,10 @@ class OrderBookingViewModel extends GetxController {
       final orderResponseModel = await pricingManager.calculatePriceBreakdown(
           responseModel, formattedDate);
       final orderTotalAmount = orderResponseModel.payable;
-      final totalQty = getOrderTotalQty(orderResponseModel.orderDetails);
+      final totalQty = getOrderTotalQty(orderResponseModel.orderDetails?.map(
+            (e) => OrderDetail.fromJson(e.toJson()),
+      )
+          .toList());
 
       final priceOutputDTO = await pricingManager.getOrderPrice(
         orderResponseModel,
@@ -403,7 +409,10 @@ class OrderBookingViewModel extends GetxController {
       // final orderString = jsonEncode(orderResponseModelCheck);
       final order = Order.fromJson(orderResponseModelCheck.toJson());
 
-      orderModel.orderDetails = orderResponseModelCheck.orderDetails;
+      orderModel.orderDetails = orderResponseModelCheck.orderDetails?.map(
+            (e) => OrderDetail.fromJson(e.toJson()),
+      )
+          .toList();
       orderModel.order = order;
       orderModel.outlet = _order?.outlet;
       orderModel.success =
@@ -416,7 +425,7 @@ class OrderBookingViewModel extends GetxController {
     }
   }
 
-  void updateOrder(OrderEntityModel? order) {
+  Future<void> updateOrder(OrderEntityModel? order) async {
     if (order != null &&
         order.order != null &&
         order.success! &&
@@ -445,8 +454,8 @@ class OrderBookingViewModel extends GetxController {
 
         _statusRepository.updateOutlet(order.outlet);
         final orderUpdateCompletable = _repository.updateOrder(order.order);
-        final removeOrderItems = _repository.deleteOrderItems(order.order?.id);
-        final insertOrderItems = _repository.addOrderItems(order.orderDetails);
+        final removeOrderItems = await _repository.deleteOrderItems(order.order?.id);
+        final insertOrderItems = await _repository.addOrderItems(order.orderDetails);
 
         if (order.orderDetails != null) {
           for (var orderDetail in order.orderDetails!) {

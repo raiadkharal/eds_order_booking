@@ -2,12 +2,17 @@ import 'package:flutter/cupertino.dart';
 
 class Constants {
   //Engro testing url
-  static const baseUrl = "http://101.50.85.136:84/api/api/";
+  static const baseUrl = "http://101.50.85.136:85/api/api/";
+
+
+  // //localhost testing url
+  // static const baseUrl = "http://192.168.0.108:7291/api/";
+
 
 /*  //Engro testing url
   static const baseUrl = "http://101.50.85.136:83/api/";*/
 
-  /* //Engro testing url
+   /*//Engro testing url
   static const baseUrl = "http://101.50.85.136:85/api/api/";*/
 
 /*//pepsi testing url
@@ -57,6 +62,15 @@ class Constants {
     "No Asset",
     "No Barcode"
   ];
+
+
+  static final taskStatusList = [
+    "PENDING",
+    "COMPLETED",
+    "DEFERRED"
+  ];
+
+  static final List<int> outletIds = [];
 
   static final reportTopSummaryTitles = [
     "Planned",

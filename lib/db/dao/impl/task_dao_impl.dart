@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:order_booking/db/dao/task_dao.dart';
 import 'package:order_booking/db/entities/task/task.dart';
 import 'package:sqflite/sqflite.dart';
@@ -14,30 +16,24 @@ class TaskDaoImpl extends TaskDao {
 
   @override
   Future<void> insertTasks(List<Task>? tasks) async {
-
     try {
       await _database.transaction(
-                (txn) async {
-              Batch batch = txn.batch();
-              if (tasks != null&&tasks.isNotEmpty) {
-                for (Task task in tasks) {
-                  batch.insert("Tasks", task.toJson(),
-                      conflictAlgorithm: ConflictAlgorithm.replace);
-                }
-              }
-              await batch.commit(noResult: true);
-            },
-          );
+        (txn) async {
+          Batch batch = txn.batch();
+          if (tasks != null && tasks.isNotEmpty) {
+            for (Task task in tasks) {
+              batch.insert("Tasks", task.toJson(),
+                  conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+          await batch.commit(noResult: true);
+        },
+      );
     } catch (e) {
-      print(e);
-    }
-
-  /*  if (tasks != null&&tasks.isNotEmpty) {
-      for (Task task in tasks) {
-        _database.insert("Tasks", task.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
+      if (kDebugMode) {
+        print(e);
       }
-    }*/
+    }
   }
 
   @override
@@ -50,5 +46,16 @@ class TaskDaoImpl extends TaskDao {
           (e) => Task.fromJson(e),
         )
         .toList();
+  }
+
+  @override
+  Future<void> updateTask(Task taskParam) async {
+    try {
+      _database.update("Tasks", taskParam.toJson(),
+          where: "taskId = ? and taskTypeId = ?",
+          whereArgs: [taskParam.taskId, taskParam.taskTypeId]);
+    } catch (e) {
+      e.printInfo();
+    }
   }
 }

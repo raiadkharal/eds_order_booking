@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:order_booking/db/entities/order_detail/order_detail.dart';
 import 'package:order_booking/db/entities/outlet/outlet.dart';
 import 'package:order_booking/model/master_model/master_model.dart';
+import 'package:order_booking/model/merchandise_model/merchandise_model.dart';
+import 'package:order_booking/model/order_detail_model/order_detail_model.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 import 'package:order_booking/status_repository.dart';
 import 'package:order_booking/ui/customer_input/customer_input_repository.dart';
@@ -19,7 +21,7 @@ import '../../db/entities/merchandise/merchandise.dart';
 import '../../db/entities/order/order.dart';
 import '../../db/entities/order_status/order_status.dart';
 import '../../db/models/merchandise_images/merchandise_image.dart';
-import '../../model/merchandise_model/merchandise_model.dart';
+import '../../model/merchandise_upload_model/merchandise_upload_model.dart';
 import '../../model/order_detail_and_price_breakdown/order_detail_and_price_breakdown.dart';
 import '../../model/order_response_model/order_response_model.dart';
 import '../../utils/Constants.dart';
@@ -135,7 +137,7 @@ class CustomerInputViewModel extends GetxController {
         orderStatus.outletVisitEndTime = status.outletVisitEndTime;
         orderStatus.outletVisitStartTime = status.outletVisitStartTime;
         data.outletEndTime = status.outletVisitEndTime;
-        data.outletDistance = status.outletDistance?.toDouble();
+        data.outletDistance = status.outletDistance?.toInt();
         data.outletLatitude = status.outletLatitude ?? 0.0;
         data.outletLongitude = status.outletLongitude ?? 0.0;
       } else {
@@ -145,7 +147,7 @@ class CustomerInputViewModel extends GetxController {
             status.outletLongitude != null &&
             status.outletLatitude != null) {
           orderStatus.outletVisitStartTime = status.outletVisitStartTime;
-          data.outletDistance = status.outletDistance?.toDouble();
+          data.outletDistance = status.outletDistance?.toInt();
           data.outletLatitude = status.outletLatitude;
           data.outletLongitude = status.outletLongitude;
         } else {
@@ -190,18 +192,21 @@ class CustomerInputViewModel extends GetxController {
     OrderResponseModel responseModel =
         OrderResponseModel.fromJson(jsonDecode(json));
 
-    responseModel.orderDetails = orderModel.orderDetails;
+    responseModel.orderDetails = orderModel.orderDetails
+        ?.map(
+          (e) => OrderDetailModel.fromJson(e.toJson()),
+        )
+        .toList();
     responseModel.startedDate =
         (_orderBookingRepository.getWorkSyncData().syncDate);
     masterModel.customerInput = (customerInput);
     masterModel.order = (responseModel);
     masterModel.setLocation(order?.latitude, order?.longitude);
     masterModel.outletId = order?.outletId;
-    masterModel.outletStatus =
-        8; // Constant.STATUS_CONTINUE (assuming 8 means order complete)
+    masterModel.outletStatus = Constants.STATUS_CONTINUE; //(assuming 8 means order complete)
     masterModel.outletVisits = orderModel.outlet?.outletVisits;
 
-    MerchandiseModel? merchandiseModel = await saveMerchandiseSync(
+    MerchandiseUploadModel? merchandiseModel = await saveMerchandiseSync(
         masterModel.outletId!, masterModel.outletStatus!);
 
     masterModel.dailyOutletVisit = merchandiseModel;
@@ -242,7 +247,7 @@ class CustomerInputViewModel extends GetxController {
     return masterModel;
   }
 
-  Future<MerchandiseModel?> saveMerchandiseSync(
+  Future<MerchandiseUploadModel?> saveMerchandiseSync(
       int outletId, int statusId) async {
     Merchandise? merchandise =
         await _repository.findMerchandiseByOutletId(outletId);
@@ -275,8 +280,8 @@ class CustomerInputViewModel extends GetxController {
     readyToPostMerchandise.assetList = merchandise.assetList;
     readyToPostMerchandise.outletId = merchandise.outletId;
     readyToPostMerchandise.remarks = merchandise.remarks;
-    MerchandiseModel merchandiseModel = MerchandiseModel(
-      merchandise: readyToPostMerchandise,
+    MerchandiseUploadModel merchandiseModel = MerchandiseUploadModel(
+      merchandise: MerchandiseModel.fromJson(readyToPostMerchandise.toJson()),
       statusId: statusId,
     );
 

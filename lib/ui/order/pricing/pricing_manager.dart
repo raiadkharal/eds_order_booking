@@ -27,6 +27,7 @@ import '../../../db/entities/pricing/pricing_area/pricing_area.dart';
 import '../../../db/entities/product/product.dart';
 import '../../../db/entities/product_quantity/product_quantity.dart';
 import '../../../db/entities/unit_price_breakdown/unit_price_breakdown.dart';
+import '../../../model/order_detail_model/order_detail_model.dart';
 import '../../../model/order_response_model/order_response_model.dart';
 import '../../../utils/enums.dart';
 import 'combined_max_limit_holder_dto/combined_max_limit_holder_dto.dart';
@@ -483,7 +484,10 @@ class PricingManager {
   Future<OrderResponseModel> calculatePriceBreakdown(
       OrderResponseModel orderModel, String date) async {
     Map<OrderDetail, List<OrderDetail>> orderItems =
-        composeNewOrderItemsListForCalc(orderModel.orderDetails) ?? {};
+        composeNewOrderItemsListForCalc(orderModel.orderDetails?.map(
+              (e) => OrderDetail.fromJson(e.toJson()),
+        )
+            .toList()) ?? {};
 
     final finalOrderDetailList = <OrderDetail>[];
     final finalAvlStockDetailList = <AvailableStock>[];
@@ -564,7 +568,10 @@ class PricingManager {
 
     orderModel.payable = (payable);
     orderModel.subtotal = (payable);
-    orderModel.orderDetails = (finalOrderDetailList);
+    orderModel.orderDetails = (finalOrderDetailList.map(
+          (e) => OrderDetailModel.fromJson(e.toJson()),
+    )
+        .toList());
     orderModel.success = "true";
 
     return orderModel;
@@ -1303,7 +1310,11 @@ class PricingManager {
         List<OrderDetail> paidOrderDetails = [];
 
         if (orderVM.orderDetails != null) {
-          for (OrderDetail orderDetail in orderVM.orderDetails!) {
+          List<OrderDetail> orderDetails = orderVM.orderDetails!.map(
+                (e) => OrderDetail.fromJson(e.toJson()),
+          )
+              .toList();
+          for (OrderDetail orderDetail in orderDetails) {
             if (orderDetail.type == "paid") {
               paidOrderDetails.add(orderDetail);
 

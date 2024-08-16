@@ -920,7 +920,7 @@ class PricingDaoImpl extends PricingDao {
         "    From\tOutletAvailedPromotion OAP\n" +
         "    INNER JOIN PriceCondition PC ON PC.PriceConditionId = OAP.PriceConditionId\n" +
         "    INNER JOIN PriceConditionType PCT ON PCT.PriceConditionTypeId = PC.priceConditionTypeId\n" +
-        "    LEFT JOIN Product P ON P.pk_pid = OAP.productId\n" +
+        "    LEFT JOIN Product P ON P.productId = OAP.productId\n" +
         "    Where\tOAP.OutletId =  $outletId AND\n" +
         "    OAP.PriceConditionId = $priceConditionId AND\n" +
         "            (\n" +

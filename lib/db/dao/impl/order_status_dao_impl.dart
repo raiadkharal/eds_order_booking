@@ -64,7 +64,7 @@ class OrderStatusDaoImpl extends OrderStatusDao {
 
   @override
   Future<void> deleteAllStatus() async {
-    _database.delete("OrderStatus");
+    _database.rawQuery("DELETE FROM OrderStatus");
   }
 
   @override
@@ -81,10 +81,7 @@ class OrderStatusDaoImpl extends OrderStatusDao {
 
   @override
   Future<List<UploadStatusModel>> getAllOrders() async{
-    final result = await _database.rawQuery("SELECT o.outletId, o.outletName, ifnull(o.synced,1) as 'synced',os.imageStatus, os.requestStatus FROM Outlet o INNER JOIN OrderStatus os ON os.outletId=o.outletId  \n" +
-        "where (o.synced is not null And os.data is not null) or (o.synced is not null and o.statusId>1) \n" +
-        "\n" +
-        "order by synced");
+    final result = await _database.rawQuery("SELECT o.outletId, o.outletName, ifnull(o.synced,1) as 'synced',os.imageStatus, os.requestStatus FROM Outlet o INNER JOIN OrderStatus os ON os.outletId=o.outletId where (o.synced is not null And os.data is not null) or (o.synced is not null and o.statusId>1) order by synced");
 
     return result.map((e) => UploadStatusModel.fromJson(e),).toList();
   }

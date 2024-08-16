@@ -94,13 +94,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       Container(
                         color: grayColor,
                         width: double.infinity,
-                        padding: const EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(6),
                         child: Text(
                           Constants.reportTopSummaryTitles[index],
                           style: GoogleFonts.roboto(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14),
+                              fontSize: 12),
                           textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,
                         ),

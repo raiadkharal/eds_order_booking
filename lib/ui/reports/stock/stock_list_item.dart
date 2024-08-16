@@ -21,14 +21,16 @@ class StockListItem extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  product.productName.toString(),
-                  style: GoogleFonts.roboto(
-                      fontSize: 11,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
+                Flexible(
+                  child: Text(
+                    product.productName.toString(),
+                    style: GoogleFonts.roboto(
+                        fontSize: 11,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
                 ),
                 Container(
                   color: Colors.grey,

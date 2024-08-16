@@ -1,8 +1,11 @@
+import 'dart:collection';
+
 import 'package:order_booking/db/entities/carton_price_breakdown/carton_price_breakdown.dart';
 import 'package:order_booking/db/entities/order_quantity/order_quantity.dart';
 import 'package:order_booking/db/entities/order_status/order_status.dart';
 import 'package:order_booking/db/entities/unit_price_breakdown/unit_price_breakdown.dart';
 import 'package:order_booking/model/order_detail_model/order_detail_model.dart';
+import 'package:order_booking/model/order_model/order_model.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 
 import '../entities/order/order.dart';
@@ -43,4 +46,11 @@ abstract class OrderDao {
   Future<List<OrderAndAvailableQuantity>> getOrderAndAvailableQuantityDataByOutlet(int? outletId);
 
   Future<List<OrderEntityModel>> findAllOrders();
+
+  Future<void> insertOrders(List<OrderModel>? orders,List<int> outletIds);
+
+  Future<void> insertOrderStatuses(List<OrderModel>? orders,List<int> outletIds);
+
+  Future<void> insertOrderDetails(List<OrderModel>? orders,List<int> outletIds, HashMap<String, int> productH);
+
 }

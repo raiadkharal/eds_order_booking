@@ -18,7 +18,7 @@ class ProductDaoImpl extends ProductDao {
   @override
   Future<List<ProductCartonQty>> getProductCartonQuantity() async {
     final result =
-        await _database.rawQuery("select pk_pid, cartonQuantity from Product");
+        await _database.rawQuery("select productId, cartonQuantity from Product");
 
     return result.map((json) => ProductCartonQty.fromJson(json)).toList();
   }
@@ -174,7 +174,7 @@ class ProductDaoImpl extends ProductDao {
     if (replacementProductId == null) return null;
 
     final result = await _database
-        .rawQuery("SELECT * FROM Product WHERE pk_pid=$replacementProductId");
+        .rawQuery("SELECT * FROM Product WHERE productId=$replacementProductId");
 
     if (result.isNotEmpty) {
       return Product.fromJson(result.first);
@@ -188,7 +188,7 @@ class ProductDaoImpl extends ProductDao {
       int? productId, int unitStockInHand, int cartonStockInHand) async {
     try {
       _database.rawUpdate(
-          "Update Product set unitStockInHand= ? , cartonStockInHand= ? where pk_pid= ?",
+          "Update Product set unitStockInHand= ? , cartonStockInHand= ? where productId= ?",
           [unitStockInHand, cartonStockInHand, productId]);
     } catch (e) {
       e.printInfo();
@@ -200,7 +200,7 @@ class ProductDaoImpl extends ProductDao {
   Future<ProductStockInHand?> getProductStockInHand(int? id) async {
     try {
       final result = await _database.rawQuery(
-          "select pk_pid,unitStockInHand,cartonStockInHand from product where pk_pid= $id");
+          "select productId,unitStockInHand,cartonStockInHand from product where productId= $id");
 
       if (result.isNotEmpty) {
         return ProductStockInHand.fromJson(result.first);

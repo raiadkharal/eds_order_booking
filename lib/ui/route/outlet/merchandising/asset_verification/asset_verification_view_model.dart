@@ -4,12 +4,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:order_booking/db/entities/asset/asset.dart';
 import 'package:order_booking/db/entities/outlet/outlet.dart';
 import 'package:order_booking/db/models/asset_status/asset_status.dart';
+import 'package:order_booking/ui/repository.dart';
 import 'package:order_booking/utils/utils.dart';
 
 import '../../../../../status_repository.dart';
 
 class AssetVerificationViewModel extends GetxController {
   final StatusRepository _statusRepository;
+  final Repository _repository;
 
   RxList<AssetStatus> assetStatuses = RxList();
   RxList<Asset> assetList = RxList();
@@ -17,7 +19,7 @@ class AssetVerificationViewModel extends GetxController {
 
   RxBool isLoading = false.obs;
 
-  AssetVerificationViewModel(this._statusRepository);
+  AssetVerificationViewModel(this._statusRepository, this._repository);
 
   void loadOutlet(int outletId) {
     _statusRepository.findOutletById(outletId).then(
@@ -68,6 +70,22 @@ class AssetVerificationViewModel extends GetxController {
   void setLoading(bool value) {
     isLoading(value);
     isLoading.refresh();
+  }
+
+  void setAssetVerifiedCount(int verified) {
+    _repository.setAssetsVerifiedCount(verified);
+  }
+
+  bool getAssetScannedInLastMonth() {
+    return _repository.getAssetsScannedInLastMonth();
+  }
+
+  void setAssetsScannedInLastMonth(bool value) {
+    _repository.setAssetsScannedInLastMonth(value);
+  }
+
+  void setAssetsScannedWithoutVerified(bool value) {
+    _repository.setAssetsScannedWithoutVerified(value);
   }
 
 }

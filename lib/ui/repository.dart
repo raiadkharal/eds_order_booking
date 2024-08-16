@@ -39,6 +39,9 @@ class Repository {
   void setAssetsScannedInLastMonth(bool value) {
   _preferenceUtil.setAssetScannedInLastMonth(value);
   }
+ bool getAssetsScannedInLastMonth() {
+  return _preferenceUtil.getAssetScannedInLastMonth();
+ }
 
   Future<Merchandise?> findMerchandise(int outletId) {
   return _merchandiseDao.findMerchandiseByOutletId(outletId);
@@ -62,6 +65,14 @@ class Repository {
 
   int getAssetsVerifiedCount() {
   return _preferenceUtil.getAssetsVerifiedCount();
+  }
+
+ void setAssetsVerifiedCount(int verified) {
+  return _preferenceUtil.setAssetsVerifiedCount(verified);
+ }
+
+  void setAssetsScannedWithoutVerified(bool value) {
+  _preferenceUtil.setAssetsScannedWithoutVerified(value);
   }
 
 }

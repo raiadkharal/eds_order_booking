@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
-  static const int _databaseVersion = 2;
+  static const int _databaseVersion = 1;
   static const String _databaseName = "eds";
 
   DatabaseHelper._privateConstructor();

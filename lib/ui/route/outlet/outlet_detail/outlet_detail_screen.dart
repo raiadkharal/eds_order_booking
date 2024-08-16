@@ -1060,8 +1060,9 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
             _outletVisitStartTime,
             DateTime.now().millisecondsSinceEpoch);
       }
-    } else {
-      Get.back();
     }
+    /*else {
+      Get.back();
+    }*/
   }
 }

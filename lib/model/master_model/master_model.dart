@@ -7,7 +7,7 @@ import '../../db/entities/task/task.dart';
 import '../../db/models/base_response/base_response.dart';
 import '../../utils/util.dart';
 import '../market_return_model/market_return_model.dart';
-import '../merchandise_model/merchandise_model.dart';
+import '../merchandise_upload_model/merchandise_upload_model.dart';
 import '../order_response_model/order_response_model.dart';
 part 'master_model.g.dart';
 
@@ -44,7 +44,7 @@ class MasterModel extends BaseResponse {
   String? outletCloseTime;
 
   @JsonKey(name: 'dailyOutletVisit')
-  MerchandiseModel? dailyOutletVisit;
+  MerchandiseUploadModel? dailyOutletVisit;
 
   @JsonKey(name: 'latitude')
   double? latitude;
@@ -71,7 +71,7 @@ class MasterModel extends BaseResponse {
   double? outletLongitude;
 
   @JsonKey(name: 'outletDistance')
-  double? outletDistance;
+  int? outletDistance;
 
   @JsonKey(name: 'outletVisits')
   List<OutletVisit>? outletVisits;

@@ -9,7 +9,7 @@ part of 'order_detail_model.dart';
 OrderDetailModel _$OrderDetailFromJson(Map<String, dynamic> json) {
   return OrderDetailModel()
     ..orderDetailId = json['pk_modid'] as int?
-    ..mLocalOrderId = json['mobileOrderId'] as int?
+    ..mLocalOrderId = json['fk_oid'] as int?
     ..mOrderId = json['orderId'] as int?
     ..mProductId = json['productId'] as int?
     ..packageId = json['packageId'] as int?
@@ -20,6 +20,8 @@ OrderDetailModel _$OrderDetailFromJson(Map<String, dynamic> json) {
     ..cartonFreeGoodGroupId = json['cartonFreeGoodGroupId'] as int?
     ..unitFreeGoodDetailId = json['unitFreeGoodDetailId'] as int?
     ..cartonFreeGoodDetailId = json['cartonFreeGoodDetailId'] as int?
+    ..unitFreeGoodExclusiveId = json["unitFreeGoodExclusiveId"] as int?
+    ..cartonFreeGoodExclusiveId = json["cartonFreeGoodExclusiveId"] as int?
     ..mProductName = json['productName'] as String?
     ..mCartonQuantity = json['cartonQuantity'] as int?
     ..mUnitQuantity = json['unitQuantity'] as int?
@@ -44,9 +46,9 @@ OrderDetailModel _$OrderDetailFromJson(Map<String, dynamic> json) {
     ..unitFreeGoodQuantity = json['unitFreeGoodQuantity'] as int?
     ..cartonFreeGoodQuantity = json['cartonFreeGoodQuantity'] as int?
     ..unitSelectedFreeGoodQuantity =
-        json['unitSelectedFreeGoodQuantity'] as int?
+    json['unitSelectedFreeGoodQuantity'] as int?
     ..cartonSelectedFreeGoodQuantity =
-        json['cartonSelectedFreeGoodQuantity'] as int?
+    json['cartonSelectedFreeGoodQuantity'] as int?
     ..parentId = json['parentId'] as int?
     ..cartonPriceBreakDown = ((json['cartonPriceBreakDown'] is String)? jsonDecode(json['cartonPriceBreakDown']):json['cartonPriceBreakDown'] as List<dynamic>?)
         ?.map<CartonPriceBreakDownModel>((e) => CartonPriceBreakDownModel.fromJson(e as Map<String, dynamic>))
@@ -66,7 +68,7 @@ OrderDetailModel _$OrderDetailFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$OrderDetailToJson(OrderDetailModel instance) =>
     <String, dynamic>{
       'pk_modid': instance.orderDetailId,
-      'mobileOrderId': instance.mLocalOrderId,
+      'fk_oid': instance.mLocalOrderId,
       'orderId': instance.mOrderId,
       'productId': instance.mProductId,
       'packageId': instance.packageId,
@@ -77,6 +79,8 @@ Map<String, dynamic> _$OrderDetailToJson(OrderDetailModel instance) =>
       'cartonFreeGoodGroupId': instance.cartonFreeGoodGroupId,
       'unitFreeGoodDetailId': instance.unitFreeGoodDetailId,
       'cartonFreeGoodDetailId': instance.cartonFreeGoodDetailId,
+      'unitFreeGoodExclusiveId': instance.unitFreeGoodExclusiveId,
+      'cartonFreeGoodExclusiveId': instance.cartonFreeGoodExclusiveId,
       'productName': instance.mProductName,
       'cartonQuantity': instance.mCartonQuantity,
       'unitQuantity': instance.mUnitQuantity,
@@ -103,8 +107,8 @@ Map<String, dynamic> _$OrderDetailToJson(OrderDetailModel instance) =>
       'unitSelectedFreeGoodQuantity': instance.unitSelectedFreeGoodQuantity,
       'cartonSelectedFreeGoodQuantity': instance.cartonSelectedFreeGoodQuantity,
       'parentId': instance.parentId,
-      'cartonPriceBreakDown': (instance.cartonPriceBreakDown),
-      'unitPriceBreakDown': (instance.unitPriceBreakDown),
-      'cartonFreeGoods': (instance.cartonFreeGoods),
-      'unitFreeGoods': (instance.unitFreeGoods),
+      'cartonPriceBreakDown': instance.cartonPriceBreakDown?.map((e) => e.toJson(),).toList(),
+      'unitPriceBreakDown': instance.unitPriceBreakDown?.map((e) => e.toJson(),).toList(),
+      'cartonFreeGoods': instance.cartonFreeGoods?.map((e) => e.toJson(),).toList(),
+      'unitFreeGoods': instance.unitFreeGoods?.map((e) => e.toJson(),).toList(),
     };

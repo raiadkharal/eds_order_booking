@@ -17,7 +17,7 @@ MasterModel _$MasterModelFromJson(Map<String, dynamic> json) => MasterModel()
   ..outletEndTime = json['outletEndTime'] as int?
   ..dailyOutletVisit = json['dailyOutletVisit'] == null
       ? null
-      : MerchandiseModel.fromJson(json['dailyOutletVisit'] as Map<String, dynamic>)
+      : MerchandiseUploadModel.fromJson(json['dailyOutletVisit'] as Map<String, dynamic>)
   ..latitude = (json['latitude'] as num?)?.toDouble()
   ..longitude = (json['longitude'] as num?)?.toDouble()
   ..customerInput = json['customerInput'] == null
@@ -34,7 +34,7 @@ MasterModel _$MasterModelFromJson(Map<String, dynamic> json) => MasterModel()
       .toList()
   ..outletLatitude = (json['outletLatitude'] as num?)?.toDouble()
   ..outletLongitude = (json['outletLongitude'] as num?)?.toDouble()
-  ..outletDistance = json['outletDistance'] as double?
+  ..outletDistance = json['outletDistance'] as int?
   ..outletVisits = (json['outletVisits'] as List<dynamic>?)
       ?.map((e) => OutletVisit.fromJson(e as Map<String, dynamic>))
       .toList()
@@ -66,5 +66,5 @@ Map<String, dynamic> _$MasterModelToJson(MasterModel instance) {
 
   // json.removeWhere((key, value) => value==null,);
 
-  return json;
+  return Util.removeNulls(json);
 }

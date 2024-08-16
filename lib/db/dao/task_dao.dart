@@ -6,4 +6,6 @@ abstract class TaskDao {
   Future<void> insertTasks(List<Task>? tasks);
 
   Future<List<Task>?> getTaskByOutletId(int outletId);
+
+  Future<void> updateTask(Task taskParam);
 }

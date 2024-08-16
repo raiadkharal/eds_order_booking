@@ -1,15 +1,12 @@
 
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:get/get.dart';
 import 'package:order_booking/data_source/remote/api_service.dart';
 import 'package:order_booking/db/dao/merchandise_dao.dart';
+import 'package:order_booking/model/merchandise_model/merchandise_model.dart';
 
 import '../../db/entities/merchandise/merchandise.dart';
 import '../../db/models/merchandise_images/merchandise_image.dart';
-import '../../model/merchandise_model/merchandise_model.dart';
-import 'package:http/http.dart' as http;
+import '../../model/merchandise_upload_model/merchandise_upload_model.dart';
 
 class MerchandiseUploadService {
   final String token;
@@ -38,7 +35,7 @@ class MerchandiseUploadService {
 
   Future<void> uploadMerchandise(Merchandise? merchandise) async{
 
-    MerchandiseModel merchandiseModel = MerchandiseModel(merchandise: merchandise);
+    MerchandiseUploadModel merchandiseModel = MerchandiseUploadModel(merchandise: MerchandiseModel.fromJson(merchandise!.toJson()) );
     merchandiseModel.statusId=statusId;
 
     ApiService apiService = Get.find<ApiService>();

@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:get/get_rx/get_rx.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:order_booking/db/entities/task/task.dart';
 import 'package:order_booking/db/models/merchandise_images/merchandise_image.dart';
 import 'package:order_booking/route.dart';
 import 'package:order_booking/ui/asset_verification/asset_verification_screen.dart';
@@ -35,7 +36,8 @@ class MerchandisingScreen extends StatefulWidget {
   State<MerchandisingScreen> createState() => _MerchandisingScreenState();
 }
 
-class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsBindingObserver{
+class _MerchandisingScreenState extends State<MerchandisingScreen>
+    with WidgetsBindingObserver {
   final MerchandisingViewModel controller =
       Get.put(MerchandisingViewModel(Get.find(), Get.find()));
 
@@ -48,14 +50,14 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
 
   late final int outletId;
 
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if(state==AppLifecycleState.resumed){
+    if (state == AppLifecycleState.resumed) {
       controller.getAssets(outletId);
     }
     super.didChangeAppLifecycleState(state);
   }
+
   @override
   void initState() {
     if (Get.arguments != null) {
@@ -244,67 +246,83 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10.0, left: 2, right: 2),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Obx(
-                        () => SizedBox(
-                          height: 120,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            itemCount: controller.beforeImages.value.length,
-                            itemBuilder: (context, index) {
-                              return MerchandisingListItem(
-                                merchandiseImage:
-                                    controller.beforeImages.value[index],
-                                deleteCallback: () {
-                                  controller.removeMerchandiseImage(
-                                      controller.beforeImages.value[index]);
-                                },
-                              );
-                            },
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints:
+                            BoxConstraints(minHeight: constraints.maxHeight),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top: 10.0, left: 2, right: 2),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Obx(
+                                () => SizedBox(
+                                  height: 120,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount:
+                                        controller.beforeImages.value.length,
+                                    itemBuilder: (context, index) {
+                                      return MerchandisingListItem(
+                                        merchandiseImage: controller
+                                            .beforeImages.value[index],
+                                        deleteCallback: () {
+                                          controller.removeMerchandiseImage(
+                                              controller
+                                                  .beforeImages.value[index]);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              CustomButton(
+                                onTap: () => getImageFromCamera(true),
+                                text: "Before Merchandising",
+                                horizontalPadding: 80,
+                                minWidth: 180,
+                              ),
+                              Obx(
+                                () => SizedBox(
+                                  height: 120,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount:
+                                        controller.afterImages.value.length,
+                                    itemBuilder: (context, index) {
+                                      return MerchandisingListItem(
+                                        merchandiseImage:
+                                            controller.afterImages.value[index],
+                                        deleteCallback: () {
+                                          controller.removeMerchandiseImage(
+                                              controller
+                                                  .afterImages.value[index]);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Obx(() => CustomButton(
+                                    onTap: () => getImageFromCamera(false),
+                                    text: "After Merchandising",
+                                    horizontalPadding: 80,
+                                    minWidth: 180,
+                                    enabled: controller
+                                        .beforeImages.value.isNotEmpty,
+                                  )),
+                            ],
                           ),
                         ),
                       ),
-                      CustomButton(
-                        onTap: () => getImageFromCamera(true),
-                        text: "Before Merchandising",
-                        horizontalPadding: 80,
-                        minWidth: 180,
-                      ),
-                      Obx(
-                        () => SizedBox(
-                          height: 120,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            itemCount: controller.afterImages.value.length,
-                            itemBuilder: (context, index) {
-                              return MerchandisingListItem(
-                                merchandiseImage:
-                                    controller.afterImages.value[index],
-                                deleteCallback: () {
-                                  controller.removeMerchandiseImage(
-                                      controller.afterImages.value[index]);
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      Obx(() => CustomButton(
-                            onTap: () => getImageFromCamera(false),
-                            text: "After Merchandising",
-                            horizontalPadding: 80,
-                            minWidth: 180,
-                            enabled: controller.beforeImages.value.isNotEmpty,
-                          )),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
               Obx(
@@ -313,8 +331,6 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
                   text: "Next",
                   enabled: controller.beforeImages.value.isNotEmpty &&
                       controller.afterImages.value.isNotEmpty,
-                  fontSize: 22,
-                  horizontalPadding: 10,
                 ),
               ),
               const SizedBox(
@@ -343,7 +359,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
 
     debounce(controller.getAssets(outletId), (assets) {
       if (assets.isEmpty) {
-        _disableAssetsScanningBtn(true);
+        // _disableAssetsScanningBtn(true);
         isAssets = false;
       } else {
         _disableAssetsScanningBtn(false);
@@ -364,14 +380,17 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
 
     debounce(controller.isSaved, (aBoolean) async {
       if (aBoolean && assetsVerified) {
-        final taskList = await controller.getTasksByOutletId(outletId);
+        List<Task>? taskList = await controller.getTasksByOutletId(outletId);
+
         if (taskList != null && taskList.isNotEmpty) {
+          //if pending task available for that outlet, navigate to the task screen
           final result =
               await Get.toNamed(EdsRoutes.pendingTask, arguments: [outletId]);
           if (result != null) {
             Get.back(result: result);
           }
         } else {
+          //otherwise navigate to the order booking screen
           final result =
               await Get.toNamed(EdsRoutes.orderBooking, arguments: [outletId]);
           //send result back to the previous screen
@@ -596,8 +615,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-        Text("Info", style: GoogleFonts.roboto(color: Colors.black)),
+        title: Text("Info", style: GoogleFonts.roboto(color: Colors.black)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -609,11 +627,10 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
               children: [
                 TextButton(
                     onPressed: () {
-                    _showConfirmationDialog();
+                      _showConfirmationDialog();
                     },
                     child: Text("Back to PJP",
-                        style:
-                        GoogleFonts.roboto(color: Colors.black87))),
+                        style: GoogleFonts.roboto(color: Colors.black87))),
                 const SizedBox(
                   width: 10,
                 ),
@@ -624,8 +641,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
                           arguments: [outletId]);
                     },
                     child: Text("Scan Again",
-                        style:
-                        GoogleFonts.roboto(color: Colors.black87))),
+                        style: GoogleFonts.roboto(color: Colors.black87))),
               ],
             )
           ],
@@ -639,14 +655,12 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Confirmation",
-            style: GoogleFonts.roboto(
-                color: Colors.black)),
+            style: GoogleFonts.roboto(color: Colors.black)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text("Are you sure you want to Back to PJP",
-                style: GoogleFonts.roboto(
-                    color: Colors.black87)),
+                style: GoogleFonts.roboto(color: Colors.black87)),
             Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -656,8 +670,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
                       Navigator.pop(context);
                     },
                     child: Text("Cancel",
-                        style: GoogleFonts.roboto(
-                            color: Colors.black87))),
+                        style: GoogleFonts.roboto(color: Colors.black87))),
                 const SizedBox(
                   width: 10,
                 ),
@@ -665,29 +678,19 @@ class _MerchandisingScreenState extends State<MerchandisingScreen> with WidgetsB
                     onPressed: () {
                       Navigator.pop(context);
 
-                      controller.outlet.value
-                          .isAssetsScennedInTheLastMonth =
-                      true;
-                      controller.outlet.value.synced =
-                      false;
-                      controller.updateOutlet(
-                          controller.outlet.value);
-                      String remarks =
-                      _remarksController.text
-                          .toString();
-                      int? statusId = controller
-                          .outlet.value.statusId;
-                      controller
-                          .insertMerchandiseIntoDB(
-                          outletId,
-                          remarks,
-                          statusId);
+                      controller.outlet.value.isAssetsScennedInTheLastMonth =
+                          true;
+                      controller.outlet.value.synced = false;
+                      controller.updateOutlet(controller.outlet.value);
+                      String remarks = _remarksController.text.toString();
+                      int? statusId = controller.outlet.value.statusId;
+                      controller.insertMerchandiseIntoDB(
+                          outletId, remarks, statusId);
 
                       assetsVerified = false;
                     },
                     child: Text("Ok",
-                        style: GoogleFonts.roboto(
-                            color: Colors.black87))),
+                        style: GoogleFonts.roboto(color: Colors.black87))),
               ],
             )
           ],

@@ -8,8 +8,8 @@ part of 'upload_status_model.dart';
 
 UploadStatusModel _$UploadStatusModelFromJson(Map<String, dynamic> json) {
   return UploadStatusModel(
-    outletId: json['mOutletId'] as int,
-    outletName: json['mOutletName'] as String,
+    outletId: json['outletId'] as int,
+    outletName: json['outletName'] as String,
     synced: json['synced'] as int,
     imageStatus: json['imageStatus'] as int? ?? 0,
     requestStatus: json['requestStatus'] as int? ?? 0,
@@ -17,8 +17,8 @@ UploadStatusModel _$UploadStatusModelFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$UploadStatusModelToJson(UploadStatusModel instance) => <String, dynamic>{
-  'mOutletId': instance.outletId,
-  'mOutletName': instance.outletName,
+  'outletId': instance.outletId,
+  'outletName': instance.outletName,
   'synced': instance.synced,
   'imageStatus': instance.imageStatus,
   'requestStatus': instance.requestStatus,

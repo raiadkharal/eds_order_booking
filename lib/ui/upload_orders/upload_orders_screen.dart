@@ -94,7 +94,9 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
                       () => MaterialButton(
                         onPressed: () =>
                             _isBtnUploadEnabled.value ? _onUploadClick() : null,
-                        color: _isBtnUploadEnabled.value?secondaryColor:Colors.grey,
+                        color: _isBtnUploadEnabled.value
+                            ? secondaryColor
+                            : Colors.grey,
                         child: Text(
                           "UPLOAD",
                           style: GoogleFonts.roboto(
@@ -184,7 +186,8 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
                               children: [
                                 Flexible(
                                   child: Text(
-                                    controller.getOrders()[index].outletName,
+                                    controller.getOrders()[index].outletName ??
+                                        "",
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.roboto(
@@ -192,13 +195,19 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
                                         fontSize: 18),
                                   ),
                                 ),
-                                const SizedBox(
+                                SizedBox(
                                     height: 20,
                                     width: 20,
                                     child: Image(
-                                      image: AssetImage(
+                                      image: const AssetImage(
                                           "assets/images/ic_done.png"),
-                                      color: Colors.green,
+                                      color: (controller
+                                                      .getOrders()[index]
+                                                      .synced ??
+                                                  0) ==
+                                              1
+                                          ? Colors.green
+                                          : Colors.red,
                                       colorBlendMode: BlendMode.color,
                                     ))
                               ],
@@ -236,7 +245,8 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
 
   void setObservers() {
     debounce(controller.getOrders(), (uploadStatusModels) {
-      controller.getAllOrders();
+
+      // controller.getAllOrders();
 
       setUploadOrPendingCounts();
     }, time: const Duration(milliseconds: 200));
@@ -254,12 +264,13 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
     final isOnline = await NetworkManager.getInstance().isConnectedToInternet();
 
     if (isOnline) {
-      // progressCancelable=false;
+     controller.setLoading(true);
 
       WakelockPlus.enable();
 
       homeController.handleMultipleSyncOrderSync().whenComplete(
         () {
+          controller.setLoading(false);
           WakelockPlus.disable();
           _isBtnUploadEnabled(true);
         },

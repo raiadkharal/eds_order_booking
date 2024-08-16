@@ -5,6 +5,8 @@ import 'package:order_booking/db/entities/order_status/order_status.dart';
 import 'package:order_booking/db/entities/promotion/promotion.dart';
 import 'package:order_booking/db/entities/route/route.dart';
 
+import '../../model/outlet_model/outlet_model.dart';
+import '../entities/available_stock/available_stock.dart';
 import '../entities/outlet/outlet.dart';
 import '../models/outlet_order_status/outlet_order_status.dart';
 
@@ -77,4 +79,8 @@ abstract class RouteDao {
   Future<int> getPendingCount();
 
   Future<List<OrderStatus>> findPendingOrderToSyncEx();
+
+  Future<void> deleteOrderAndAvailableTempQty();
+
+  Future<void> updateAvailableStockInOutlet(List<OutletModel>? outletList,List<AvailableStock> availableStock);
 }

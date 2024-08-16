@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:order_booking/db/entities/unit_price_breakdown/unit_price_breakdown.dart';
@@ -226,6 +227,36 @@ class Util {
 
   static bool isListEmpty(List<dynamic>? list) {
     return(list==null||list.isEmpty);
+  }
+
+
+  static Map<String, dynamic> removeNulls(Map<String, dynamic> original) {
+    final result = <String, dynamic>{};
+
+    original.forEach((key, value) {
+      if (value is Map<String, dynamic>) {
+        // Recursively process nested maps
+        final nestedMap = removeNulls(value);
+        if (nestedMap.isNotEmpty) {
+          result[key] = nestedMap;
+        }
+      } else if (value is List) {
+        // Recursively process lists
+        final nestedList = value
+            .map((element) =>
+        element is Map<String, dynamic> ? removeNulls(element) : element)
+            .where((element) => element != null)
+            .toList();
+
+        if (nestedList.isNotEmpty) {
+          result[key] = nestedList;
+        }
+      } else if (value != null) {
+          result[key] = value;
+      }
+    });
+
+    return result;
   }
 
 }

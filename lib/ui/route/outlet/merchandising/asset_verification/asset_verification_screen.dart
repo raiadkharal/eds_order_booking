@@ -13,6 +13,7 @@ import 'package:order_booking/ui/route/outlet/merchandising/asset_verification/a
 import 'package:order_booking/utils/Constants.dart';
 import 'package:order_booking/utils/utils.dart';
 
+import '../../../../../db/entities/asset/asset.dart';
 import '../../../../../utils/Colors.dart';
 
 class AssetVerificationScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class AssetVerificationScreen extends StatefulWidget {
 class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
   final AssetVerificationViewModel controller =
       Get.put<AssetVerificationViewModel>(
-          AssetVerificationViewModel(Get.find()));
+          AssetVerificationViewModel(Get.find(), Get.find()));
 
   late final int _outletId;
 
@@ -48,94 +49,99 @@ class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-          foregroundColor: Colors.white,
-          backgroundColor: primaryColor,
-          title: Text(
-            "Asset Verification",
-            style: GoogleFonts.roboto(color: Colors.white),
-          )),
-      body: Stack(
-        children: [
-          Column(
+    return PopScope(
+        canPop: true,
+        onPopInvoked: (didPop) => _onBackPressed(),
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+              foregroundColor: Colors.white,
+              backgroundColor: primaryColor,
+              title: Text(
+                "Asset Verification",
+                style: GoogleFonts.roboto(color: Colors.white),
+              )),
+          body: Stack(
             children: [
-              Card(
-                shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero),
-                elevation: 3,
-                color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        flex: 8,
-                        child: Text(
-                          "Asset Code",
-                          style: GoogleFonts.roboto(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black),
-                          textAlign: TextAlign.center,
-                        ),
+              Column(
+                children: [
+                  Card(
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero),
+                    elevation: 3,
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 8,
+                            child: Text(
+                              "Asset Code",
+                              style: GoogleFonts.roboto(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 8,
+                            child: Text(
+                              "Verification",
+                              style: GoogleFonts.roboto(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 14,
+                            child: Text(
+                              "Status",
+                              style: GoogleFonts.roboto(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
                       ),
-                      Expanded(
-                        flex: 8,
-                        child: Text(
-                          "Verification",
-                          style: GoogleFonts.roboto(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 14,
-                        child: Text(
-                          "Status",
-                          style: GoogleFonts.roboto(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  Expanded(
+                      child: Obx(
+                    () => ListView.builder(
+                      itemBuilder: (context, index) {
+                        return AssetVerificationListItem(
+                          asset: controller.assetList[index],
+                          assetStatuses: controller.assetStatuses,
+                        );
+                      },
+                      itemCount: controller.assetList.length,
+                    ),
+                  )),
+                  CustomButton(
+                      onTap: () async {
+                        _startBarcodeScan();
+                        // final result = await Get.toNamed(EdsRoutes.barcodeScanner,
+                        //     arguments: [_outletId]);
+                        // showToastMessage(result.toString());
+                      },
+                      text: "Barcode Scan")
+                ],
               ),
-              Expanded(
-                  child: Obx(() => ListView.builder(
-                    itemBuilder: (context, index) {
-                      return AssetVerificationListItem(
-                        asset: controller.assetList[index],
-                        assetStatuses: controller.assetStatuses,
-                      );
-                    },
-                    itemCount: controller.assetList.length,
-                  ),)),
-              CustomButton(
-                  onTap: ()  async {
-                    _startBarcodeScan();
-                    // final result = await Get.toNamed(EdsRoutes.barcodeScanner,
-                    //     arguments: [_outletId]);
-                    // showToastMessage(result.toString());
-                  },
-                  text: "Barcode Scan")
+              Obx(
+                () => controller.isLoading.value
+                    ? const SimpleProgressDialog()
+                    : const SizedBox(),
+              )
             ],
           ),
-          Obx(
-            () => controller.isLoading.value
-                ? const SimpleProgressDialog()
-                : const SizedBox(),
-          )
-        ],
-      ),
-    );
+        ));
   }
 
   Future<LocationData> _setLocationCallback() async {
@@ -203,6 +209,43 @@ class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
     controller.getLookUpData();
     controller.loadAssets(_outletId);
   }
-}
 
-//TODO-override on back pressed method
+  void _onBackPressed() {
+    int verified = 0, notVerified = 0, statusWithOutVerified = 0;
+    if (controller.assetList.isNotEmpty) {
+      for (Asset asset in controller.assetList) {
+        if (asset.statusid != null && asset.getVerified()) {
+          verified++;
+        } else if (asset.statusid != null) {
+          notVerified++;
+        } else {
+          statusWithOutVerified++;
+        }
+      }
+    }
+
+    controller.setAssetVerifiedCount(verified);
+
+    if (statusWithOutVerified > 0) {
+      if (controller.getAssetScannedInLastMonth()) {
+        Get.back();
+        return;
+      }
+
+      controller.setAssetsScannedInLastMonth(false);
+      controller.setAssetsScannedWithoutVerified(true);
+    } else if (notVerified > 0) {
+      if (controller.getAssetScannedInLastMonth()) {
+        Get.back();
+        return;
+      }
+
+      controller.setAssetsScannedInLastMonth(false);
+      controller.setAssetsScannedWithoutVerified(false);
+    } else if (verified == controller.assetList.length) {
+      controller.setAssetsScannedInLastMonth(true);
+      controller.setAssetsScannedWithoutVerified(true);
+    }
+    Get.back();
+  }
+}

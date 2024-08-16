@@ -52,25 +52,36 @@ OrderDetail _$OrderDetailFromJson(Map<String, dynamic> json) {
     ..parentId = json['parentId'] as int?
     ..cartonPriceBreakDown = json['cartonPriceBreakDown'] == null
         ? null
-        : (jsonDecode(json['cartonPriceBreakDown']) as List<dynamic>?)
+        : ((json['cartonPriceBreakDown'] is String)
+                ? jsonDecode(json['cartonPriceBreakDown']) as List<dynamic>?
+                : jsonDecode(jsonEncode(json['cartonPriceBreakDown'])) as List<dynamic>?)
             ?.map<CartonPriceBreakDown>(
                 (e) => CartonPriceBreakDown.fromJson(e as Map<String, dynamic>))
             .toList()
-    ..unitPriceBreakDown = json['unitPriceBreakDown'] == null
+    ..unitPriceBreakDown =json['unitPriceBreakDown'] == null
         ? null
-        : (jsonDecode(json['unitPriceBreakDown']) as List<dynamic>?)
-            ?.map<UnitPriceBreakDown>((e) => UnitPriceBreakDown.fromJson(e as Map<String, dynamic>))
-            .toList()
+        : ((json['unitPriceBreakDown'] is String)
+        ? jsonDecode(json['unitPriceBreakDown']) as List<dynamic>?
+        : jsonDecode(jsonEncode(json['unitPriceBreakDown'])) as List<dynamic>?)
+        ?.map<UnitPriceBreakDown>(
+            (e) => UnitPriceBreakDown.fromJson(e as Map<String, dynamic>))
+        .toList()
     ..cartonFreeGoods = json['cartonFreeGoods'] == null
         ? null
-        : (jsonDecode(json['cartonFreeGoods']) as List<dynamic>?)
-            ?.map<OrderDetail>((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
-            .toList()
-    ..unitFreeGoods = json['unitFreeGoods'] == null
+        : ((json['cartonFreeGoods'] is String)
+        ? jsonDecode(json['cartonFreeGoods']) as List<dynamic>?
+        : jsonDecode(jsonEncode(json['cartonFreeGoods'])) as List<dynamic>?)
+        ?.map<OrderDetail>(
+            (e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+        .toList()
+    ..unitFreeGoods =json['unitFreeGoods'] == null
         ? null
-        : (jsonDecode(json['unitFreeGoods']) as List<dynamic>?)
-            ?.map<OrderDetail>((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
-            .toList();
+        : ((json['unitFreeGoods'] is String)
+        ? jsonDecode(json['unitFreeGoods']) as List<dynamic>?
+        : jsonDecode(jsonEncode(json['unitFreeGoods'])) as List<dynamic>?)
+        ?.map<OrderDetail>(
+            (e) => OrderDetail.fromJson(e as Map<String, dynamic>))
+        .toList();
 }
 
 Map<String, dynamic> _$OrderDetailToJson(OrderDetail instance) =>

@@ -70,33 +70,28 @@ class HomeRepository {
   late RxBool _onDayStart;
   final RxBool _isLoading = false.obs;
   final RxBool _targetVsAchievement = false.obs;
-  final Rx<UploadMessageModel> _uploadMessages=UploadMessageModel().obs;
+  final Rx<UploadMessageModel> _uploadMessages = UploadMessageModel().obs;
 
-  List<int> outletIds = [];
-
-  HomeRepository(this._preferenceUtil,
-      this._apiService,
-      this._routeDao,
-      this._pricingDao,
-      this._customerDao,
-      this._marketReturnsDao,
-      this._taskDao,
-      this._orderDao,
-      this._productDao, this._merchandiseDao,) {
-    _onDayStart = _preferenceUtil
-        .getWorkSyncData()
-        .isDayStarted
-        .obs;
+  HomeRepository(
+    this._preferenceUtil,
+    this._apiService,
+    this._routeDao,
+    this._pricingDao,
+    this._customerDao,
+    this._marketReturnsDao,
+    this._taskDao,
+    this._orderDao,
+    this._productDao,
+    this._merchandiseDao,
+  ) {
+    _onDayStart = _preferenceUtil.getWorkSyncData().isDayStarted.obs;
   }
-
 
   Future<ApiResponse> saveOrder(MasterModel masterModel) {
     final String accessToken = _preferenceUtil.getToken();
 
     return _apiService.saveOrder(accessToken, masterModel);
   }
-
-
 
   void getToken() async {
     setLoading(true);
@@ -113,7 +108,7 @@ class HomeRepository {
 
             //parse response json to dart model
             TokenResponse tokenResponse =
-            TokenResponse.fromJson(jsonDecode(response.data));
+                TokenResponse.fromJson(jsonDecode(response.data));
 
             //save access token to local cache
             if (tokenResponse.accessToken != null) {
@@ -193,10 +188,7 @@ class HomeRepository {
       setLoading(false);
 
       if (response.status == RequestStatus.SUCCESS) {
-
-        if (response.data
-            .toString()
-            .isNotEmpty) {
+        if (response.data.toString().isNotEmpty) {
           //Parse data to LogModel
           LogModel logModel = LogModel.fromJson(jsonDecode(response.data));
 
@@ -250,9 +242,7 @@ class HomeRepository {
   }
 
   bool isDayStarted() {
-    return _preferenceUtil
-        .getWorkSyncData()
-        .isDayStarted;
+    return _preferenceUtil.getWorkSyncData().isDayStarted;
   }
 
   RxBool getTargetVsAchievement() => _targetVsAchievement;
@@ -278,7 +268,7 @@ class HomeRepository {
       }
 
       var response =
-      RouteOutletResponseModel.fromJson(jsonDecode(apiResponse.data));
+          RouteOutletResponseModel.fromJson(jsonDecode(apiResponse.data));
 
       if (!bool.parse(response.success ?? "true")) {
         setLoading(false);
@@ -302,9 +292,8 @@ class HomeRepository {
         _preferenceUtil.saveWarehouseId(response.warehouseId!);
       }
 
-      deleteAllData()
-          .then(
-            (value) {
+      deleteAllData().then(
+        (value) {
           // if (onDayStart) {
           _routeDao.deleteAllMerchandise();
           _customerDao.deleteAllCustomerInput();
@@ -339,18 +328,17 @@ class HomeRepository {
           //   deleteAllPricing();
           // }
         },
-      )
-          .then(
-            (value) {
+      ).then(
+        (value) {
           if (response.routeList != null) {
             _routeDao.insertRoutes(response.routeList!);
 
-            _preferenceUtil.setHideCustomerInfo(response
-                .systemConfiguration?.hideCustomerInfoInOrderingApp);
+            _preferenceUtil.setHideCustomerInfo(
+                response.systemConfiguration?.hideCustomerInfoInOrderingApp);
             _preferenceUtil.setPunchOrderInUnits(
                 response.systemConfiguration?.canNotPunchOrderInUnits);
-            _preferenceUtil.setTargetAchievement(
-                jsonEncode(response.targetVsAchievement));
+            _preferenceUtil
+                .setTargetAchievement(jsonEncode(response.targetVsAchievement));
             _preferenceUtil.setShowMarketReturnsButton(
                 response.systemConfiguration?.showMarketReturnsButton);
 
@@ -359,19 +347,17 @@ class HomeRepository {
             }
           }
         },
-      )
-          .then(
-            (value) {
+      ).then(
+        (value) {
           if (response.outletList != null) {
             _routeDao.insertOutlets(response.outletList!
                 .map(
                   (outletModel) => Outlet.fromJson(outletModel.toJson()),
-            )
+                )
                 .toList());
 
             // set returnedProductTypeId in market returns and insert in database
-            List<MarketReturnDetail>? returnList =
-                response.marketReturnDetails;
+            List<MarketReturnDetail>? returnList = response.marketReturnDetails;
             if (returnList != null && returnList.isNotEmpty) {
               for (MarketReturnDetail item in returnList) {
                 item.returnedProductTypeId = _getTypeIdByReason(
@@ -381,137 +367,68 @@ class HomeRepository {
               _marketReturnsDao.insertMarketReturnDetails(returnList);
             }
 
+
             List<AvailableStock>? availableStockList =
                 response.dailyOutletStock;
-            if (availableStockList != null &&
-                availableStockList.isNotEmpty) {
-              for (OutletModel outlet in response.outletList ?? []) {
-                //TODO: update available stock data in outlet
-                List<AvailableStock> availableStockList = [];
-                for (AvailableStock availableStock in availableStockList) {
-                  if (availableStock.outletId == outlet.outletId) {
-                    availableStockList.add(availableStock);
-                  }
-                }
-                //Update avlStock Data in outlet
-                outlet.avlStockDetail = availableStockList;
-                _routeDao.updateOutlet(Outlet.fromJson(outlet.toJson()));
-                if (outlet.outletId != null) {
-                  outletIds.add(outlet.outletId!);
-                }
-              }
+            if (availableStockList != null && availableStockList.isNotEmpty) {
+              _routeDao.updateAvailableStockInOutlet(response.outletList,availableStockList);
             }
           }
         },
-      )
-          .then(
-            (value) {
+      ).then(
+        (value) {
           if (response.assetList != null) {
             _routeDao.insertAssets(response.assetList!);
           }
         },
       )
-        /*  .then(
+          /*  .then(
             (value) => _taskDao.insertTasks(response.tasks),
       )*/
           .then(
-            (value) {
-          if (response.promosAndFOC!=null) {
+        (value) {
+          if (response.promosAndFOC != null) {
             _routeDao.insertPromotion(response.promosAndFOC!);
           }
         },
-      )
-          .then(
-            (value) {
+      ).then(
+        (value) {
           if (response.lookUp != null) {
-            _routeDao
-                .insertLookUp(LookUp.fromJson(response.lookUp!.toJson()));
+            _routeDao.insertLookUp(LookUp.fromJson(response.lookUp!.toJson()));
           }
         },
-      )
-          .then(
-            (value) {
-          int mobileOrderId = 1;
-          for (OrderModel order in response.orders ?? []) {
-            if (!outletIds.contains(order.outletId)) {
-              continue;
-            }
-            order.id = mobileOrderId;
-            _orderDao.insertOrder(Order.fromJson(order.toJson()));
-            mobileOrderId++;
-          }
+      ).then(
+        (value) {
+          _orderDao.insertOrders(response.orders,Constants.outletIds);
         },
-      )
-          .then(
-            (value) {
-          // added By Husanin
-          for (OrderModel order in response.orders ?? []) {
-            if (!outletIds.contains(order.outletId)) {
-              continue;
-            }
+      ).then(
+        (value) {
 
-            OrderStatus orderStatus = OrderStatus();
-            orderStatus.orderId = order.serverOrderId;
-            orderStatus.outletId = order.outletId;
-
-            MasterModel masterModel = MasterModel();
-            masterModel.outletId = order.outletId;
-            masterModel.outletStatus = 8;
-
-            orderStatus.synced = false;
-            orderStatus.data = jsonEncode(masterModel);
-            orderStatus.status = 8;
-            orderStatus.orderAmount = order.payable;
-            orderStatus.outletVisitEndTime = 0;
-            orderStatus.outletVisitStartTime = null;
-            orderStatus.requestStatus = 3;
-            _orderDao.insertOrderStatus(orderStatus);
-          }
+          _orderDao.insertOrderStatuses(response.orders,Constants.outletIds);
         },
-      )
-          .then(
-            (value) async {
+      ).then(
+        (value) async {
           // added By Husanin
           int mobileOrderId = 1;
           List<ProductCartonQty> productList =
-          await _productDao.getProductCartonQuantity();
+              await _productDao.getProductCartonQuantity();
           HashMap<String, int> productH = HashMap();
           if (productList.isNotEmpty) {
             for (ProductCartonQty product in productList) {
-              productH[product.pkPid.toString()] =
-                  product.cartonQuantity ?? 0;
+              productH[product.pkPid.toString()] = product.cartonQuantity ?? 0;
             }
           }
-          for (OrderModel order in response.orders ?? []) {
-            if (!outletIds.contains(order.outletId)) {
-              continue;
-            }
-            for (OrderDetailModel orderDetail in order.orderDetails ?? []) {
-              //check cartonSize is null or not from the server if null and product hashMap is not null then set cartonSize from hashMap in order Detail
-              if (orderDetail.cartonSize == null &&
-                  productH[orderDetail.mProductId.toString()] != null) {
-                orderDetail.cartonSize = productH[
-                productH[orderDetail.mProductId.toString()].toString()];
-              }
-              orderDetail.mLocalOrderId = mobileOrderId;
+          _orderDao.insertOrderDetails(response.orders,Constants.outletIds,productH);
 
-              _orderDao.insertOrderItem(
-                  OrderDetail.fromJson(orderDetail.toJson()));
-            }
-            mobileOrderId++;
-          }
           _preferenceUtil.saveConfig(response.configuration);
         },
-      )
-          .whenComplete(
-            () {
-          _targetVsAchievement(
-              _preferenceUtil.getTargetAchievement() != null);
+      ).whenComplete(
+        () {
+          _targetVsAchievement(_preferenceUtil.getTargetAchievement() != null);
           _targetVsAchievement.refresh();
         },
-      )
-          .onError(
-            (error, stackTrace) {
+      ).onError(
+        (error, stackTrace) {
           setLoading(false);
           onError(error.toString());
           error.printInfo();
@@ -525,7 +442,7 @@ class HomeRepository {
 
     try {
       final productApiResponse =
-      await _apiService.loadTodayPackageProduct(accessToken);
+          await _apiService.loadTodayPackageProduct(accessToken);
 
       if (productApiResponse.status != RequestStatus.SUCCESS) {
         onError(productApiResponse.message);
@@ -558,8 +475,8 @@ class HomeRepository {
     }
   }
 
-  int _getTypeIdByReason(int reasonId,
-      List<MarketReturnReason>? returnReasons) {
+  int _getTypeIdByReason(
+      int reasonId, List<MarketReturnReason>? returnReasons) {
     if (returnReasons == null || returnReasons.isEmpty) {
       return 0;
     }
@@ -582,6 +499,7 @@ class HomeRepository {
     _routeDao.deleteAllRoutes();
     _routeDao.deleteAllAssets();
     _routeDao.deleteAllOutlets();
+    _routeDao.deleteOrderAndAvailableTempQty();
 
     _pricingDao.deleteAllPriceConditionClasses();
     _pricingDao.deleteAllPricingAreas();
@@ -614,7 +532,7 @@ class HomeRepository {
       }
 
       final response =
-      PricingModel.fromJson(jsonDecode(pricingModelResponse.data));
+          PricingModel.fromJson(jsonDecode(pricingModelResponse.data));
 
       // if (!(response.success ?? false)) {
       //   setLoading(false);
@@ -625,33 +543,33 @@ class HomeRepository {
       _pricingDao.insertPriceConditionClasses(response.priceConditionClasses
           .map(
             (element) => PriceConditionClass.fromJson(element.toJson()),
-      )
+          )
           .toList());
       _pricingDao.insertPriceConditionType(response.priceConditionTypes
           .map(
             (element) => PriceConditionType.fromJson(element.toJson()),
-      )
+          )
           .toList());
       _pricingDao.insertPriceAccessSequence(response.priceAccessSequences
           .map(
             (element) => PriceAccessSequence.fromJson(element.toJson()),
-      )
+          )
           .toList());
       _pricingDao.insertPriceCondition(response.priceConditions
           .map(
             (element) => PriceCondition.fromJson(element.toJson()),
-      )
+          )
           .toList());
       _pricingDao.insertPriceBundles(response.priceBundles);
       _pricingDao.insertPriceConditionDetail(response.priceConditionDetails
           .map(
             (element) => PriceConditionDetail.fromJson(element.toJson()),
-      )
+          )
           .toList());
       _pricingDao.insertPriceConditionEntities(response.priceConditionEntities
           .map(
             (element) => PriceConditionEntities.fromJson(element.toJson()),
-      )
+          )
           .toList());
       _pricingDao.insertPriceConditionScales(response.priceConditionScales);
       _pricingDao.insertPriceConditionOutletAttributes(
@@ -661,22 +579,31 @@ class HomeRepository {
 
       if (response.freeGoodsWrapper != null) {
         _pricingDao
-            .insertFreeGoodMasters(
-            response.freeGoodsWrapper!.freeGoodMasters?.map((e) =>
-                FreeGoodMasters.fromJson(e.toJson()),).toList());
+            .insertFreeGoodMasters(response.freeGoodsWrapper!.freeGoodMasters
+                ?.map(
+                  (e) => FreeGoodMasters.fromJson(e.toJson()),
+                )
+                .toList());
         _pricingDao
-            .insertFreeGoodGroups(
-            response.freeGoodsWrapper!.freeGoodGroups?.map((e) =>
-                FreeGoodGroups.fromJson(e.toJson()),).toList());
+            .insertFreeGoodGroups(response.freeGoodsWrapper!.freeGoodGroups
+                ?.map(
+                  (e) => FreeGoodGroups.fromJson(e.toJson()),
+                )
+                .toList());
         _pricingDao.insertFreePriceConditionOutletAttributes(
             response.freeGoodsWrapper!.priceConditionOutletAttributes);
         _pricingDao
-            .insertFreeGoodDetails(
-            response.freeGoodsWrapper!.freeGoodDetails?.map((e) =>
-                FreeGoodDetails.fromJson(e.toJson()),).toList());
+            .insertFreeGoodDetails(response.freeGoodsWrapper!.freeGoodDetails
+                ?.map(
+                  (e) => FreeGoodDetails.fromJson(e.toJson()),
+                )
+                .toList());
         _pricingDao.insertFreeGoodExclusives(
-            response.freeGoodsWrapper!.freeGoodExclusives?.map((e) =>
-                FreeGoodExclusives.fromJson(e.toJson()),).toList());
+            response.freeGoodsWrapper!.freeGoodExclusives
+                ?.map(
+                  (e) => FreeGoodExclusives.fromJson(e.toJson()),
+                )
+                .toList());
         _pricingDao.insertFreeGoodEntityDetails(
             response.freeGoodsWrapper!.freeGoodEntityDetails);
         _pricingDao.insertOutletAvailedFreeGoods(
@@ -693,26 +620,26 @@ class HomeRepository {
     }
   }
 
-  String getUserName()=>_preferenceUtil.getUsername();
+  String getUserName() => _preferenceUtil.getUsername();
 
-  int? getRequestCounter()=>_preferenceUtil.getRequestCounter();
+  int? getRequestCounter() => _preferenceUtil.getRequestCounter();
 
   void setRequestCounter(int? requestCounter) {
-    if(requestCounter!=null) {
+    if (requestCounter != null) {
       _preferenceUtil.setRequestCounter(requestCounter);
     }
   }
 
-  int getDistributionId()=>_preferenceUtil.getDistributionId();
+  int getDistributionId() => _preferenceUtil.getDistributionId();
 
-  int? getOrganizationId()=>_preferenceUtil.getOrganizationId();
+  int? getOrganizationId() => _preferenceUtil.getOrganizationId();
 
-  int? getWarehouseId() =>_preferenceUtil.getWarehouseId();
+  int? getWarehouseId() => _preferenceUtil.getWarehouseId();
 
-  int? getDeliveryDate()=>_preferenceUtil.getDeliveryDate();
+  int? getDeliveryDate() => _preferenceUtil.getDeliveryDate();
 
   void updateOutletVisitStatus(int outletId, int visitStatus, bool synced) {
-    _routeDao.updateOutletVisitStatus(outletId,visitStatus,synced);
+    _routeDao.updateOutletVisitStatus(outletId, visitStatus, synced);
   }
 
   void updateOutlet(int statusId, int outletId) {

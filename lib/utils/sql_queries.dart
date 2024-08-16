@@ -336,8 +336,7 @@ CREATE TABLE IF NOT EXISTS OutletAvailedPromotion (
 
   static const String createProductTable = '''
   CREATE TABLE IF NOT EXISTS Product (
-    pk_pid INTEGER PRIMARY KEY,
-    productId INTEGER,
+    productId INTEGER PRIMARY KEY,
     productName TEXT,
     productDescription TEXT,
     productCode TEXT,

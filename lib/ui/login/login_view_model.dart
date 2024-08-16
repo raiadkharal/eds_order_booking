@@ -23,16 +23,6 @@ class LoginViewModel extends GetxController {
       username,
       password,
     successCallback
-    /*  (response) {
-        setLoading(false);
-        if (response.status == RequestStatus.SUCCESS) {
-          LoggedInUser user = response.data;
-          // _repository.setLoggedInUser(user);
-          successCallback(true);
-        } else {
-          Fluttertoast.showToast(msg: response.message.toString());
-        }
-      },*/
     );
   }
 

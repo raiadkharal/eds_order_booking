@@ -139,7 +139,7 @@ class _OutletListScreenState extends State<OutletListScreen>
                                 style: const TextStyle(
                                     fontWeight: FontWeight.normal,
                                     color: Colors.black,
-                                    fontSize: 12),
+                                    fontSize: 11),
                               ),
                             )),
                       ),
@@ -152,7 +152,7 @@ class _OutletListScreenState extends State<OutletListScreen>
                                 style: const TextStyle(
                                     fontWeight: FontWeight.normal,
                                     color: Colors.black,
-                                    fontSize: 12),
+                                    fontSize: 11),
                               ),
                             )),
                       ),
@@ -165,7 +165,7 @@ class _OutletListScreenState extends State<OutletListScreen>
                                 style: const TextStyle(
                                     fontWeight: FontWeight.normal,
                                     color: Colors.black,
-                                    fontSize: 12),
+                                    fontSize: 11),
                               ),
                             )),
                       ),
