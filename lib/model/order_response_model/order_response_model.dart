@@ -38,7 +38,7 @@ class OrderResponseModel extends BaseResponse{
   List<OrderDetailModel>? orderDetails;
 
   @JsonKey(name: 'priceBreakDown')
-  List<UnitPriceBreakDownModel>? priceBreakDown;
+  List<UnitPriceBreakDownModel>? priceBreakDown;  //invoice level breakdowns
 
   @JsonKey(name: 'orderId')
   int? orderId;
@@ -112,4 +112,6 @@ class OrderResponseModel extends BaseResponse{
       _$OrderResponseModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderResponseModelToJson(this);
+
+  Map<String, dynamic> serialize() => _$SerializeToJsonWithExcludedFields(this);
 }

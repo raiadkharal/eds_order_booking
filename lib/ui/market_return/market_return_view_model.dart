@@ -100,4 +100,8 @@ class MarketReturnViewModel extends GetxController {
       },);
     }
   }
+
+  Future<Product?> findProductById(int? replacementProductId) async {
+    return await _repository.findProductById(replacementProductId);
+  }
 }

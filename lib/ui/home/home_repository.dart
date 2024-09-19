@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:order_booking/data_source/remote/api_service.dart';
 import 'package:order_booking/db/dao/customer_dao.dart';
@@ -14,6 +15,7 @@ import 'package:order_booking/db/dao/product_dao.dart';
 import 'package:order_booking/db/dao/route_dao.dart';
 import 'package:order_booking/db/dao/task_dao.dart';
 import 'package:order_booking/db/entities/available_stock/available_stock.dart';
+import 'package:order_booking/db/entities/carton_price_breakdown/carton_price_breakdown.dart';
 import 'package:order_booking/db/entities/lookup/lookup.dart';
 import 'package:order_booking/db/entities/market_return_reason/market_return_reasons.dart';
 import 'package:order_booking/db/entities/order/order.dart';
@@ -27,11 +29,17 @@ import 'package:order_booking/db/entities/pricing/price_condition_class/price_co
 import 'package:order_booking/db/entities/pricing/price_condition_detail/price_condition_detail.dart';
 import 'package:order_booking/db/entities/pricing/price_condition_entities/price_condition_entities.dart';
 import 'package:order_booking/db/entities/pricing/price_condition_type/price_condition_type.dart';
+import 'package:order_booking/db/entities/product/product.dart';
+import 'package:order_booking/db/entities/unit_price_breakdown/unit_price_breakdown.dart';
+import 'package:order_booking/db/models/base_response/base_response.dart';
 import 'package:order_booking/db/models/device_info_model/device_info_model.dart';
 import 'package:order_booking/db/models/log_model/log_model.dart';
+import 'package:order_booking/model/carton_price_breakdown/carton_price_breakdown_model.dart';
+import 'package:order_booking/model/merchandise_upload_model/merchandise_upload_model.dart';
 import 'package:order_booking/model/order_model/order_model.dart';
 import 'package:order_booking/model/outlet_model/outlet_model.dart';
 import 'package:order_booking/model/pricing_model/pricing_model.dart';
+import 'package:order_booking/model/unit_price_breakdown_model/unit_price_breakdown_model.dart';
 import 'package:order_booking/model/upload_message_model/upload_message_model.dart';
 import 'package:order_booking/utils/device_info_util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -178,7 +186,7 @@ class HomeRepository {
     final LogModel logModel = LogModel();
     logModel.deviceInfo = deviceInfoModels;
     logModel.operationTypeId = isStart ? 1 : 2;
-    logModel.appVersion = /*int.parse(packageInfo.buildNumber)*/ 27;
+    logModel.appVersion = int.parse(packageInfo.buildNumber);
 
     debugPrint(jsonEncode(logModel.toJson()));
     // setLoading(true);
@@ -292,148 +300,165 @@ class HomeRepository {
         _preferenceUtil.saveWarehouseId(response.warehouseId!);
       }
 
-      deleteAllData().then(
-        (value) {
-          // if (onDayStart) {
-          _routeDao.deleteAllMerchandise();
-          _customerDao.deleteAllCustomerInput();
-          _taskDao.deleteAllTask();
-          _routeDao.deleteAllPromotion();
-          _routeDao.deleteAllLookUp();
-          _routeDao.deleteAllRoutes();
-          _routeDao.deleteAllAssets();
-          _routeDao.deleteAllOutlets();
-
-          _pricingDao.deleteAllPriceConditionClasses();
-          _pricingDao.deleteAllPricingAreas();
-          _pricingDao.deleteAllPriceConditionEntities();
-          _pricingDao.deleteAllPriceBundles();
-          _pricingDao.deletePriceCondition();
-          _pricingDao.deletePriceConditionTypes();
-          _pricingDao.deletePriceConditionScale();
-          _pricingDao.deletePriceAccessSequence();
-          _pricingDao.deletePriceConditionOutletAttribute();
-          _pricingDao.deleteFreeGoodMasters();
-          _pricingDao.deleteFreeGoodGroups();
-          _pricingDao.deleteFreePriceConditionOutletAttribute();
-          _pricingDao.deleteFreeGoodDetails();
-          _pricingDao.deleteFreeGoodExclusives();
-          _pricingDao.deleteFreeGoodEntityDetails();
-          _pricingDao.deleteOutletAvailedFreeGoods();
-          _pricingDao.deleteOutletAvailedPromotion();
-
-          //   // remove Pricing
-          //   pricingDao.deleteAllPriceConditionClasses();
-          //   pricingDao.deleteAllPricingAreas();
-          //   deleteAllPricing();
-          // }
-        },
-      ).then(
-        (value) {
-          if (response.routeList != null) {
-            _routeDao.insertRoutes(response.routeList!);
-
-            _preferenceUtil.setHideCustomerInfo(
-                response.systemConfiguration?.hideCustomerInfoInOrderingApp);
-            _preferenceUtil.setPunchOrderInUnits(
-                response.systemConfiguration?.canNotPunchOrderInUnits);
-            _preferenceUtil
-                .setTargetAchievement(jsonEncode(response.targetVsAchievement));
-            _preferenceUtil.setShowMarketReturnsButton(
-                response.systemConfiguration?.showMarketReturnsButton);
-
-            if (response.deliveryDate != null) {
-              _preferenceUtil.setDeliveryDate(response.deliveryDate!);
-            }
-          }
-        },
-      ).then(
-        (value) {
-          if (response.outletList != null) {
-            _routeDao.insertOutlets(response.outletList!
-                .map(
-                  (outletModel) => Outlet.fromJson(outletModel.toJson()),
-                )
-                .toList());
-
-            // set returnedProductTypeId in market returns and insert in database
-            List<MarketReturnDetail>? returnList = response.marketReturnDetails;
-            if (returnList != null && returnList.isNotEmpty) {
-              for (MarketReturnDetail item in returnList) {
-                item.returnedProductTypeId = _getTypeIdByReason(
-                    item.marketReturnReasonId ?? 0,
-                    response.lookUp?.marketReturnReasons);
-              }
-              _marketReturnsDao.insertMarketReturnDetails(returnList);
-            }
-
-
-            List<AvailableStock>? availableStockList =
-                response.dailyOutletStock;
-            if (availableStockList != null && availableStockList.isNotEmpty) {
-              _routeDao.updateAvailableStockInOutlet(response.outletList,availableStockList);
-            }
-          }
-        },
-      ).then(
-        (value) {
-          if (response.assetList != null) {
-            _routeDao.insertAssets(response.assetList!);
-          }
-        },
-      )
-          /*  .then(
-            (value) => _taskDao.insertTasks(response.tasks),
-      )*/
+      deleteAllData()
           .then(
-        (value) {
-          if (response.promosAndFOC != null) {
-            _routeDao.insertPromotion(response.promosAndFOC!);
-          }
-        },
-      ).then(
-        (value) {
-          if (response.lookUp != null) {
-            _routeDao.insertLookUp(LookUp.fromJson(response.lookUp!.toJson()));
-          }
-        },
-      ).then(
-        (value) {
-          _orderDao.insertOrders(response.orders,Constants.outletIds);
-        },
-      ).then(
-        (value) {
+            (value) {
+              // if (onDayStart) {
+              _routeDao.deleteAllMerchandise();
+              _customerDao.deleteAllCustomerInput();
+              _taskDao.deleteAllTask();
+              _routeDao.deleteAllPromotion();
+              _routeDao.deleteAllLookUp();
+              _routeDao.deleteAllRoutes();
+              _routeDao.deleteAllAssets();
+              _routeDao.deleteAllOutlets();
 
-          _orderDao.insertOrderStatuses(response.orders,Constants.outletIds);
-        },
-      ).then(
-        (value) async {
-          // added By Husanin
-          int mobileOrderId = 1;
-          List<ProductCartonQty> productList =
-              await _productDao.getProductCartonQuantity();
-          HashMap<String, int> productH = HashMap();
-          if (productList.isNotEmpty) {
-            for (ProductCartonQty product in productList) {
-              productH[product.pkPid.toString()] = product.cartonQuantity ?? 0;
-            }
-          }
-          _orderDao.insertOrderDetails(response.orders,Constants.outletIds,productH);
+              _pricingDao.deleteAllPriceConditionClasses();
+              _pricingDao.deleteAllPricingAreas();
+              _pricingDao.deleteAllPriceConditionEntities();
+              _pricingDao.deleteAllPriceBundles();
+              _pricingDao.deletePriceCondition();
+              _pricingDao.deletePriceConditionTypes();
+              _pricingDao.deletePriceConditionScale();
+              _pricingDao.deletePriceAccessSequence();
+              _pricingDao.deletePriceConditionOutletAttribute();
+              _pricingDao.deleteFreeGoodMasters();
+              _pricingDao.deleteFreeGoodGroups();
+              _pricingDao.deleteFreePriceConditionOutletAttribute();
+              _pricingDao.deleteFreeGoodDetails();
+              _pricingDao.deleteFreeGoodExclusives();
+              _pricingDao.deleteFreeGoodEntityDetails();
+              _pricingDao.deleteOutletAvailedFreeGoods();
+              _pricingDao.deleteOutletAvailedPromotion();
 
-          _preferenceUtil.saveConfig(response.configuration);
-        },
-      ).whenComplete(
-        () {
-          _targetVsAchievement(_preferenceUtil.getTargetAchievement() != null);
-          _targetVsAchievement.refresh();
-        },
-      ).onError(
-        (error, stackTrace) {
-          setLoading(false);
-          onError(error.toString());
-          error.printInfo();
-        },
-      );
+              //   // remove Pricing
+              //   pricingDao.deleteAllPriceConditionClasses();
+              //   pricingDao.deleteAllPricingAreas();
+              //   deleteAllPricing();
+              // }
+            },
+          )
+          .then(
+            (value) {
+              if (response.routeList != null) {
+                _routeDao.insertRoutes(response.routeList!);
+
+                _preferenceUtil.setHideCustomerInfo(response
+                    .systemConfiguration?.hideCustomerInfoInOrderingApp);
+                _preferenceUtil.setPunchOrderInUnits(
+                    response.systemConfiguration?.canNotPunchOrderInUnits);
+                _preferenceUtil.setTargetAchievement(
+                    jsonEncode(response.targetVsAchievement));
+                _preferenceUtil.setShowMarketReturnsButton(
+                    response.systemConfiguration?.showMarketReturnsButton);
+
+                if (response.deliveryDate != null) {
+                  _preferenceUtil.setDeliveryDate(response.deliveryDate!);
+                }
+              }
+            },
+          )
+          .then(
+            (value) async {
+              if (response.outletList != null) {
+                _routeDao.insertOutlets(response.outletList!
+                    .map(
+                      (outletModel) => Outlet.fromJson(outletModel.toJson()),
+                    )
+                    .toList());
+
+                // set returnedProductTypeId in market returns and insert in database
+                List<MarketReturnDetail>? returnList =
+                    response.marketReturnDetails;
+                if (returnList != null && returnList.isNotEmpty) {
+                  for (MarketReturnDetail item in returnList) {
+                    item.returnedProductTypeId = _getTypeIdByReason(
+                        item.marketReturnReasonId ?? 0,
+                        response.lookUp?.marketReturnReasons);
+
+                    if (item.replaceWith == null &&
+                        item.replacementProductId != 0) {
+                      item.replaceWith =
+                          await _getProductNameById(item.replacementProductId);
+                    }
+                  }
+                  _marketReturnsDao.insertMarketReturnDetails(returnList);
+                }
+
+                List<AvailableStock>? availableStockList =
+                    response.dailyOutletStock;
+                _routeDao.updateAvailableStockInOutlet(
+                    response.outletList, availableStockList);
+              }
+            },
+          )
+          .then(
+            (value) {
+              if (response.assetList != null) {
+                _routeDao.insertAssets(response.assetList!);
+              }
+            },
+          )
+          .then(
+            (value) => _taskDao.insertTasks(response.tasks),
+          )
+          .then(
+            (value) {
+              if (response.promosAndFOC != null) {
+                _routeDao.insertPromotion(response.promosAndFOC!);
+              }
+            },
+          )
+          .then(
+            (value) {
+              if (response.lookUp != null) {
+                _routeDao
+                    .insertLookUp(LookUp.fromJson(response.lookUp!.toJson()));
+              }
+            },
+          )
+          .then(
+            (value) {
+              _orderDao.insertOrders(response.orders, Constants.outletIds);
+            },
+          )
+          .then(
+            (value) {
+              _orderDao.insertOrderStatuses(
+                  response.orders, Constants.outletIds);
+            },
+          )
+          .then(
+            (value) async {
+              List<ProductCartonQty> productList =
+                  await _productDao.getProductCartonQuantity();
+              HashMap<String, int> productH = HashMap();
+              if (productList.isNotEmpty) {
+                for (ProductCartonQty product in productList) {
+                  productH[product.productId.toString()] =
+                      product.cartonQuantity ?? 0;
+                }
+              }
+              _orderDao.insertOrderDetails(
+                  response.orders, Constants.outletIds, productH);
+
+              _preferenceUtil.saveConfig(response.configuration);
+            },
+          )
+          .whenComplete(
+            () {
+              _targetVsAchievement(
+                  _preferenceUtil.getTargetAchievement() != null);
+              _targetVsAchievement.refresh();
+            },
+          )
+          .onError(
+            (error, stackTrace) {
+              setLoading(false);
+              onError(error.toString());
+              error.printInfo();
+            },
+          );
     } catch (e) {
       setLoading(false);
       onError(e.toString());
@@ -610,8 +635,13 @@ class HomeRepository {
             response.freeGoodsWrapper!.outletAvailedFreeGoods);
       }
 
+      /* Get.snackbar(
+        backgroundColor: Colors.green,
+          colorText: Colors.white,
+          Constants.LOADED, "Pricing Loaded successfully");*/
       showToastMessage("Pricing Loaded Successfully!");
-
+      //delete cached outlet ids
+      Constants.outletIds.clear();
       setLoading(false);
     } catch (e) {
       e.printInfo();
@@ -648,5 +678,23 @@ class HomeRepository {
 
   Rx<UploadMessageModel> getUploadMessages() {
     return _uploadMessages;
+  }
+
+  Future<Merchandise?> findMerchandiseById(int? outletId) {
+    return _merchandiseDao.findMerchandiseByOutletId(outletId);
+  }
+
+  void updateMerchandise(Merchandise merchandise) {
+    _merchandiseDao.updateMerchandise(merchandise);
+  }
+
+  Future<ApiResponse> postMerchandise(MerchandiseUploadModel merchandise) {
+    final String accessToken = _preferenceUtil.getToken();
+    return _apiService.postMerchandise(accessToken, merchandise);
+  }
+
+  Future<String?> _getProductNameById(int? replacementProductId) async {
+    Product? product = await _productDao.findProductById(replacementProductId);
+    return product?.productName;
   }
 }

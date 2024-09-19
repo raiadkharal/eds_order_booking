@@ -43,7 +43,7 @@ Outlet _$OutletFromJson(Map<String, dynamic> json) => Outlet(
       jsonDecode(json['lastOrder']) as Map<String, dynamic>),
   isAssetsScennedInTheLastMonth:
   boolFromInt(json['isAssetsScennedInTheLastMonth'] as int?),
-  synced: boolFromInt(json['synced'] as int?),
+  synced: json['synced']!=null?boolFromInt(json['synced'] as int?):null,
   statusId: json['statusId'] as int?,
   isZeroSaleOutlet: boolFromInt(json['isZeroSaleOutlet'] as int?),
   promoTypeId: json['promoTypeId'] as int?,
@@ -96,7 +96,7 @@ Map<String, dynamic> _$OutletToJson(Outlet instance) => <String, dynamic>{
   'lastOrder': jsonEncode(instance.lastOrder),
   'isAssetsScennedInTheLastMonth':
   boolToInt(instance.isAssetsScennedInTheLastMonth),
-  'synced': boolToInt(instance.synced),
+  'synced': instance.synced!=null?boolToInt(instance.synced):null,
   'statusId': instance.statusId??0,
   'isZeroSaleOutlet': boolToInt(instance.isZeroSaleOutlet),
   'promoTypeId': instance.promoTypeId,

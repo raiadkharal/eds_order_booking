@@ -8,4 +8,6 @@ abstract class TaskDao {
   Future<List<Task>?> getTaskByOutletId(int outletId);
 
   Future<void> updateTask(Task taskParam);
+
+  Future<void> deleteTasksByOutletId(int outletId);
 }

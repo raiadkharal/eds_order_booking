@@ -50,7 +50,7 @@ class OutletDetailViewModel extends GetxController {
   final RxBool _uploadStatus = false.obs;
   final RxInt _startSingleOrderUpdate = 0.obs;
   RxDouble outletNearbyPos = 0.0.obs;
-  int outletStatus = 0;
+  int outletStatus = 1;
   final bool _hardcodedValues = false;
 
   OutletDetailViewModel(this._repository, this._statusRepository);
@@ -185,6 +185,7 @@ class OutletDetailViewModel extends GetxController {
       int visitDateTime,
       int visitEndTime,
       String reason) async {
+    setLoading(true);
     MasterModel masterModel = MasterModel();
     masterModel.outletId = outletId;
     masterModel.outletStatus = outletStatus;
@@ -215,7 +216,7 @@ class OutletDetailViewModel extends GetxController {
       masterModel.dailyOutletVisit?.dailyOutletStock = outlet.avlStockDetail;
     }
 
-    String finalJson = jsonEncode(masterModel.toJson());
+    String finalJson = jsonEncode(masterModel.serialize());
     debugPrint("JSON:: $finalJson");
 
     _statusRepository.findOrderStatus(outletId).then(
@@ -342,7 +343,6 @@ class OutletDetailViewModel extends GetxController {
 
     return assets;
   }
-
   void updateOutlet(Outlet outlet) {
     _statusRepository.updateOutlet(outlet);
   }

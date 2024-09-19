@@ -149,7 +149,7 @@ class RouteDaoImp extends RouteDao {
       (txn) async {
         const String outletQuery =
             "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
-                " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status < 2 ) OR (Outlet.statusId < 2 ))";
+                " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status < 2 ) OR (Outlet.statusId < 2 or Outlet.statusId is null ))";
 
         List<Map<String, dynamic>> outletQueryResult =
             await txn.rawQuery(outletQuery);
@@ -182,19 +182,6 @@ class RouteDaoImp extends RouteDao {
       },
     );
 
-    /*final result = await _database.rawQuery(
-        "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
-            " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) ) ");
-
-  */ /*  final result = await _database.rawQuery(
-        "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
-            " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) ) ");*/ /*
-
-    return result
-        .map(
-          (e) => OutletOrderStatus.fromJson(e),
-        )
-        .toList();*/
   }
 
   @override
@@ -223,7 +210,7 @@ class RouteDaoImp extends RouteDao {
               "SELECT * FROM OrderStatus WHERE outletId = ? and status >= 8 ";
 
           List<Map<String, dynamic>> orderStatusQueryResult =
-              await txn.rawQuery(orderStatusQuery);
+              await txn.rawQuery(orderStatusQuery,[outlet.outletId]);
           if (orderStatusQueryResult.isNotEmpty) {
             OrderStatus orderStatus =
                 OrderStatus.fromJson(orderStatusQueryResult.first);
@@ -235,15 +222,6 @@ class RouteDaoImp extends RouteDao {
         return outletOrderStatusList;
       },
     );
-    /* final result = await _database.rawQuery(
-        "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
-            " WHERE  Outlet.planned=1 AND  ((OrderStatus.status >=8) OR (Outlet.statusId >=8)) ");
-
-    return result
-        .map(
-          (e) => Outlet.fromJson(e),
-        )
-        .toList();*/
   }
 
   @override
@@ -272,7 +250,7 @@ class RouteDaoImp extends RouteDao {
               "SELECT * FROM OrderStatus WHERE outletId = ? and status between 2 and 7 ";
 
           List<Map<String, dynamic>> orderStatusQueryResult =
-              await txn.rawQuery(orderStatusQuery);
+              await txn.rawQuery(orderStatusQuery,[outlet.outletId]);
           if (orderStatusQueryResult.isNotEmpty) {
             OrderStatus orderStatus =
                 OrderStatus.fromJson(orderStatusQueryResult.first);
@@ -284,16 +262,6 @@ class RouteDaoImp extends RouteDao {
         return outletOrderStatusList;
       },
     );
-
-    /* final result = await _database.rawQuery(
-        "SELECT Outlet.* FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
-            " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status between 2 AND 7) OR (Outlet.statusId between 2 AND 7))");
-
-    return result
-        .map(
-          (e) => Outlet.fromJson(e),
-        )
-        .toList();*/
   }
 
   @override
@@ -358,15 +326,6 @@ class RouteDaoImp extends RouteDao {
         return outletOrderStatusList;
       },
     );
-
-    /*final result = await _database
-        .rawQuery("SELECT * FROM Outlet ORDER BY sequenceNumber");
-
-    return result
-        .map(
-          (e) => Outlet.fromJson(e),
-        )
-        .toList();*/
   }
 
   @override
@@ -415,6 +374,9 @@ class RouteDaoImp extends RouteDao {
       _database.rawUpdate(
           "Update Outlet SET visitStatus= ?, synced= ? where outletId= ?",
           [visitStatus, synced, outletId]);
+
+      final outlet = await getOutletById(outletId);
+      refreshOutlets(outlet.routeId);
     }
   }
 
@@ -422,6 +384,9 @@ class RouteDaoImp extends RouteDao {
   Future<void> updateOutletStatus(int statusId, int outletId) async {
     _database.rawUpdate("Update Outlet set statusId = ? WHERE outletId = ?",
         [statusId, outletId]);
+
+    final outlet = await getOutletById(outletId);
+    refreshOutlets(outlet.routeId);
   }
 
   @override
@@ -499,7 +464,7 @@ class RouteDaoImp extends RouteDao {
   Future<int> getPendingCount() async {
     final result = await _database.rawQuery(
         "SELECT COUNT() FROM Outlet LEFT JOIN OrderStatus ON Outlet.outletId = OrderStatus.outletId" +
-            " WHERE  Outlet.planned=1 AND  ( ( OrderStatus.status < 2) OR ( Outlet.statusId < 2 ) )");
+            " WHERE  Outlet.planned=1 AND  ( (OrderStatus.status < 2) OR ( Outlet.statusId < 2 or Outlet.statusId is null) )");
 
     if (result.isNotEmpty) {
       return Sqflite.firstIntValue(result) ?? 0;
@@ -564,20 +529,22 @@ class RouteDaoImp extends RouteDao {
   }
 
   @override
-  Future<void> updateAvailableStockInOutlet(List<OutletModel>? outletList,List<AvailableStock> availableStock) async{
+  Future<void> updateAvailableStockInOutlet(List<OutletModel>? outletList,List<AvailableStock>? availableStock) async{
     _database.transaction((txn) async{
       Batch batch = txn.batch();
       for (OutletModel outlet in outletList ?? []) {
-        List<AvailableStock> availableStockList = [];
-        for (AvailableStock availableStock in availableStock) {
-          if (availableStock.outletId == outlet.outletId) {
-            availableStockList.add(availableStock);
+        if (availableStock != null && availableStock.isNotEmpty) {
+          List<AvailableStock> availableStockList = [];
+          for (AvailableStock availableStock in availableStock) {
+            if (availableStock.outletId == outlet.outletId) {
+              availableStockList.add(availableStock);
+            }
           }
+          //Update avlStock Data in outlet
+          outlet.avlStockDetail = availableStockList;
+          batch.update("Outlet", outlet.toJson(),
+              where: "outletId = ?", whereArgs: [outlet.outletId]);
         }
-        //Update avlStock Data in outlet
-        outlet.avlStockDetail = availableStockList;
-        batch.update("Outlet", outlet.toJson(),
-            where: "outletId = ?", whereArgs: [outlet.outletId]);
         if (outlet.outletId != null) {
          Constants.outletIds.add(outlet.outletId!);
         }

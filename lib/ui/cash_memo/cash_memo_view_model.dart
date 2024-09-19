@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:order_booking/db/entities/order_quantity/order_quantity.dart';
 import 'package:order_booking/db/entities/order_status/order_status.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 import 'package:order_booking/status_repository.dart';
@@ -18,7 +19,8 @@ class CashMemoViewModel extends GetxController {
   RxString outletName = "".obs;
   RxList<OrderDetailAndPriceBreakdown> cartItemList = RxList();
 
-  CashMemoViewModel(this._repository, this._outletDetailRepository, this._statusRepository);
+  CashMemoViewModel(
+      this._repository, this._outletDetailRepository, this._statusRepository);
 
   Future<void> updateProduct(int? outletId, bool? fromBackPress) async {
     OrderEntityModel? orderModel = await _repository.findOrder(outletId);
@@ -134,14 +136,23 @@ class CashMemoViewModel extends GetxController {
             }
 
             //                String freeQtyStr = Util.convertToDecimalQuantity(cartonFreeQty==null?0:cartonFreeQty,unitFreeQty==null?0:unitFreeQty);
-            freeQty = freeQty +(unitFreeQty??0); //Double.parseDouble(freeQtyStr);
+            freeQty =
+                freeQty + (unitFreeQty ?? 0); //Double.parseDouble(freeQtyStr);
 
             //freeGoods.addAll(orderWithDetails.getOrderDetail().getCartonFreeGoods());
             // freeGoods.addAll(orderWithDetails.getOrderDetail().getUnitFreeGoods());
-            orderWithDetails.orderDetail.cartonPriceBreakDown =
-                orderWithDetails.cartonPriceBreakDownList;
-            orderWithDetails.orderDetail.unitPriceBreakDown =
-                orderWithDetails.unitPriceBreakDownList;
+            if (orderWithDetails.cartonPriceBreakDownList != null &&
+                orderWithDetails.cartonPriceBreakDownList!.isNotEmpty) {
+              orderWithDetails.orderDetail.cartonPriceBreakDown =
+                  orderWithDetails.cartonPriceBreakDownList;
+              orderWithDetails.orderDetail.unitPriceBreakDown =
+                  orderWithDetails.unitPriceBreakDownList;
+            } else {
+              orderWithDetails.cartonPriceBreakDownList =
+                  orderWithDetails.orderDetail.cartonPriceBreakDown;
+              orderWithDetails.unitPriceBreakDownList =
+                  orderWithDetails.orderDetail.unitPriceBreakDown;
+            }
           }
         }
         orderModel?.freeAvailableQty = freeQty;
@@ -157,16 +168,21 @@ class CashMemoViewModel extends GetxController {
     return orderLiveData;
   }
 
-  void updateCartItems(List<OrderDetailAndPriceBreakdown>? orderDetailAndCPriceBreakdowns) {
+  void updateCartItems(
+      List<OrderDetailAndPriceBreakdown>? orderDetailAndCPriceBreakdowns) {
     cartItemList(orderDetailAndCPriceBreakdowns);
     cartItemList.refresh();
   }
 
   Future<OrderStatus?> findOrderStatus(int? outletId) {
-    return _statusRepository.findOrderStatus(outletId??0);
+    return _statusRepository.findOrderStatus(outletId ?? 0);
   }
 
   void updateStatus(OrderStatus? orderStatus) {
     _statusRepository.update(orderStatus);
+  }
+
+  void saveOrderAndAvailableStockData(List<OrderAndAvailableQuantity> orderAndAvailableQuantityList) {
+  _repository.saveOrderAndAvailableStockData(orderAndAvailableQuantityList);
   }
 }

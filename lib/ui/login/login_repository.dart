@@ -54,9 +54,6 @@ class LoginRepository {
                 TokenResponse.fromJson(jsonDecode(response.data));
 
             if (tokenResponse.isSuccess) {
-              // //create loggedInUser object
-              // LoggedInUser loggedInUser = LoggedInUser(
-              //     username, password, tokenResponse.accessToken ?? "");
 
               // save user data in preferences
 

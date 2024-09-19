@@ -97,7 +97,8 @@ class OrderBookingViewModel extends GetxController {
 
       avlStockControllers[product.id] = TextEditingController(
           text: Util.convertStockToNullableDecimalQuantity(
-              orderQuantity?.avlCartonQuantity, orderQuantity?.avlUnitQuantity));
+              orderQuantity?.avlCartonQuantity,
+              orderQuantity?.avlUnitQuantity));
       orderQtyControllers[product.id] = TextEditingController(
           text: Util.convertStockToNullableDecimalQuantity(
               orderQuantity?.cartonQuantity, orderQuantity?.unitQuantity));
@@ -157,17 +158,17 @@ class OrderBookingViewModel extends GetxController {
       for (OrderDetail orderDetail in addedProducts) {
         if (product.id == orderDetail.mProductId) {
           product.setQty(
-              orderDetail.mCartonQuantity ?? 0, orderDetail.mUnitQuantity ?? 0);
-          product.setAvlStock(orderDetail.avlCartonQuantity ?? 0,
-              orderDetail.avlUnitQuantity ?? 0);
+              orderDetail.mCartonQuantity, orderDetail.mUnitQuantity);
+          product.setAvlStock(
+              orderDetail.avlCartonQuantity, orderDetail.avlUnitQuantity);
         }
       }
 
       if (availableStockItems != null) {
         for (AvailableStock availableStock in availableStockItems) {
           if (product.id == availableStock.productId) {
-            product.setAvlStock(availableStock.cartonQuantity ?? 0,
-                availableStock.unitQuantity ?? 0);
+            product.setAvlStock(
+                availableStock.cartonQuantity, availableStock.unitQuantity);
           }
         }
       }
@@ -182,9 +183,9 @@ class OrderBookingViewModel extends GetxController {
       for (OrderDetail orderDetail in addedProducts) {
         if (product.id == orderDetail.mProductId) {
           product.setQty(
-              orderDetail.mCartonQuantity ?? 0, orderDetail.mUnitQuantity ?? 0);
-          product.setAvlStock(orderDetail.avlCartonQuantity ?? 0,
-              orderDetail.avlUnitQuantity ?? 0);
+              orderDetail.mCartonQuantity, orderDetail.mUnitQuantity);
+          product.setAvlStock(
+              orderDetail.avlCartonQuantity, orderDetail.avlUnitQuantity);
         }
       }
     }
@@ -343,9 +344,10 @@ class OrderBookingViewModel extends GetxController {
 
       OrderResponseModel responseModel =
           OrderResponseModel.fromJson(mOrder.toJson());
-      responseModel.orderDetails = _order?.orderDetails?.map(
+      responseModel.orderDetails = _order?.orderDetails
+          ?.map(
             (e) => OrderDetailModel.fromJson(e.toJson()),
-      )
+          )
           .toList();
 //            responseModel.setAvailableStocks(order.getAvailableStockDetails());
       responseModel.distributionId = _distributionId;
@@ -366,9 +368,10 @@ class OrderBookingViewModel extends GetxController {
       final orderResponseModel = await pricingManager.calculatePriceBreakdown(
           responseModel, formattedDate);
       final orderTotalAmount = orderResponseModel.payable;
-      final totalQty = getOrderTotalQty(orderResponseModel.orderDetails?.map(
+      final totalQty = getOrderTotalQty(orderResponseModel.orderDetails
+          ?.map(
             (e) => OrderDetail.fromJson(e.toJson()),
-      )
+          )
           .toList());
 
       final priceOutputDTO = await pricingManager.getOrderPrice(
@@ -409,9 +412,10 @@ class OrderBookingViewModel extends GetxController {
       // final orderString = jsonEncode(orderResponseModelCheck);
       final order = Order.fromJson(orderResponseModelCheck.toJson());
 
-      orderModel.orderDetails = orderResponseModelCheck.orderDetails?.map(
+      orderModel.orderDetails = orderResponseModelCheck.orderDetails
+          ?.map(
             (e) => OrderDetail.fromJson(e.toJson()),
-      )
+          )
           .toList();
       orderModel.order = order;
       orderModel.outlet = _order?.outlet;
@@ -454,8 +458,10 @@ class OrderBookingViewModel extends GetxController {
 
         _statusRepository.updateOutlet(order.outlet);
         final orderUpdateCompletable = _repository.updateOrder(order.order);
-        final removeOrderItems = await _repository.deleteOrderItems(order.order?.id);
-        final insertOrderItems = await _repository.addOrderItems(order.orderDetails);
+        final removeOrderItems =
+            await _repository.deleteOrderItems(order.order?.id);
+        final insertOrderItems =
+            await _repository.addOrderItems(order.orderDetails);
 
         if (order.orderDetails != null) {
           for (var orderDetail in order.orderDetails!) {
@@ -520,7 +526,9 @@ class OrderBookingViewModel extends GetxController {
     for (Product product in allProducts) {
       final orderQty = Util.convertToLongQuantity(
           orderQtyControllers[product.id ?? 0]?.text ?? "");
-      if (orderQty != null && orderQty.isNotEmpty) {
+      if (orderQty != null &&
+          orderQty.isNotEmpty &&
+          (orderQty[0] > 0 || orderQty[1] > 0)) {
         product.setQty(orderQty[0], orderQty[1]);
         filteredProducts.add(product);
       }
@@ -627,7 +635,11 @@ class OrderBookingViewModel extends GetxController {
 
     //Add saved available stock item in List
     _availableStockItems?.clear();
-    _availableStockItems = outlet?.avlStockDetail;
+    if(outlet?.avlStockDetail!=null) {
+      _availableStockItems = outlet?.avlStockDetail;
+    }else{
+      _availableStockItems=[];
+    }
     if (_availableStockItems != null) {
       // Log.d(TAG, availableStockItems.toString());
     }
@@ -687,7 +699,7 @@ class OrderBookingViewModel extends GetxController {
   bool isShowMarketReturnButton() =>
       /*_repository.isShowMarketReturnButton()*/ true;
 
-  void saveOrderAndAvailableStockData() async {
+  Future<void> saveOrderAndAvailableStockData() async {
     //delete already saved data
     _repository.deleteOrderAndAvailableStockByOutlet(_outletId);
 
@@ -728,7 +740,6 @@ class OrderBookingViewModel extends GetxController {
 
   OrderAndAvailableQuantity? getOrderQuantityByProduct(
       List<OrderAndAvailableQuantity> orderQuantityList, int? productId) {
-
     List<OrderAndAvailableQuantity> list = orderQuantityList
         .where(
           (element) => element.productId == productId,

@@ -27,8 +27,9 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
   final HomeViewModel homeController = Get.find<HomeViewModel>();
 
   RxString tvRunningDay = "".obs;
-  RxString tvPending = "".obs;
-  RxString tvUploaded = "".obs;
+
+/*  RxString tvPending = "".obs;
+  RxString tvUploaded = "".obs;*/
 
   final RxBool _isBtnUploadEnabled = true.obs;
 
@@ -134,7 +135,7 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
                             ),
                             Obx(
                               () => Text(
-                                tvUploaded.value,
+                                "Uploaded: ${controller.getUploadedCount().value}/${controller.getTotalCount().value}",
                                 style: GoogleFonts.roboto(
                                     color: Colors.grey.shade600, fontSize: 14),
                               ),
@@ -161,7 +162,7 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
                             ),
                             Obx(
                               () => Text(
-                                tvPending.value,
+                                "Pending: ${controller.getPendingCount().value}/${controller.getTotalCount().value}",
                                 style: GoogleFonts.roboto(
                                     color: Colors.grey.shade600, fontSize: 14),
                               ),
@@ -245,32 +246,34 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
 
   void setObservers() {
     debounce(controller.getOrders(), (uploadStatusModels) {
-
       // controller.getAllOrders();
 
-      setUploadOrPendingCounts();
+      // setUploadOrPendingCounts();
     }, time: const Duration(milliseconds: 200));
   }
 
-  void setUploadOrPendingCounts() {
+  /* void setUploadOrPendingCounts() {
     tvPending(
         "Pending: ${controller.getPendingCount()}/${controller.getTotalCount()}");
     tvUploaded(
         "Uploaded: ${controller.getUploadedCount()}/${controller.getTotalCount()}");
-  }
+  }*/
 
   void _onUploadClick() async {
     _isBtnUploadEnabled(false);
     final isOnline = await NetworkManager.getInstance().isConnectedToInternet();
 
     if (isOnline) {
-     controller.setLoading(true);
+      showProgressDialog(true);
 
       WakelockPlus.enable();
 
       homeController.handleMultipleSyncOrderSync().whenComplete(
         () {
-          controller.setLoading(false);
+          //refresh all the orders list
+          controller.getAllOrders();
+
+          showProgressDialog(false);
           WakelockPlus.disable();
           _isBtnUploadEnabled(true);
         },
@@ -278,6 +281,49 @@ class _UploadOrdersScreenState extends State<UploadOrdersScreen> {
     } else {
       _isBtnUploadEnabled(true);
       showToastMessage("No Internet Connection");
+    }
+  }
+
+  void showProgressDialog(bool showDialog) {
+    if (showDialog) {
+      Get.dialog(
+        Obx(
+          () => AlertDialog(
+            title: Text("${homeController.getUploadMessages().value.title}",style: GoogleFonts.roboto()),
+            backgroundColor: Colors.white,
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+            insetPadding: const EdgeInsets.all(20),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("${homeController.getUploadMessages().value.message}",style: GoogleFonts.roboto(fontSize: 16),),
+                  const SizedBox(height: 16),
+                  LinearProgressIndicator(
+                    value: (homeController.getUploadMessages().value.value ?? 0) /
+                        (homeController.getUploadMessages().value.maxValue ?? 1),
+                    color: Colors.blueAccent,
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Text(
+                          "Completed : ${homeController.getUploadMessages().value.value}/${homeController.getUploadMessages().value.maxValue}"),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+    } else {
+      Get.back();
     }
   }
 }

@@ -22,14 +22,26 @@ class OrderManager {
     return OrderQuantity(units, cartons);
   }
 
-  /// This calculates units in float carton size
-  double calculateQtyInCartons(
-      int productUnitsPerCarton, int orderedUnits, int orderedCartons) {
-    double qtyInCarton = orderedCartons.toDouble();
+  // /// This calculates units in float carton size
+  // double calculateQtyInCartons(
+  //     int productUnitsPerCarton, int orderedUnits, int orderedCartons) {
+  //   double qtyInCarton = orderedCartons.toDouble();
+  //
+  //   if (productUnitsPerCarton > 0) {
+  //     double quotient = orderedUnits / productUnitsPerCarton;
+  //     qtyInCarton += quotient;
+  //   }
+  //
+  //   return qtyInCarton;
+  // }
 
-    if (productUnitsPerCarton > 0) {
+  double calculateQtyInCartons(int? productUnitsPerCarton, int? orderedUnits, int? orderedCartons) {
+    double qtyInCarton = (orderedCartons ?? 0).toDouble();
+
+    if (orderedUnits != null && productUnitsPerCarton != null && productUnitsPerCarton > 0) {
+      orderedCartons ??= 0;
       double quotient = orderedUnits / productUnitsPerCarton;
-      qtyInCarton += quotient;
+      qtyInCarton = quotient + orderedCartons.toDouble();
     }
 
     return qtyInCarton;

@@ -31,11 +31,6 @@ class MarketReturnsDaoImpl extends MarketReturnsDao {
     } catch (e) {
       showToastMessage(e.toString());
     }
-
-    /* for (MarketReturnDetail returnDetail in returnList) {
-      _database.insert("MarketReturnDetails", returnDetail.toJson(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-    }*/
   }
 
   @override

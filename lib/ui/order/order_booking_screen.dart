@@ -42,7 +42,7 @@ class _OrderBookingScreenState extends State<OrderBookingScreen> {
 
     controller.init();
     _createNoOrderReasonList();
-      _setObservers();
+    _setObservers();
   }
 
   @override
@@ -212,17 +212,23 @@ class _OrderBookingScreenState extends State<OrderBookingScreen> {
                       Product item = controller.filteredProducts[index];
                       return OrderBookingListItem(
                         product: item,
-                        avlStockController:
-                            controller.avlStockControllers[item.id],
-                        orderQtyController:
-                            controller.orderQtyControllers[item.id],
+                        autoFocus: false,
+                        avlStockController: _getAvailableStockController(item),
+                        orderQtyController: _getOrderControllerController(item),
                         showMarketReturnButton:
                             controller.isShowMarketReturnButton(),
                         onReturnClick: (product) {
+
+                          //preserve order and available stock quantity on navigation
+                          controller.saveOrderAndAvailableStockData();
+
                           Get.toNamed(EdsRoutes.marketReturn, arguments: [
                             product.id,
                             controller.outlet?.outletId,
-                            _convertStockInUnit(controller.orderQtyControllers[product.id]?.text,product.cartonQuantity)
+                            _convertStockInUnit(
+                                controller
+                                    .orderQtyControllers[product.id]?.text,
+                                product.cartonQuantity)
                           ])?.then(
                             (value) {
                               setState(() {});
@@ -332,7 +338,13 @@ class _OrderBookingScreenState extends State<OrderBookingScreen> {
       (aBoolean) {
         if (aBoolean) {
           Get.toNamed(EdsRoutes.cashMemo,
-              arguments: [controller.outlet?.outletId, false, 0]);
+              arguments: [controller.outlet?.outletId, false, 0])?.then(
+            (result) {
+              if(result!=null&&result[Constants.STATUS_OK]) {
+                Get.back(result: result);
+              }
+            },
+          );
         }
       },
     );
@@ -370,12 +382,12 @@ class _OrderBookingScreenState extends State<OrderBookingScreen> {
 //        noOrderReasonList.add(new CustomObject(5L, "Dispute"));
   }
 
-  int _convertStockInUnit(String? orderQty,int? cartonQty){
-    if (orderQty==null|| orderQty.isEmpty){
+  int _convertStockInUnit(String? orderQty, int? cartonQty) {
+    if (orderQty == null || orderQty.isEmpty) {
       return 0;
     }
     final cu = Util.convertToLongQuantity(orderQty);
-    return Util.convertToUnits(cu?[0],cartonQty,cu?[1]);
+    return Util.convertToUnits(cu?[0], cartonQty, cu?[1]);
   }
 
   void _pickReasonForNoOrder() {
@@ -393,11 +405,42 @@ class _OrderBookingScreenState extends State<OrderBookingScreen> {
   }
 
   void onNoOrderReasonSelected(CustomObject object) {
-    Map<String,dynamic> extraParams ={
-      Constants.EXTRA_PARAM_OUTLET_REASON_N_ORDER:object.id,
-      Constants.EXTRA_PARAM_NO_ORDER_FROM_BOOKING:true,
-      Constants.EXTRA_PARAM_OUTLET_ID:controller.outlet?.outletId,
+    Map<String, dynamic> extraParams = {
+      Constants.STATUS_OK:true,
+      Constants.EXTRA_PARAM_OUTLET_REASON_N_ORDER: object.id,
+      Constants.EXTRA_PARAM_NO_ORDER_FROM_BOOKING: true,
+      Constants.EXTRA_PARAM_OUTLET_ID: controller.outlet?.outletId,
     };
     Get.back(result: extraParams);
+  }
+
+  TextEditingController? _getAvailableStockController(Product product) {
+    TextEditingController? stockController =
+        controller.avlStockControllers[product.id];
+
+  /*  final avlStock = Util.convertStockToNullableDecimalQuantity(
+        product.avlStockCarton, product.avlStockUnit);
+    if (avlStock != null) {
+      stockController?.text = avlStock;
+    } else {
+      stockController?.clear();
+    }*/
+
+    return stockController;
+  }
+
+  TextEditingController? _getOrderControllerController(Product product) {
+    TextEditingController? orderController =
+        controller.orderQtyControllers[product.id];
+/*
+    final orderQty = Util.convertStockToNullableDecimalQuantity(
+        product.qtyCarton, product.qtyUnit);
+    if (orderQty != null) {
+      orderController?.text = orderQty;
+    } else {
+      orderController?.clear();
+    }*/
+
+    return orderController;
   }
 }

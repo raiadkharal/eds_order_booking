@@ -64,7 +64,7 @@ class _ReturnItemDialogState extends State<ReturnItemDialog> {
         outletId: widget.outletId,
         productId: _product.id,
         unitDefinitionId: _product.unitDefinitionId,
-        cartonDefinitionId: _product.unitDefinitionId,
+        cartonDefinitionId: _product.cartonDefinitionId,
         cartonSize: _product.cartonQuantity);
 
     super.initState();
@@ -91,9 +91,14 @@ class _ReturnItemDialogState extends State<ReturnItemDialog> {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(
-                      _errorMessage.value,
-                      style: GoogleFonts.roboto(color: Colors.red),
+                    Flexible(
+                      fit: FlexFit.loose,
+                      child: Text(
+                        _errorMessage.value,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.roboto(color: Colors.red),
+                      ),
                     ),
                   ],
                 ),
@@ -401,7 +406,7 @@ class _ReturnItemDialogState extends State<ReturnItemDialog> {
           MarketReturnDetail marketReturnDetails = widget.returnList[i];
           if (marketReturnDetails.marketReturnReasonId ==
               selectedReason.value?.id) {
-            setError("Return Reason Already added please select another one");
+            setError("Return Reason Already added please select any other reason");
             return;
           } else {
             setError("");

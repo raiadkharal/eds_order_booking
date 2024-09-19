@@ -1,7 +1,11 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:order_booking/db/models/base_response/base_response.dart'
+    as package_order_booking;
 import 'package:order_booking/model/configuration/configurations_model.dart';
 import 'package:order_booking/model/merchandise_model/merchandise_model.dart';
 import 'package:order_booking/model/upload_message_model/upload_message_model.dart';
@@ -12,6 +16,9 @@ import '../../db/entities/market_returns/market_returns.dart';
 import '../../db/entities/merchandise/merchandise.dart';
 import '../../db/entities/order_status/order_status.dart';
 import '../../db/entities/outlet/outlet.dart';
+
+import '../../db/entities/task/task.dart';
+import '../../db/models/merchandise_images/merchandise_image.dart';
 import '../../db/models/work_status/work_status.dart';
 import '../../model/market_return_model/market_return_model.dart';
 import '../../model/master_model/master_model.dart';
@@ -25,6 +32,10 @@ import '../../utils/utils.dart';
 import '../market_return/market_return_repository.dart';
 import '../order/order_booking_repository.dart';
 import '../repository.dart';
+
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 class HomeViewModel extends GetxController {
   final HomeRepository _homeRepository;
@@ -40,6 +51,7 @@ class HomeViewModel extends GetxController {
   int totalTasks = 0;
 
   final RxBool _endDayLiveData = false.obs;
+  final Rx<UploadMessageModel> _uploadMessages = UploadMessageModel().obs;
 
   HomeViewModel(
       this._homeRepository,
@@ -72,24 +84,23 @@ class HomeViewModel extends GetxController {
   }
 
   Future<String?> uploadSingleOrder(int outletId) async {
-
     String retValue = "";
     try {
       OrderStatus? status = await _statusRepository.findOrderStatus(outletId);
 
       if (status != null) {
-            MasterModel? model = await saveOrderObservableSync(status);
-            //error(model);
-            onUploadSync(model, model?.outletId, model?.outletStatus);
-            if (model?.success == "true") {
-            } else {
-              if (model?.errorCode != 3) {
-                retValue = model?.errorMessage == null
-                    ? "Something went wrong.Please retry."
-                    : model?.errorMessage ?? "";
-              }
-            }
+        MasterModel? model = await saveOrderObservableSync(status);
+        //error(model);
+        await onUploadSync(model, model?.outletId, model?.outletStatus);
+        if ((model?.success ?? "true") == "true") {
+        } else {
+          if (model?.errorCode != 3) {
+            retValue = model?.errorMessage == null
+                ? "Something went wrong.Please retry."
+                : model?.errorMessage ?? "";
           }
+        }
+      }
     } catch (e) {
       showToastMessage(e.toString());
     }
@@ -102,7 +113,7 @@ class HomeViewModel extends GetxController {
         ? MasterModel.fromJson(jsonDecode(orderStatus.data!))
         : null;
 
-    String finalJson = jsonEncode(masterModel?.toJson());
+    String finalJson = jsonEncode(masterModel?.serialize());
     debugPrint("JSON:: $finalJson");
 
     if (masterModel != null) {
@@ -122,10 +133,10 @@ class HomeViewModel extends GetxController {
       masterModel.requestCounter = _homeRepository.getRequestCounter();
 
       //add task data to the request
-      /* List<Task> taskList = pendingTasksRepository.getTasksByOutletId(masterModel.getOutletId()).blockingGet();
+       List<Task>? taskList = await _statusRepository.getTasksByOutletId(masterModel.outletId??0);
       if (taskList != null) {
-        masterModel.setTasks(taskList);
-      }*/
+        masterModel.tasks = taskList;
+      }
 
       //set outletCode and avlStock in master model
       Outlet outlet =
@@ -151,10 +162,11 @@ class HomeViewModel extends GetxController {
 
       _homeRepository.setRequestCounter(masterModel.requestCounter);
 
-      final finalJson = masterModel.toJson();
+      final finalJson = masterModel.serialize();
       // final finalJson = Util.removeNulls(json);
       //upload order request
-      final response = await _homeRepository.saveOrder(MasterModel.fromJson(finalJson));
+      final response =
+          await _homeRepository.saveOrder(MasterModel.fromJson(finalJson));
 
       if (response.status == RequestStatus.ERROR) {
         showToastMessage(response.message.toString());
@@ -195,11 +207,11 @@ class HomeViewModel extends GetxController {
     }
     if (bool.parse(model.success ?? "true")) {
       //scheduleMerchandiseJob(getApplication().getApplicationContext() , model.getOutletId() , PreferenceUtil.getInstance(getApplication()).getToken() , model.getOutletStatus()!=null? model.getOutletStatus():0);
-       if (saveMerchandiseSync(model.outletId, model.outletStatus ?? 0)) {
+      if (await saveMerchandiseSync(model.outletId, model.outletStatus ?? 0)) {
         model.outletId = masterModel.outletId;
-        model.outletStatus=orderStatus.status;
-        orderStatus.imageStatus=1;
-        orderStatus.requestStatus=3;// all uploaded
+        model.outletStatus = orderStatus.status;
+        orderStatus.imageStatus = 1;
+        orderStatus.requestStatus = 3; // all uploaded
         _statusRepository.update(orderStatus);
         return model;
       } else {
@@ -207,7 +219,7 @@ class HomeViewModel extends GetxController {
         errorModel.success = "false";
         errorModel.errorMessage = "Unable to upload Merchandise";
         errorModel.outletId = orderStatus.outletId;
-        errorModel.outletStatus=orderStatus.status;
+        errorModel.outletStatus = orderStatus.status;
         return errorModel;
 //
       }
@@ -273,8 +285,8 @@ class HomeViewModel extends GetxController {
     }
   }
 
-  void onUploadSync(
-      MasterModel? orderResponseModel, int? outletId, int? statusId) {
+  Future<void> onUploadSync(
+      MasterModel? orderResponseModel, int? outletId, int? statusId) async {
     if (orderResponseModel == null) return;
 
     if (!bool.parse(orderResponseModel.success ?? "true")) {
@@ -311,24 +323,16 @@ class HomeViewModel extends GetxController {
       orderResponseModel.customerInput = null;
       orderResponseModel.order!.orderDetails = null;
 
-      _orderBookingRepository
-          .findOrderById(orderResponseModel.order!.mobileOrderId)
-          .then(
-        (order) {
-          orderResponseModel.order!.payable = order.payable;
-          return order;
-        },
-      ).then(
-        (order) {
-          _orderBookingRepository.updateOrder(order);
-        },
-      ).whenComplete(
-        () {
-          updateOutletTaskStatus(
-              orderResponseModel.outletId, orderResponseModel.order!.payable);
-          // ProductUpdateService.startProductsUpdateService(getApplication().getApplicationContext(), orderResponseModel.getOutletId());
-        },
-      );
+      final order = await _orderBookingRepository
+          .findOrderById(orderResponseModel.order!.mobileOrderId);
+
+      orderResponseModel.order!.payable = order?.payable;
+      order?.orderStatus = orderResponseModel.order?.orderStatusId;
+
+      await _orderBookingRepository.updateOrder(order);
+
+      updateOutletTaskStatus(
+          orderResponseModel.outletId, orderResponseModel.order!.payable);
     } else {
       if (outletId != null && statusId != null) {
         _homeRepository.updateOutletVisitStatus(outletId, statusId, true);
@@ -428,12 +432,33 @@ class HomeViewModel extends GetxController {
     return _repository.priceConditionTypeValidation();
   }
 
-  Future<void> handleMultipleSyncOrderSync() async {
-    // isLoading().value = true;
-    // isUploading().value = true;
+/*  Future<void> executeTasks() async {
+    int totalTasks = 5;
+    // controller.setTotalTasks(totalTasks);
 
+    for (int i = 1; i <= totalTasks; i++) {
+      // Simulate task execution
+      await Future.delayed(Duration(seconds: 3));
+
+      // Update the progress
+      // controller.updateProgress("Task $i executing", totalTasks - i, i);
+
+     setUploadMessage(UploadMessageModel(
+        message: "Task $i executing",
+        title: "Please wait",
+        subMessage: "",
+        maxValue: totalTasks,
+        value: i,
+        visible: true,
+      ));
+    }
+
+    // Close the dialog when all tasks are done
+    Get.back();
+  }*/
+
+  Future<void> handleMultipleSyncOrderSync() async {
     const String TAG = "Upload Multiple Orders:";
-    // NotificationUtil.getInstance(context).showNotification();
     try {
       List<OrderStatus> orderStatuses =
           await _statusRepository.getOrderStatusEx();
@@ -447,40 +472,41 @@ class HomeViewModel extends GetxController {
         return;
       }
 
-      /* FirebaseCrashlytics.instance.log(jsonEncode(orderStatuses));
-      FirebaseCrashlytics.instance.setCustomKey("orderStatuses", jsonEncode(orderStatuses));*/
-
       bool dialogVisible = true;
-      getUploadMessages().value = UploadMessageModel(
+      setUploadMessage(UploadMessageModel(
         message: "Preparing to upload",
         title: "Please wait",
         subMessage: "",
         maxValue: totalTasks,
         value: 1,
         visible: dialogVisible,
-      );
+      ));
 
+      int index = 0;
       for (OrderStatus orderStatus in orderStatuses) {
-        Outlet? outlet = await _statusRepository
-            .findOutletById(orderStatus.outletId??0);
+        index++;
+        Outlet? outlet =
+            await _statusRepository.findOutletById(orderStatus.outletId ?? 0);
 
         String message = "Uploading Data of Id: ${orderStatus.outletId}";
         if (outlet.outletName != null) {
           message = "Uploading Data of ${outlet.outletName}";
         }
 
-        getUploadMessages().value = UploadMessageModel(
+        setUploadMessage(UploadMessageModel(
           message: message,
           title: "Please wait",
           subMessage: "",
           maxValue: totalTasks,
-          value: 1,
+          value: index,
           visible: dialogVisible,
-        );
+        ));
+
+        // await Future.delayed(Duration(seconds: 5));
 
         MasterModel? model = await saveOrderObservableSync(orderStatus);
 
-        onUploadSync(model, model?.outletId, model?.outletStatus);
+        await onUploadSync(model, model?.outletId, model?.outletStatus);
 
         if (bool.parse(model?.success ?? "true")) {
           remainingTasks--;
@@ -491,14 +517,14 @@ class HomeViewModel extends GetxController {
         }
       }
 
-      getUploadMessages().value = UploadMessageModel(
+    /*  setUploadMessage(UploadMessageModel(
         message: "All orders uploaded",
         title: "Please wait",
         subMessage: "",
         maxValue: totalTasks,
         value: 1,
         visible: false,
-      );
+      ));*/
 
       showToastMessage("All orders uploaded");
     } catch (e) {
@@ -515,11 +541,182 @@ class HomeViewModel extends GetxController {
   }
 
   Rx<UploadMessageModel> getUploadMessages() {
-    return _homeRepository.getUploadMessages();
+    return _uploadMessages;
   }
 
-  bool saveMerchandiseSync(int? outletId, int statusId) {
-    //TODO-implement this method later
+  void setUploadMessage(UploadMessageModel messageModel) {
+    _uploadMessages.value = messageModel;
+    _uploadMessages.refresh();
+  }
+
+  Future<bool> saveMerchandiseSync(int? outletId, int statusId) async {
+    Merchandise? merchandise =
+        await _homeRepository.findMerchandiseById(outletId);
+
+    if (merchandise == null) {
+      OrderStatus? orderStatus =
+          await _statusRepository.findOrderStatus(outletId ?? 0);
+      // all data uploaded
+      orderStatus?.requestStatus = 3;
+      _statusRepository.update(orderStatus);
+      return true;
+    }
+
+    List<MerchandiseImage> readyToPostMerchandiseImagesList = [];
+    Merchandise readyToPostMerchandise = Merchandise();
+
+    for (MerchandiseImage merchandiseImage
+        in merchandise.merchandiseImages ?? []) {
+      if (merchandiseImage.status == 0) {
+        // Filtering merchandising images that are not uploaded
+        readyToPostMerchandiseImagesList.add(merchandiseImage);
+
+        // Splitting the path by "/"
+        List<String>? path = merchandiseImage.path?.split('/');
+
+        if (path != null && path.isNotEmpty) {
+          // After Multipart
+          merchandiseImage.image =
+              '${outletId}_${merchandiseImage.id}_${path.last}';
+        }
+      }
+    }
+
+    readyToPostMerchandise.merchandiseImages = readyToPostMerchandiseImagesList;
+    readyToPostMerchandise.assetList = merchandise.assetList;
+    readyToPostMerchandise.outletId = outletId;
+    readyToPostMerchandise.remarks = merchandise.remarks;
+
+    MerchandiseModel readyToPostMerchandiseModel =
+        MerchandiseModel.fromJson(readyToPostMerchandise.toJson());
+// Passing to MerchandiseModel to upload data
+    MerchandiseUploadModel merchandiseModel =
+        MerchandiseUploadModel(merchandise: readyToPostMerchandiseModel);
+    merchandiseModel.statusId = statusId;
+
+    // merchandise data object ready to upload
+    String merchandisingJson = jsonEncode(merchandiseModel);
+    if (kDebugMode) {
+      print('AssetsJson: $merchandisingJson');
+    }
+
+    OrderStatus? orderStatus;
+    try {
+      orderStatus = await _statusRepository.findOrderStatus(outletId ?? 0);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching order status: $e');
+      }
+    }
+
+    package_order_booking.BaseResponse? baseResponse;
+    bool requestAlreadySent = false;
+
+    if ((orderStatus?.requestStatus ?? 0) < 2) {
+      //post merchandise to server
+      final response = await _homeRepository.postMerchandise(merchandiseModel);
+      if (response.status == RequestStatus.SUCCESS) {
+        //parse response data to base response model class
+        baseResponse = package_order_booking.BaseResponse.fromJson(
+            jsonDecode(response.data));
+      }
+    } else {
+      baseResponse = package_order_booking.BaseResponse();
+      baseResponse.success = "true";
+      requestAlreadySent = true;
+    }
+
+    String iTAG = "Uploading images syc";
+    if (bool.parse(baseResponse?.success ?? "true")) {
+      if (orderStatus != null && !requestAlreadySent) {
+        orderStatus.requestStatus = 2;
+        _statusRepository.update(orderStatus);
+      }
+
+      if (kDebugMode) {
+        print('Merchandise Uploaded');
+      }
+
+      bool isImageRemaining = false;
+
+      for (var merchandiseImage in merchandise.merchandiseImages ?? []) {
+        if (merchandiseImage.status == 0) {
+          File file = File(merchandiseImage.path ?? "");
+
+          if (await file.exists()) {
+            isImageRemaining = true;
+
+            // Prepare multipart request
+            var uri = Uri.parse('${Constants.baseUrl}route/PostImageResources');
+            var request = http.MultipartRequest('POST', uri);
+
+            // Add the fields and files
+            request.fields['imagePath'] = merchandiseImage.image ?? "";
+            request.fields['md5'] = ''; // Add the md5 field if needed
+            request.files.add(await http.MultipartFile.fromPath(
+              'file',
+              merchandiseImage.path ?? "",
+              filename: file.uri.pathSegments.last,
+              contentType: null, // Adjust the content type as needed
+            ));
+
+            try {
+              // upload multipart image to the server
+              var response = await http.Client().send(request);
+
+              if (response.statusCode == 200) {
+                merchandiseImage.status = 1; // Uploaded
+                await file.delete();
+                updateRecord(merchandiseImage);
+              } else {
+                if (kDebugMode) {
+                  print('Failed to upload file: ${response.statusCode}');
+                }
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print("Error uploading file: $e");
+              }
+            }
+
+            if (kDebugMode) {
+              print('Uploaded File ${merchandiseImage.image}');
+            }
+          } else {
+            // File already uploaded and deleted
+            merchandiseImage.status = 1;
+          }
+        }
+      }
+
+      if (!isImageRemaining) {
+        for (var merchandiseImage in merchandise.merchandiseImages ?? []) {
+          if (merchandiseImage.status == 1) {
+            // uploaded
+            File file = File(merchandiseImage.path);
+            if (await file.exists()) {
+              await file.delete();
+            }
+          }
+        }
+        if (orderStatus != null) {
+          orderStatus.requestStatus = 3; // all uploaded
+          await _statusRepository.update(orderStatus);
+        }
+        // removeRecord(merchandise);
+        // print('Record Removed');
+      }
+    } else {
+      if (kDebugMode) {
+        print(baseResponse?.errorMessage.toString());
+      }
+      return false;
+    }
+
     return true;
+  }
+
+  void updateRecord(Merchandise merchandise) {
+    _homeRepository.updateMerchandise(merchandise);
   }
 }

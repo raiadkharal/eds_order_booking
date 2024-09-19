@@ -1,3 +1,4 @@
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:order_booking/db/dao/task_dao.dart';
 import 'package:order_booking/db/entities/asset/asset.dart';
 import 'package:order_booking/db/entities/lookup/lookup.dart';
@@ -112,6 +113,18 @@ class StatusRepository {
 
   void updateTask(Task taskParam) {
     _taskDao.updateTask(taskParam);
+  }
+
+  bool isTestUser() {
+    return _preferenceUtil.isTestUser();
+  }
+
+  void deleteTaskByOutletId(int outletId) {
+    _taskDao.deleteTasksByOutletId(outletId);
+  }
+
+  void insertTasks(List<Task> taskList) {
+    _taskDao.insertTasks(taskList);
   }
 
 }

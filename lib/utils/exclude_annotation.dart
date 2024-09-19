@@ -1,0 +1,3 @@
+class ExcludeFromJson {
+  const ExcludeFromJson();
+}

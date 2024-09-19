@@ -18,6 +18,7 @@ import 'package:signature/signature.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../route.dart';
+import '../../utils/Constants.dart';
 import '../../utils/utils.dart';
 
 class CustomerInputScreen extends StatefulWidget {
@@ -426,7 +427,7 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
-                                        flex: 1,
+                                        flex: 2,
                                         child: Text(
                                           "Remarks: ",
                                           style: GoogleFonts.roboto(
@@ -438,7 +439,7 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
                                         width: 10,
                                       ),
                                       Expanded(
-                                        flex: 5,
+                                        flex: 7,
                                         child: TextField(
                                           controller: _remarksController,
                                           style:
@@ -560,6 +561,22 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
     try {
       //show date picker dialog to user
       final DateTime? pickedDate = await showDatePicker(
+        builder: (context, child) {
+          return Theme(data: Theme.of(context).copyWith(
+            primaryColorLight: secondaryColor,
+            useMaterial3: false,
+            colorScheme: const ColorScheme.light(
+              primary: secondaryColor, // header background color
+              onPrimary: Colors.white, // header text color
+              onSurface: Colors.black, // body text color
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: secondaryColor, // button text color
+              ),
+            ),
+          ), child: child!);
+        },
           context: context,
           barrierDismissible: false,
           initialDate: DateTime.now(),
@@ -695,38 +712,31 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
 
           String? msg = await _homeController.uploadSingleOrder(outletId);
 
+         controller.setIsSaving(false);
+
           if (msg != null && msg.isNotEmpty) {
             // Show a toast message
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-
               showToastMessage(msg);
 
-             /* ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(msg)),
-              );*/
+              controller.setOrderSaved(false);
+          }else{
+              //Clear screen on flag
+              WakelockPlus.disable();
+              controller.setOrderSaved(true);
 
-            });
+              /*//pop stack until outlet list screen
+              Get.until((route) => Get.currentRoute == EdsRoutes.outletList);*/
           }
-
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            //Clear screen on flag
-            WakelockPlus.disable();
-            controller.setOrderSaved(true);
-
-            //pop stack until outlet list screen
-            Get.until((route) => Get.currentRoute == EdsRoutes.outletList);
-          });
-
-
-
         }
       } else {
         showToastMessage("No Internet Connection");
         controller.setIsSaving(false);
         controller.setOrderSaved(false);
 
-        //pop stack until outlet list screen
-        Get.until((route) => Get.currentRoute == EdsRoutes.outletList);
+        Map<String, dynamic> extraParams = {
+          Constants.STATUS_OK: true,
+        };
+        Get.back(result: extraParams);
       }
     }, time: const Duration(milliseconds: 200));
 
@@ -739,8 +749,13 @@ class _CustomerInputScreenState extends State<CustomerInputScreen> {
 
     debounce(controller.orderSaved(), (aBoolean) {
       if (aBoolean) {
-        //pop stack until outlet list screen
-        Get.until((route) => Get.currentRoute == EdsRoutes.outletList);
+
+        Map<String, dynamic> extraParams = {
+          Constants.STATUS_OK: true,
+        };
+        Get.back(result: extraParams);
+
+
       } else {
         _isBtnNextEnabled(true);
       }

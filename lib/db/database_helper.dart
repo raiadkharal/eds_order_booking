@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
-  static const int _databaseVersion = 1;
+  static const int _databaseVersion = 2;
   static const String _databaseName = "eds";
 
   DatabaseHelper._privateConstructor();
@@ -16,15 +16,24 @@ class DatabaseHelper {
       version: _databaseVersion,
       onCreate: (database, version) async {
         await createTables(database);
+        _enableForeignKeys(database);
       },
       onUpgrade: (database, oldVersion, newVersion) async {
         await upgradeTables(database);
+      },
+      onOpen: (database) {
+        _enableForeignKeys(database);
       },
       onDowngrade: (database, oldVersion, newVersion) async {
         await upgradeTables(database);
       },
     );
   }
+
+  static void _enableForeignKeys(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
+  }
+
 
   static Future<void> createTables(Database database) async {
     database.execute(SqlQueries.createAssetTable);

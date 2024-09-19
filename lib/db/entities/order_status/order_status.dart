@@ -54,7 +54,7 @@ class OrderStatus {
     this.synced,
     this.data,
     this.imageStatus,
-    this.requestStatus,
+    this.requestStatus=0,
     this.outletLatitude,
     this.outletLongitude,
     this.outletDistance,

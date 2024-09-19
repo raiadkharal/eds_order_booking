@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:order_booking/db/entities/order_detail/order_detail.dart';
+import 'package:order_booking/db/entities/order_quantity/order_quantity.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 import 'package:order_booking/status_repository.dart';
 import 'package:order_booking/ui/cash_memo/cash_memo_free_item_view.dart';
@@ -31,14 +33,15 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
   final CashMemoViewModel _controller = Get.put<CashMemoViewModel>(
       CashMemoViewModel(
           CashMemoRepository(Get.find(), Get.find()),
-          OutletDetailRepository(Get.find(), Get.find(), Get.find(), Get.find(), Get.find()),
+          OutletDetailRepository(
+              Get.find(), Get.find(), Get.find(), Get.find(), Get.find()),
           Get.find()));
 
   OrderEntityModel? _orderModel;
 
   late final int? _outletId;
   late final int? _statusId;
-  bool? _fromOutlet, cashMemoEditable=false;
+  bool? _fromOutlet, cashMemoEditable = false;
 
   Widget? _bottomSheetDialog;
 
@@ -72,7 +75,7 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: true,
-      onPopInvoked: (didPop) => _onBackPressed(),
+      onPopInvoked: (didPop) async => await _onBackPressed(),
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -120,8 +123,11 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
               ),
               InkWell(
                 onTap: () {
-                  if(_bottomSheetDialog!=null) {
-                    showModalBottomSheet(context: context, builder: (context) => _bottomSheetDialog!,);
+                  if (_bottomSheetDialog != null) {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => _bottomSheetDialog!,
+                    );
                   }
                 },
                 child: Padding(
@@ -182,7 +188,6 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
                       return CashMemoItemView(
                         item: _controller.cartItemList[index],
                         priceListener: (isPriceAvailable) {
-
                           if (cashMemoEditable ?? false) {
                             _btnNextEnabled(isPriceAvailable);
 
@@ -197,7 +202,6 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
                                 },
                               );
                             }
-
                           }
                         },
                       );
@@ -228,7 +232,7 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
                     )),
                     Expanded(
                         child: CustomButton(
-                      onTap:() => _onNextClick(),
+                      onTap: () => _onNextClick(),
                       text: "Next",
                       minWidth: 100,
                       horizontalPadding: 3,
@@ -249,6 +253,8 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
       cashMemoEditable = orderModel.order?.orderStatus != 1;
 
       _controller.updateCartItems(orderModel.orderDetailAndCPriceBreakdowns);
+      _updateOrderAndAvailableQuantity(orderModel.order?.outletId,
+          orderModel.orderDetailAndCPriceBreakdowns);
       _updatePriceOnUi(orderModel);
     }, time: const Duration(milliseconds: 200));
   }
@@ -355,7 +361,7 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
       }
 
       //Navigate to the order booking screen
-      Get.toNamed(EdsRoutes.orderBooking, arguments: [_outletId]);
+      Get.offNamed(EdsRoutes.orderBooking, arguments: [_outletId]);
     }
   }
 
@@ -370,18 +376,7 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
           _controller.updateStatus(orderStatus);
         }
       }
-
-      // Intent intent = new Intent(this, OrderBookingActivity.class); // Added Bu Husnain  cashMemoEditable?OrderBookingActivity.class: OutletListActivity.class
-      // intent.putExtras(getIntent());
-      // intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-      // startActivity(intent);
-
-      //Navigate to the order booking screen
-      Get.offAllNamed(EdsRoutes.orderBooking, arguments: [_outletId]);
     }
-
-    //close current screen
-    Get.back();
   }
 
   void _showVerificationAlertDialog(
@@ -390,15 +385,13 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
       barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-        title: Text(
-          title
-            ,style: GoogleFonts.roboto()
-        ),
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        title: Text(title, style: GoogleFonts.roboto()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message,style: GoogleFonts.roboto()),
+            Text(message, style: GoogleFonts.roboto()),
             Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -409,13 +402,19 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
                       mListener(false);
                       Navigator.of(context).pop();
                     },
-                    child: Text("No",style: GoogleFonts.roboto(color: secondaryColor),)),
+                    child: Text(
+                      "No",
+                      style: GoogleFonts.roboto(color: secondaryColor),
+                    )),
                 TextButton(
                     onPressed: () {
                       mListener(true);
                       Navigator.of(context).pop();
                     },
-                    child: Text("Yes",style: GoogleFonts.roboto(color: secondaryColor),)),
+                    child: Text(
+                      "Yes",
+                      style: GoogleFonts.roboto(color: secondaryColor),
+                    )),
               ],
             ),
           ],
@@ -425,6 +424,38 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
   }
 
   void _onNextClick() {
-    Get.toNamed(EdsRoutes.customerInput,arguments: [_outletId]);
+    Get.toNamed(EdsRoutes.customerInput, arguments: [_outletId])?.then(
+      (result) {
+        if (result != null && result[Constants.STATUS_OK]) {
+          Get.back(result: result);
+        }
+      },
+    );
+  }
+
+  Future<void> _updateOrderAndAvailableQuantity(int? outletId,
+      List<OrderDetailAndPriceBreakdown>? orderDetailAndCPriceBreakdowns) async{
+
+    List<OrderAndAvailableQuantity> orderAndAvailableQuantityList =[];
+
+    for (OrderDetailAndPriceBreakdown orderDetailAndCPriceBreakdown
+        in orderDetailAndCPriceBreakdowns ?? []) {
+
+      OrderDetail orderDetail = orderDetailAndCPriceBreakdown.orderDetail;
+
+      OrderAndAvailableQuantity orderAndAvailableQuantity =
+          OrderAndAvailableQuantity(
+              outletId: outletId,
+              productId: orderDetail.mProductId,
+              cartonQuantity: orderDetail.mCartonQuantity,
+              unitQuantity: orderDetail.mUnitQuantity,
+              avlCartonQuantity: orderDetail.avlCartonQuantity,
+              avlUnitQuantity: orderDetail.avlUnitQuantity);
+
+      orderAndAvailableQuantityList.add(orderAndAvailableQuantity);
+    }
+
+    //insert into database
+    _controller.saveOrderAndAvailableStockData(orderAndAvailableQuantityList);
   }
 }

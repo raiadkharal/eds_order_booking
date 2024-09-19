@@ -30,3 +30,11 @@ Map<String, dynamic> _$MerchandiseToJson(MerchandiseModel instance) =>
       'merchandiseImages': instance.merchandiseImages?.map((e) => e.toJson(),).toList(),
       'assets': instance.assetList?.map((e) => e.toJson(),).toList(),
     };
+
+Map<String, dynamic> _$SerializeToJsonWithExcludedFields(MerchandiseModel instance) =>
+    <String, dynamic>{
+      'outletId': instance.outletId,
+      'remarks': instance.remarks,
+      'merchandiseImages': instance.merchandiseImages?.map((e) => e.toJson(),).toList(),
+      'assets': instance.assetList?.map((e) => e.toJson(),).toList(),
+    };

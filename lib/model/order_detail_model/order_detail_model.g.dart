@@ -112,3 +112,19 @@ Map<String, dynamic> _$OrderDetailToJson(OrderDetailModel instance) =>
       'cartonFreeGoods': instance.cartonFreeGoods?.map((e) => e.toJson(),).toList(),
       'unitFreeGoods': instance.unitFreeGoods?.map((e) => e.toJson(),).toList(),
     };
+
+Map<String, dynamic> _$SerializeToJsonWithExcludedFields(OrderDetailModel instance) =>
+    <String, dynamic>{
+      'productId': instance.mProductId,
+      'packageId': instance.packageId,
+      'productGroupId': instance.mProductGroupId,
+      'productName': instance.mProductName,
+      'cartonQuantity': instance.mCartonQuantity,
+      'unitQuantity': instance.mUnitQuantity,
+      'avlUnitQuantity': instance.avlUnitQuantity,
+      'avlCartonQuantity': instance.avlCartonQuantity,
+      'unitDefinitionId': instance.unitDefinitionId,
+      'cartonDefinitionId': instance.cartonDefinitionId,
+      'type': instance.type,
+    };
+

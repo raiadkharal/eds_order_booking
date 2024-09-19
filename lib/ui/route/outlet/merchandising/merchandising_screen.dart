@@ -1,33 +1,29 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math' as math;
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:get/get_rx/get_rx.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:order_booking/db/entities/task/task.dart';
 import 'package:order_booking/db/models/merchandise_images/merchandise_image.dart';
 import 'package:order_booking/route.dart';
-import 'package:order_booking/ui/asset_verification/asset_verification_screen.dart';
 import 'package:order_booking/ui/route/outlet/merchandising/planogram/image_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'dart:typed_data';
-import 'package:image/image.dart' as img;
-import 'dart:math' as math;
-
 import '../../../../components/button/cutom_button.dart';
-import '../../../../components/navigation_drawer/my_navigation_drawer.dart';
 import '../../../../components/progress_dialog/PregressDialog.dart';
 import '../../../../db/entities/asset/asset.dart';
 import '../../../../utils/Colors.dart';
 import '../../../../utils/Constants.dart';
 import '../../../../utils/utils.dart';
-import 'asset_verification/asset_verification_screen.dart';
-import 'merchandising_view_model.dart';
 import 'merchandising_list_item.dart';
+import 'merchandising_view_model.dart';
 
 class MerchandisingScreen extends StatefulWidget {
   const MerchandisingScreen({super.key});
@@ -359,7 +355,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
 
     debounce(controller.getAssets(outletId), (assets) {
       if (assets.isEmpty) {
-        // _disableAssetsScanningBtn(true);
+        _disableAssetsScanningBtn(true);
         isAssets = false;
       } else {
         _disableAssetsScanningBtn(false);
@@ -386,7 +382,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
           //if pending task available for that outlet, navigate to the task screen
           final result =
               await Get.toNamed(EdsRoutes.pendingTask, arguments: [outletId]);
-          if (result != null) {
+          if(result!=null&&result[Constants.STATUS_OK]) {
             Get.back(result: result);
           }
         } else {
@@ -394,12 +390,13 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
           final result =
               await Get.toNamed(EdsRoutes.orderBooking, arguments: [outletId]);
           //send result back to the previous screen
-          if (result != null) {
+          if(result!=null&&result[Constants.STATUS_OK]) {
             Get.back(result: result);
           }
         }
       } else {
         Map<String, dynamic> extraParams = {
+          Constants.STATUS_OK: true,
           Constants.WITHOUT_VERIFICATION: true,
           Constants.EXTRA_PARAM_NO_ORDER_FROM_BOOKING: true,
           Constants.EXTRA_PARAM_OUTLET_ID: outletId,
@@ -410,6 +407,8 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
   }
 
   Future<void> getImageFromCamera(bool beforeMerchandising) async {
+
+    setLoading(true);
     PermissionStatus cameraPermission = await Permission.camera.status;
 
     if (cameraPermission == PermissionStatus.denied) {
@@ -423,20 +422,20 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
     try {
       final ImagePicker picker = ImagePicker();
 
-      final pickedFile = await picker.pickImage(source: ImageSource.camera);
+      final pickedFile = await picker.pickImage(source: ImageSource.camera,imageQuality: 80);
 
       if (pickedFile != null) {
-        setLoading(true);
 
-        File? watermarkedImage = await _addWatermark(pickedFile.path);
-        setLoading(false);
-        if (beforeMerchandising) {
-          controller.saveImages(
-              watermarkedImage?.path, Constants.MERCHANDISE_BEFORE_IMAGE);
-        } else {
-          controller.saveImages(
-              watermarkedImage?.path, Constants.MERCHANDISE_AFTER_IMAGE);
-        }
+        _addWatermarkOnMainIsolate(pickedFile.path).then((watermarkedImage) {
+          setLoading(false);
+          if (beforeMerchandising&&watermarkedImage!=null) {
+            controller.saveImages(
+                watermarkedImage.path, Constants.MERCHANDISE_BEFORE_IMAGE);
+          } else if(watermarkedImage!=null){
+            controller.saveImages(
+                watermarkedImage.path, Constants.MERCHANDISE_AFTER_IMAGE);
+          }
+        },);
       } else {
         setLoading(false);
         showToastMessage("No Image Captured!");
@@ -447,7 +446,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
     }
   }
 
-  /*Future<File?> addWatermark(String imagePath) async {
+  Future<File?> addWatermark(String imagePath) async {
     try {
       // Get the current date and time
       DateTime now = DateTime.now();
@@ -483,22 +482,141 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
       showToastMessage(e.toString());
     }
     return null;
-  }*/
+  }
 
   Future<File?> _addWatermark(String imagePath) async {
-    final ReceivePort receivePort = ReceivePort();
+
+    try {
+      final File? watermarkedFile = await compute(_processImage, imagePath);
+      return watermarkedFile;
+    } catch (e) {
+      showToastMessage(e.toString());
+      return null;
+    }
+
+
+  /*  final ReceivePort receivePort = ReceivePort();
 
     await Isolate.spawn(
       _processImageInIsolate,
       [receivePort.sendPort, imagePath],
     );
-    return await receivePort.first as File?;
+
+    final result = await receivePort.first;
+
+    if (result is File) {
+      return result;
+    } else if (result is String) {
+      setLoading(false);
+      showToastMessage(result);
+      return null;
+    }
+    return null;*/
+  }
+
+
+  Future<File?> _addWatermarkOnMainIsolate(String imagePath) async {
+    try {
+      // Same processing code as before, but executed on the main isolate
+      DateTime now = DateTime.now();
+      String formattedDateTime =
+          "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
+
+      File file = File(imagePath);
+      final imageBytes = await file.readAsBytes();
+      img.Image? originalImage = img.decodeImage(imageBytes);
+
+      double scaleFactor = calculateScaleFactor(originalImage);
+      img.Image resizedImage = img.copyResize(originalImage!,
+          width: (originalImage.width * scaleFactor).round());
+
+      img.drawString(resizedImage, img.arial_48, 20, 20, formattedDateTime,
+          color: img.getColor(255, 0, 0));
+
+      String outputImagePath = imagePath.replaceAll('.jpg', '_watermarked.png');
+      File watermarkedFile = File(outputImagePath);
+      await watermarkedFile.writeAsBytes(img.encodeJpg(resizedImage));
+
+      return watermarkedFile;
+    } catch (e) {
+      showToastMessage(e.toString());
+      return null;
+    }
+  }
+
+  static Future<File?> _processImage(String imagePath) async {
+    try {
+      DateTime now = DateTime.now();
+      String formattedDateTime =
+          "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
+
+      File file = File(imagePath);
+      final imageBytes = await file.readAsBytes();
+      img.Image? originalImage = img.decodeImage(imageBytes);
+
+      double scaleFactor = calculateScaleFactor(originalImage);
+      img.Image resizedImage = img.copyResize(originalImage!,
+          width: (originalImage.width * scaleFactor).round());
+
+      img.drawString(resizedImage, img.arial_48, 20, 20, formattedDateTime,
+          color: img.getColor(255, 0, 0));
+
+      String outputImagePath = imagePath.replaceAll('.jpg', '_watermarked.png');
+      File watermarkedFile = File(outputImagePath);
+      await watermarkedFile.writeAsBytes(img.encodeJpg(resizedImage));
+
+      return watermarkedFile;
+    } catch (e) {
+      // Handle errors
+      return null;
+    }
+  }
+
+  static Future<void> _processImageInIsolate(List<dynamic> args) async {
+    SendPort sendPort = args[0];
+    String imagePath = args[1];
+
+    try {
+      // Get the current date and time
+      DateTime now = DateTime.now();
+      String formattedDateTime =
+          "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
+
+      // Read the original image
+      File file = File(imagePath);
+      final imageBytes = await file.readAsBytes();
+      img.Image? originalImage =
+      img.decodeImage(imageBytes);
+
+      // Scale the image to adjust the font size
+      double scaleFactor = calculateScaleFactor(
+          originalImage);
+      img.Image resizedImage = img.copyResize(originalImage!,
+          width: (originalImage.width * scaleFactor).round());
+
+      // Add watermark text
+      img.drawString(resizedImage, img.arial_48, 20, 20, formattedDateTime,
+          color: img.getColor(255, 0, 0));
+
+      // Create a new File for the watermarked image
+      String outputImagePath = imagePath.replaceAll('.jpg',
+          '_watermarked.png');
+      File watermarkedFile = File(outputImagePath);
+
+      // Save the watermarked image
+      watermarkedFile.writeAsBytesSync(img.encodeJpg(resizedImage));
+      // sendPort.send({'outputImagePath': watermarkedFile});
+      Isolate.exit(sendPort, watermarkedFile);
+    } catch (e) {
+      // sendPort.send({'error': e.toString()});
+      Isolate.exit(sendPort,e.toString());
+    }
   }
 
   static double calculateScaleFactor(img.Image? image) {
     if (image != null) {
       // Determine the desired width or height for resizing (you can adjust this as needed)
-      double targetWidth = 700; // Adjust to your desired width
+      double targetWidth = 700;
 
       // Calculate the scale factor based on the aspect ratio and the target width
       double scaleFactor = targetWidth / image.width;
@@ -540,48 +658,6 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
       String remarks = _remarksController.text.toString();
       int? statusId = controller.outlet.value.statusId;
       controller.insertMerchandiseIntoDB(outletId, remarks, statusId);
-    }
-  }
-
-  static Future<void> _processImageInIsolate(List<dynamic> args) async {
-    SendPort sendPort = args[0];
-    String imagePath = args[1];
-
-    try {
-      // Get the current date and time
-      // Get the current date and time
-      DateTime now = DateTime.now();
-      String formattedDateTime =
-          "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
-
-      // Read the original image
-      File file = File(imagePath);
-      List<int> imageBytes = file.readAsBytesSync();
-      img.Image? originalImage =
-          img.decodeImage(Uint8List.fromList(imageBytes));
-
-      // Scale the image to adjust the font size
-      double scaleFactor = calculateScaleFactor(
-          originalImage); // Adjust the scale factor as needed
-      img.Image resizedImage = img.copyResize(originalImage!,
-          width: (originalImage.width * scaleFactor).round());
-
-      // Add watermark text
-      img.drawString(resizedImage, img.arial_48, 20, 20, formattedDateTime,
-          color: img.getColor(255, 0, 0));
-
-      // Create a new File for the watermarked image
-      String outputImagePath = imagePath.replaceAll('.jpg',
-          '_watermarked.png'); // Customize the output file name if needed
-      File watermarkedFile = File(outputImagePath);
-
-      // Save the watermarked image
-      watermarkedFile.writeAsBytesSync(img.encodeJpg(resizedImage));
-      // sendPort.send({'outputImagePath': outputImagePath});
-      Isolate.exit(sendPort, watermarkedFile);
-    } catch (e) {
-      // sendPort.send({'error': e.toString()});
-      Isolate.exit();
     }
   }
 

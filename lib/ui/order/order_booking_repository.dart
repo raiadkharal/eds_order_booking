@@ -97,7 +97,7 @@ class OrderBookingRepository {
 
   Future<Outlet> findOutletById(int outletId)async=>_routeDao.getOutletById(outletId);
 
-  Future<Order> findOrderById(int? mobileOrderId) {
+  Future<Order?> findOrderById(int? mobileOrderId) {
    return _orderDao.findOrderById(mobileOrderId);
   }
 

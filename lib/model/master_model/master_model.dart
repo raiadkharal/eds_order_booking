@@ -92,13 +92,16 @@ class MasterModel extends BaseResponse {
     outletCloseTime = Util.formatDate("HH:mm", time);
   }
 
+  void setLocation(latitude, longitude) {
+    this.latitude=latitude;
+    this.longitude=longitude;
+  }
+
   factory MasterModel.fromJson(Map<String, dynamic> json) =>
       _$MasterModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$MasterModelToJson(this);
 
-  void setLocation(latitude, longitude) {
-    this.latitude=latitude;
-    this.longitude=longitude;
-  }
+
+  Map<String, dynamic> serialize() => _$SerializeToJsonWithExcludedFields(this);
 }

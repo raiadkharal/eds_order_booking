@@ -18,38 +18,36 @@ class HomeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          color: color,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              iconData != null
-                  ? Icon(
-                      iconData,
-                      size: 72,
-                      color: Colors.white,
-                    )
-                  : Container(
-                padding: const EdgeInsets.all(10),
-                      width: 72,
-                      height: 72,
-                      child: Image(
-                        image: AssetImage(imagePath ?? ""),
-                        color: Colors.white,
-                      )),
-              Text(
-                text,
-                style: GoogleFonts.roboto(
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        color: color,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            iconData != null
+                ? Icon(
+                    iconData,
+                    size: 72,
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600),
-              )
-            ],
-          ),
+                  )
+                : Container(
+              padding: const EdgeInsets.all(10),
+                    width: 72,
+                    height: 72,
+                    child: Image(
+                      image: AssetImage(imagePath ?? ""),
+                      color: Colors.white,
+                    )),
+            Text(
+              text,
+              style: GoogleFonts.roboto(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600),
+            )
+          ],
         ),
       ),
     );

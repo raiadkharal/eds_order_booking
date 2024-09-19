@@ -12,7 +12,7 @@ class UnitPriceBreakDown {
   @JsonKey(name: 'orderId')
   int? orderId;
 
-  @JsonKey(name: 'fk_modid')
+  @JsonKey(name: 'mobileOrderDetailId')
   int? orderDetailId;
 
   @JsonKey(name: 'priceCondition')

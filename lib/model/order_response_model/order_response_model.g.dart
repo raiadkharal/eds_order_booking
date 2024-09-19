@@ -13,7 +13,7 @@ OrderResponseModel _$OrderResponseModelFromJson(Map<String, dynamic> json) =>
       distributionId: json['distributionId'] as int?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      mobileOrderId: json['pk_oid'] as int?,
+      mobileOrderId: json['mobileOrderId'] as int?,
       orderDate: json['orderDate'] as int?,
       orderDetails: ((json['orderDetails'] is String)? jsonDecode(json['orderDetails']):json['orderDetails'] as List<dynamic>?)
           ?.map<OrderDetailModel>((e) => OrderDetailModel.fromJson(e as Map<String, dynamic>))
@@ -46,7 +46,7 @@ Map<String, dynamic> _$OrderResponseModelToJson(OrderResponseModel instance) =>
       'distributionId': instance.distributionId,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'pk_oid': instance.mobileOrderId,
+      'mobileOrderId': instance.mobileOrderId,
       'orderDate': instance.orderDate,
       'orderDetails': instance.orderDetails?.map((e) => e.toJson()).toList(),
       'priceBreakDown':
@@ -65,4 +65,28 @@ Map<String, dynamic> _$OrderResponseModelToJson(OrderResponseModel instance) =>
       'outlet': instance.outlet?.toJson(),
       'channelId': instance.channelId,
       'organizationId': instance.organizationId,
+    };
+
+Map<String, dynamic> _$SerializeToJsonWithExcludedFields(OrderResponseModel instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'deliveryDate': instance.deliveryDate,
+      'distributionId': instance.distributionId,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'mobileOrderId': instance.mobileOrderId,
+      'orderDate': instance.orderDate,
+      'orderDetails': instance.orderDetails?.map((e) => e.serialize()).toList(),
+      'priceBreakDown':
+      instance.priceBreakDown?.map((e) => e.toJson()).toList(),
+      'orderStatusId': instance.orderStatusId,
+      'orderStatusText': instance.orderStatusText,
+      'outletId': instance.outletId,
+      'payable': instance.payable,
+      'routeId': instance.routeId,
+      'salesmanId': instance.salesmanId,
+      'subtotal': instance.subtotal,
+      'visitDayId': instance.visitDayId,
+      'outletStatus': instance.outletStatus,
+      'startedDate': instance.startedDate,
     };

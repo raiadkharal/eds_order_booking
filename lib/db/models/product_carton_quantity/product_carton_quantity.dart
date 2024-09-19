@@ -5,12 +5,12 @@ part 'product_carton_quantity.g.dart';
 @JsonSerializable()
 class ProductCartonQty {
   @JsonKey(name: 'pk_pid')
-  final int? pkPid;
+  final int? productId;
 
   @JsonKey(name: 'cartonQuantity')
   final int? cartonQuantity;
 
-  ProductCartonQty({this.pkPid, this.cartonQuantity});
+  ProductCartonQty({this.productId, this.cartonQuantity});
 
   // Factory method to create an instance from JSON
   factory ProductCartonQty.fromJson(Map<String, dynamic> json) =>

@@ -32,5 +32,4 @@ class MerchandiseModel {
   factory MerchandiseModel.fromJson(Map<String, dynamic> json) =>
       _$MerchandiseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MerchandiseToJson(this);
-}
+  Map<String, dynamic> toJson() => _$MerchandiseToJson(this);}

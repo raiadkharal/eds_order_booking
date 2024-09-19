@@ -1,4 +1,7 @@
 import 'package:get/get.dart';
+import 'package:get/get_rx/get_rx.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:get/state_manager.dart';
 import 'package:order_booking/status_repository.dart';
 import 'package:order_booking/ui/route/outlet/outlet_list/outlet_list_repository.dart';
 import 'package:order_booking/utils/utils.dart';
@@ -15,9 +18,9 @@ class UploadOrdersViewModel extends GetxController {
 
   final RxList<UploadStatusModel> _orderStatusLiveData = RxList();
 
-  int uploadedCount=0;
-  int pendingCount=0;
-  int partiallyUploaded=0;
+  RxInt uploadedCount=0.obs;
+  RxInt pendingCount=0.obs;
+  RxInt partiallyUploaded=0.obs;
   RxBool isLoading=false.obs;
 
   UploadOrdersViewModel(this._repository);
@@ -30,19 +33,19 @@ class UploadOrdersViewModel extends GetxController {
   }
 
   void refreshOrderList(List<UploadStatusModel> statusModels){
-    uploadedCount=0;
-    pendingCount=0;
-    partiallyUploaded=0;
+    uploadedCount(0);
+    pendingCount(0);
+    partiallyUploaded(0);
     for (UploadStatusModel statusModel in statusModels){
       if (statusModel.synced==1){
         if(statusModel.requestStatus==3){
-          uploadedCount++;
+          uploadedCount(uploadedCount.value+1);
         }else{
-          partiallyUploaded++;
-          pendingCount++;
+          partiallyUploaded(partiallyUploaded.value+1);
+          pendingCount(pendingCount.value+1);
         }
       }else {
-        pendingCount++;
+        pendingCount(pendingCount.value+1);
       }
     }
     setLoading(false);
@@ -53,16 +56,18 @@ class UploadOrdersViewModel extends GetxController {
     return _orderStatusLiveData;
   }
 
-  int getPendingCount() {
+  RxInt getPendingCount() {
     return pendingCount;
   }
 
-  int getUploadedCount() {
+  RxInt getUploadedCount() {
     return uploadedCount;
   }
 
-  int getTotalCount(){
-    return uploadedCount+pendingCount;
+  RxInt getTotalCount(){
+    RxInt totalCount = 0.obs;
+    totalCount(uploadedCount.value+pendingCount.value);
+    return totalCount;
   }
 
   void setLoading(bool value) {

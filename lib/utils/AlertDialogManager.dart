@@ -31,6 +31,9 @@ class AlertDialogManager {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        insetPadding: const EdgeInsets.all(20),
         title: Text("Location Mismatch!", style: GoogleFonts.roboto()),
         content: SizedBox(
           width: MediaQuery.of(context).size.width,

@@ -7,6 +7,9 @@ part of 'master_model.dart';
 // **************************************************************************
 
 MasterModel _$MasterModelFromJson(Map<String, dynamic> json) => MasterModel()
+  ..success = json['success'] as String?
+  ..errorMessage = json['errorMessage'] as String?
+  ..errorCode = json['errorCode'] as int?
   ..outletId = json['outletId'] as int?
   ..outletCode = json['outletCode'] as String?
   ..outletStatus = json['outletStatus'] as int?
@@ -17,7 +20,8 @@ MasterModel _$MasterModelFromJson(Map<String, dynamic> json) => MasterModel()
   ..outletEndTime = json['outletEndTime'] as int?
   ..dailyOutletVisit = json['dailyOutletVisit'] == null
       ? null
-      : MerchandiseUploadModel.fromJson(json['dailyOutletVisit'] as Map<String, dynamic>)
+      : MerchandiseUploadModel.fromJson(
+          json['dailyOutletVisit'] as Map<String, dynamic>)
   ..latitude = (json['latitude'] as num?)?.toDouble()
   ..longitude = (json['longitude'] as num?)?.toDouble()
   ..customerInput = json['customerInput'] == null
@@ -28,7 +32,8 @@ MasterModel _$MasterModelFromJson(Map<String, dynamic> json) => MasterModel()
       : OrderResponseModel.fromJson(json['order'] as Map<String, dynamic>)
   ..marketReturns = json['marketReturns'] == null
       ? null
-      : MarketReturnsModel.fromJson(json['marketReturns'] as Map<String, dynamic>)
+      : MarketReturnsModel.fromJson(
+          json['marketReturns'] as Map<String, dynamic>)
   ..tasks = (json['tasks'] as List<dynamic>?)
       ?.map((e) => Task.fromJson(e as Map<String, dynamic>))
       .toList()
@@ -43,6 +48,9 @@ MasterModel _$MasterModelFromJson(Map<String, dynamic> json) => MasterModel()
 Map<String, dynamic> _$MasterModelToJson(MasterModel instance) {
   Map<String, dynamic> json = {
     'outletId': instance.outletId,
+    'success': instance.success,
+    'errorMessage': instance.errorMessage,
+    'errorCode': instance.errorCode,
     'outletCode': instance.outletCode,
     'outletStatus': instance.outletStatus,
     'reason': instance.reason,
@@ -63,8 +71,33 @@ Map<String, dynamic> _$MasterModelToJson(MasterModel instance) {
     'outletVisits': instance.outletVisits?.map((e) => e.toJson()).toList(),
     'startedDate': instance.startedDate,
   };
+  return json;
+}
 
-  // json.removeWhere((key, value) => value==null,);
+//this will convert master model into json and remove fields with null values
+Map<String, dynamic> _$SerializeToJsonWithExcludedFields(MasterModel instance) {
+  Map<String, dynamic> json = {
+    'outletId': instance.outletId,
+    'outletCode': instance.outletCode,
+    'outletStatus': instance.outletStatus,
+    'reason': instance.reason,
+    'requestCounter': instance.requestCounter,
+    'salesmanId': instance.salesmanId,
+    'outletVisitTime': instance.outletVisitTime,
+    'outletEndTime': instance.outletEndTime,
+    'dailyOutletVisit': instance.dailyOutletVisit?.toJson(),
+    'latitude': instance.latitude,
+    'longitude': instance.longitude,
+    'customerInput': instance.customerInput?.toJson(),
+    'order': instance.order?.serialize(),
+    'marketReturns': instance.marketReturns?.toJson(),
+    'tasks': instance.tasks?.map((e) => e.toJson()).toList(),
+    'outletLatitude': instance.outletLatitude,
+    'outletLongitude': instance.outletLongitude,
+    'outletDistance': instance.outletDistance,
+    'outletVisits': instance.outletVisits?.map((e) => e.toJson()).toList(),
+    'startedDate': instance.startedDate,
+  };
 
   return Util.removeNulls(json);
 }

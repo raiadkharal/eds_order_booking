@@ -6,6 +6,7 @@ import 'package:order_booking/ui/order/order_booking_list_item.dart';
 import 'package:order_booking/ui/task/pending_task_list_item.dart';
 import 'package:order_booking/ui/task/pending_task_view_model.dart';
 import 'package:order_booking/ui/task/task_status_dialog.dart';
+import 'package:order_booking/utils/Constants.dart';
 
 import '../../components/button/cutom_button.dart';
 import '../../db/entities/task/task.dart';
@@ -102,7 +103,8 @@ class _PendingTaskScreenState extends State<PendingTaskScreen> {
                       barrierDismissible: false,
                       builder: (context) => AlertDialog(
                         backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                         insetPadding: const EdgeInsets.all(20),
                         content: TaskStatusDialog(
                           task: task,
@@ -120,18 +122,94 @@ class _PendingTaskScreenState extends State<PendingTaskScreen> {
           )),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
-            child: CustomButton(
-                onTap: () async {
-                  final result = await Get.toNamed(EdsRoutes.orderBooking,
-                      arguments: [outletId]);
-                  if (result != null) {
-                    Get.back(result: result);
-                  }
-                },
-                text: "Next"),
+            child: CustomButton(onTap: () => _onNextClick(), text: "Next"),
           )
         ],
       ),
     );
+  }
+
+  void _onNextClick() {
+    if (_controller.hasPendingTasksWithLastDate()) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          insetPadding: const EdgeInsets.all(20),
+          title: Text(
+            "Warning..",
+            style: GoogleFonts.roboto(),
+          ),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("You have pending tasks with last date to complete . Do you still want to continue?",style: GoogleFonts.roboto(),),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    //negative button
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          "Cancel",
+                          style: GoogleFonts.roboto(
+                              color: secondaryColor, fontSize: 16),
+                        )),
+
+                    //positive button
+                    TextButton(
+                        onPressed: () {
+                          //insert task into database
+                          insertTaskInToDb();
+
+                          Navigator.of(context).pop();
+
+                          //navigate to the Order Booking screen
+                          Get.toNamed(EdsRoutes.orderBooking, arguments: [outletId])?.then(
+                                (result) {
+                              if (result != null && result[Constants.STATUS_OK]) {
+                                Get.back(result: result);
+                              }
+                            },
+                          );
+
+                        },
+                        child: Text(
+                          "Yes",
+                          style: GoogleFonts.roboto(
+                              color: secondaryColor, fontSize: 16),
+                        )),
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      //insert task into database
+      insertTaskInToDb();
+      //navigate to the Order Booking screen
+      Get.toNamed(EdsRoutes.orderBooking, arguments: [outletId])?.then(
+        (result) {
+          if (result != null && result[Constants.STATUS_OK]) {
+            Get.back(result: result);
+          }
+        },
+      );
+    }
+  }
+
+
+  void insertTaskInToDb() {
+    _controller.deleteTaskByOutletId(outletId);
+    _controller.insertTasks();
   }
 }

@@ -7,6 +7,8 @@ import 'package:order_booking/db/models/log_model/log_model.dart';
 import 'package:order_booking/utils/Util.dart';
 
 import '../../model/master_model/master_model.dart';
+import '../../model/merchandise_model/merchandise_model.dart';
+import '../../model/merchandise_upload_model/merchandise_upload_model.dart';
 import '../../utils/Constants.dart';
 
 class ApiService extends BaseApiService{
@@ -155,6 +157,18 @@ class ApiService extends BaseApiService{
        "Authorization": "Bearer $accessToken"
      };
 
-     return makePostRequest("order/PostOrder", jsonEncode(masterModel.toJson()), headers, null);
+     return makePostRequest("order/PostOrder", jsonEncode(masterModel.serialize()), headers, null);
+  }
+
+   @override
+  Future<ApiResponse> postMerchandise(
+      String accessToken, MerchandiseUploadModel merchandise) {
+     final headers = {
+       // "Content-Type": "application/json;charset=UTF-8",
+       "Content-Type": "application/json",
+       "Authorization": "Bearer $accessToken"
+     };
+
+     return makePostRequest("route/PostOutletVisitEx", jsonEncode(merchandise.toJson()), headers, null);
   }
 }

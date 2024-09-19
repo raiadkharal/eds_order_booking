@@ -4,16 +4,19 @@ import 'package:order_booking/db/dao/order_dao.dart';
 import 'package:order_booking/db/dao/route_dao.dart';
 import 'package:order_booking/db/entities/order/order.dart';
 import 'package:order_booking/db/entities/outlet/outlet.dart';
+import 'package:order_booking/db/models/work_status/work_status.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
+import 'package:order_booking/utils/PreferenceUtil.dart';
 
 import '../../../../db/models/outlet_order_status/outlet_order_status.dart';
 
 class OutletListRepository{
   final RouteDao _routeDao;
   final OrderDao _orderDao;
+  final PreferenceUtil _preferenceUtil;
   final RxBool _loading =false.obs;
 
-  OutletListRepository(this._routeDao, this._orderDao);
+  OutletListRepository(this._routeDao, this._orderDao, this._preferenceUtil);
 
 
   Future<List<OutletOrderStatus>>  getPendingOutlets(){
@@ -61,5 +64,9 @@ class OutletListRepository{
 
   Future<List<OrderEntityModel>> getOrders() {
     return _orderDao.findAllOrders();
+  }
+
+  WorkStatus getWorkSyncData() {
+    return _preferenceUtil.getWorkSyncData();
   }
 }

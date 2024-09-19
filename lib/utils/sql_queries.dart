@@ -141,9 +141,9 @@ CREATE TABLE IF NOT EXISTS Merchandise (
 
   static const String createOrderTable = '''
 CREATE TABLE IF NOT EXISTS `Order` (
-  pk_oid INTEGER PRIMARY KEY AUTOINCREMENT,
+  mobileOrderId INTEGER PRIMARY KEY AUTOINCREMENT,
   outletId INTEGER,
-  serverOrderId INTEGER,
+  orderId INTEGER,
   routeId INTEGER,
   code TEXT,
   orderStatusId INTEGER,
@@ -210,7 +210,7 @@ CREATE INDEX idx_order_outletId ON `Order` (outletId)
     unitPriceBreakDown TEXT,
     cartonFreeGoods TEXT,
     unitFreeGoods TEXT,
-    FOREIGN KEY (fk_oid) REFERENCES `Order`(pk_oid) ON DELETE CASCADE
+    FOREIGN KEY (fk_oid) REFERENCES `Order`(mobileOrderId) ON DELETE CASCADE
 );
   CREATE INDEX idx_order_detail_fk_oid ON OrderDetail (fk_oid);
   ''';

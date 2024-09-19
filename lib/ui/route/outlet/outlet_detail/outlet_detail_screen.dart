@@ -59,7 +59,7 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
 
   bool _isFakeLocation = false;
 
-  int? _notFlowReasonCode;
+  int? _notFlowReasonCode=1;
 
   final OutletDetailViewModel _controller = Get.put(OutletDetailViewModel(
       OutletDetailRepository(
@@ -711,7 +711,7 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
         _showAutoTimeWarningDialog();
         return;
       }
-      _controller.updateOutletStatusCode(1);
+      _controller.updateOutletStatusCode(_notFlowReasonCode??1);
 
       if (_currentLatLng != null) {
         _controller.onNextClick(_currentLatLng!, _outletVisitStartTime);
@@ -810,11 +810,11 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
           actions: [
             TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
                   _alertDialogCount++;
                   _startLocationTime = DateTime.now().millisecondsSinceEpoch;
                   _endLocationTime = _startLocationTime + 4000;
                   _setLocationCallback();
+                  Navigator.of(context).pop();
                 },
                 child: Text(
                   "Ok",
@@ -844,14 +844,6 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
             barrierDismissible: false,
             context: context,
             builder: (context) {
-              List<Promotion> promos = [
-                /*  Promotion(name: "Promotion 1", amount: 100),
-                Promotion(name: "Promotion 2", amount: 140.22),
-                Promotion(name: "Promotion 3", amount: 300.0),
-                Promotion(name: "Promotion 4", amount: 10.0),
-                Promotion(name: "Promotion 5", amount: 130.0),
-                Promotion(name: "Promotion 6", amount: 130.0),*/
-              ];
               return PromotionDialog(promos: promotions);
             },
           );
@@ -865,7 +857,7 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
   void _setObservers() {
     debounce(_controller.getUploadStatus(), (aBoolean) async {
       if (aBoolean) {
-        double outletDistance = checkMetre(_currentLatLng, _outletLatLng);
+        double outletDistance = Util.checkMetre(_currentLatLng, _outletLatLng);
         _controller.uploadStatus(
             _outletId,
             _currentLatLng,
@@ -879,13 +871,17 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
           Get.toNamed(EdsRoutes.outletMerchandising, arguments: [_outletId])
               ?.then(
             (result) {
-              _handleResult(result);
+              if(result!=null&&result[Constants.STATUS_OK]) {
+                _handleResult(result);
+              }
             },
           );
         } else {
           Get.toNamed(EdsRoutes.orderBooking, arguments: [_outletId])?.then(
             (result) {
-              _handleResult(result);
+              if(result!=null&&result[Constants.STATUS_OK]) {
+                _handleResult(result);
+              }
             },
           );
         }
@@ -907,13 +903,15 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
             if (aBoolean) {
               WakelockPlus.enable();
               String? msg = await _homeController.uploadSingleOrder(outletId);
-              if (msg != null && !msg.isNotEmpty) {
+
+              _controller.setLoading(false);
+              if (msg != null && msg.isNotEmpty) {
                 showToastMessage(msg.toString());
               }
 
               Get.back();
             } else {
-              showToastMessage(Constants.NETWORK_ERROR);
+              showToastMessage("No Internet Connection");
               Get.back();
             }
           },
@@ -927,11 +925,6 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
             context, _currentLatLng!, _outletLatLng!);
       }
     }, time: const Duration(milliseconds: 200));
-  }
-
-  double checkMetre(LatLng? currentLatLng, LatLng? outletLatLng) {
-    //TODO-implement this method later
-    return 0.0;
   }
 
   void _showLastOrderDialog() {
@@ -1046,8 +1039,8 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
       bool noOrderFromOrderBooking =
           result[Constants.EXTRA_PARAM_NO_ORDER_FROM_BOOKING] ?? false;
       _withoutVerification = result[Constants.WITHOUT_VERIFICATION] ?? false;
-      _reasonForNoSale =
-          result[Constants.EXTRA_PARAM_OUTLET_REASON_N_ORDER] ?? false;
+      // _reasonForNoSale =
+      //     result[Constants.EXTRA_PARAM_OUTLET_REASON_N_ORDER] ?? false;
       if (!_withoutVerification) {
         // showProgress();
         _controller.postEmptyCheckout(noOrderFromOrderBooking, _outletId,
@@ -1061,8 +1054,8 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
             DateTime.now().millisecondsSinceEpoch);
       }
     }
-    /*else {
+    else {
       Get.back();
-    }*/
+    }
   }
 }

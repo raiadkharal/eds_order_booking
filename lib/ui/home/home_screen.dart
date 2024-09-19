@@ -104,120 +104,124 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               //Planned Calls
-                              HomeButton(
-                                onTap: () async {
-                                  if (controller.isDayStarted()) {
-                                    bool isDataDownloaded = await _checkDataDownloaded();
-                                    if (isDataDownloaded) {
-                                      Get.toNamed(EdsRoutes.routes);
-                                    }else{
-                                      showToastMessage("Please download Data");
+                              Expanded(
+                                child: HomeButton(
+                                  onTap: () async {
+                                    if (controller.isDayStarted()) {
+                                      bool isDataDownloaded = await _checkDataDownloaded();
+                                      if (isDataDownloaded) {
+                                        Get.toNamed(EdsRoutes.routes);
+                                      }else{
+                                        showToastMessage("Please download Data");
+                                      }
+                                    } else {
+                                      showToastMessage(
+                                          Constants.ERROR_DAY_NO_STARTED);
                                     }
-                                  } else {
-                                    showToastMessage(
-                                        Constants.ERROR_DAY_NO_STARTED);
-                                  }
-                                },
-                                text: "Planned Calls",
-                                imagePath: "assets/images/planned_calls.png",
-                                color: secondaryColor,
+                                  },
+                                  text: "Planned Calls",
+                                  imagePath: "assets/images/planned_calls.png",
+                                  color: secondaryColor,
+                                ),
                               ),
                               //Download Data
-                              HomeButton(
-                                onTap: () {
-                                  if (controller.isDayStarted()) {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        shape: const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(5))),
-                                        insetPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 20),
-                                        content: SizedBox(
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "Update Routes and Outlets!",
-                                                style: GoogleFonts.roboto(
-                                                    fontSize: 18,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                              const SizedBox(
-                                                height: 10,
-                                              ),
-                                              Text(
-                                                  "Are you sure you want to fetch updated routes and outlets?",
+                              Expanded(
+                                child: HomeButton(
+                                  onTap: () {
+                                    if (controller.isDayStarted()) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          shape: const RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(5))),
+                                          insetPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 20),
+                                          content: SizedBox(
+                                            width:
+                                                MediaQuery.of(context).size.width,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "Update Routes and Outlets!",
                                                   style: GoogleFonts.roboto(
-                                                      fontSize: 16,
+                                                      fontSize: 18,
                                                       fontWeight:
-                                                          FontWeight.w400)),
-                                              const SizedBox(
-                                                height: 10,
-                                              ),
-                                              Row(
-                                                mainAxisSize: MainAxisSize.max,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                children: [
-                                                  TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: Text(
-                                                        "NO",
-                                                        style:
-                                                            GoogleFonts.roboto(
-                                                                fontSize: 16,
-                                                                color: Colors
-                                                                    .black,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400),
-                                                      )),
-                                                  const SizedBox(
-                                                    height: 10,
-                                                  ),
-                                                  TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                        controller.download();
-                                                      },
-                                                      child: Text("YES",
-                                                          style: GoogleFonts
-                                                              .roboto(
+                                                          FontWeight.w400),
+                                                ),
+                                                const SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Text(
+                                                    "Are you sure you want to fetch updated routes and outlets?",
+                                                    style: GoogleFonts.roboto(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w400)),
+                                                const SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.max,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: Text(
+                                                          "NO",
+                                                          style:
+                                                              GoogleFonts.roboto(
                                                                   fontSize: 16,
                                                                   color: Colors
                                                                       .black,
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .w400)))
-                                                ],
-                                              )
-                                            ],
+                                                                          .w400),
+                                                        )),
+                                                    const SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                          controller.download();
+                                                        },
+                                                        child: Text("YES",
+                                                            style: GoogleFonts
+                                                                .roboto(
+                                                                    fontSize: 16,
+                                                                    color: Colors
+                                                                        .black,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w400)))
+                                                  ],
+                                                )
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  } else {
-                                    showToastMessage(
-                                        Constants.ERROR_DAY_NO_STARTED);
-                                  }
-                                },
-                                text: "Download",
-                                iconData: Icons.cloud_download_rounded,
-                                color: primaryColor,
+                                      );
+                                    } else {
+                                      showToastMessage(
+                                          Constants.ERROR_DAY_NO_STARTED);
+                                    }
+                                  },
+                                  text: "Download",
+                                  iconData: Icons.cloud_download_rounded,
+                                  color: primaryColor,
+                                ),
                               )
                             ],
                           ),
@@ -236,40 +240,44 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               //Download data
-                              HomeButton(
-                                onTap: () {
-                                  if (controller.isDayStarted()) {
-                                    _showReportsSelectionDialog(
-                                      "Select Report",
-                                      (object) {
-                                        if (object.id == 0) {
-                                          Get.toNamed(EdsRoutes.reports);
-                                        } else {
-                                          Get.toNamed(EdsRoutes.stock);
-                                        }
-                                      },
-                                    );
-                                  } else {
-                                    showToastMessage(
-                                        Constants.ERROR_DAY_NO_STARTED);
-                                  }
-                                },
-                                text: "Reports",
-                                imagePath: "assets/images/reports.png",
-                                color: primaryColor,
+                              Expanded(
+                                child: HomeButton(
+                                  onTap: () {
+                                    if (controller.isDayStarted()) {
+                                      _showReportsSelectionDialog(
+                                        "Select Report",
+                                        (object) {
+                                          if (object.id == 0) {
+                                            Get.toNamed(EdsRoutes.reports);
+                                          } else {
+                                            Get.toNamed(EdsRoutes.stock);
+                                          }
+                                        },
+                                      );
+                                    } else {
+                                      showToastMessage(
+                                          Constants.ERROR_DAY_NO_STARTED);
+                                    }
+                                  },
+                                  text: "Reports",
+                                  imagePath: "assets/images/reports.png",
+                                  color: primaryColor,
+                                ),
                               ),
-                              HomeButton(
-                                onTap: () {
-                                  if (controller.isDayStarted()) {
-                                    Get.toNamed(EdsRoutes.upload);
-                                  } else {
-                                    showToastMessage(
-                                        Constants.ERROR_DAY_NO_STARTED);
-                                  }
-                                },
-                                text: "Upload",
-                                iconData: Icons.cloud_upload,
-                                color: secondaryColor,
+                              Expanded(
+                                child: HomeButton(
+                                  onTap: () {
+                                    if (controller.isDayStarted()) {
+                                      Get.toNamed(EdsRoutes.upload);
+                                    } else {
+                                      showToastMessage(
+                                          Constants.ERROR_DAY_NO_STARTED);
+                                    }
+                                  },
+                                  text: "Upload",
+                                  iconData: Icons.cloud_upload,
+                                  color: secondaryColor,
+                                ),
                               )
                             ],
                           ),

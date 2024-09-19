@@ -1,5 +1,6 @@
 import 'package:order_booking/db/dao/order_dao.dart';
 import 'package:order_booking/db/dao/product_dao.dart';
+import 'package:order_booking/db/entities/order_quantity/order_quantity.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 import 'package:order_booking/model/product_stock_in_hand/product_stock_in_hand.dart';
 
@@ -21,6 +22,10 @@ class CashMemoRepository{
 
   Future<OrderEntityModel?> findOrder(int? outletId) {
     return _orderDao.getOrderWithItems(outletId);
+  }
+
+  void saveOrderAndAvailableStockData(List<OrderAndAvailableQuantity> orderQuantityList) {
+    _orderDao.insertOrderAndAvailableStockData(orderQuantityList);
   }
 
 

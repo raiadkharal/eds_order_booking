@@ -7,8 +7,8 @@ part of 'order.dart';
 // **************************************************************************
 
 Order _$OrderFromJson(Map<String, dynamic> json) => Order(
-  id: json['pk_oid'] as int?,
-  serverOrderId: json['serverOrderId'] as int?,
+  id: json['mobileOrderId'] as int?,
+  serverOrderId: json['orderId'] as int?,
   outletId: json['outletId'] as int?,
   routeId: json['routeId'] as int?,
   orderStatus: json['orderStatusId'] as int?,
@@ -30,9 +30,9 @@ Order _$OrderFromJson(Map<String, dynamic> json) => Order(
   ..payable = (json['payable'] as num?)?.toDouble();
 
 Map<String, dynamic> _$OrderToJson(Order instance) => <String, dynamic>{
-  'pk_oid': instance.id,
+  'mobileOrderId': instance.id,
   'outletId': instance.outletId,
-  'serverOrderId': instance.serverOrderId,
+  'orderId': instance.serverOrderId,
   'routeId': instance.routeId,
   'code': instance.code,
   'orderStatusId': instance.orderStatus,

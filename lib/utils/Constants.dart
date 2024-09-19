@@ -1,19 +1,19 @@
 import 'package:flutter/cupertino.dart';
 
 class Constants {
-  //Engro testing url
-  static const baseUrl = "http://101.50.85.136:85/api/api/";
+ /* //Engro testing url
+  static const baseUrl = "http://101.50.85.136:84/api/api/";*/
 
 
-  // //localhost testing url
-  // static const baseUrl = "http://192.168.0.108:7291/api/";
+/*  //localhost testing url
+  static const baseUrl = "http://192.168.0.125:7291/api/";*/
 
 
 /*  //Engro testing url
   static const baseUrl = "http://101.50.85.136:83/api/";*/
 
-   /*//Engro testing url
-  static const baseUrl = "http://101.50.85.136:85/api/api/";*/
+   //ENGRO PRODUCTION URL
+  static const baseUrl = "http://101.50.85.136:85/api/api/";
 
 /*//pepsi testing url
   static const baseUrl = "http://101.50.85.136:81/api/";*/
@@ -54,6 +54,7 @@ class Constants {
   static const String WITHOUT_VERIFICATION = "without_verification";
   static const String EXTRA_PARAM_TOKEN = "token";
   static const String EXTRA_PARAM_STATUS_ID = "status_id";
+  static const String STATUS_OK = "ok";
 
   static const String no_order_reason = "Choose reason for No Order";
   static final assetVerificationList = [

@@ -58,4 +58,9 @@ class TaskDaoImpl extends TaskDao {
       e.printInfo();
     }
   }
+
+  @override
+  Future<void> deleteTasksByOutletId(int outletId) async{
+    _database.rawQuery("Delete From Tasks where outletId = ?",[outletId]);
+  }
 }

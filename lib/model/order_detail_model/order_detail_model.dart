@@ -136,6 +136,7 @@ class OrderDetailModel {
       _$OrderDetailFromJson(json);
 
   Map<String, dynamic> toJson() => _$OrderDetailToJson(this);
+  Map<String, dynamic> serialize() => _$SerializeToJsonWithExcludedFields(this);
 }
 
 

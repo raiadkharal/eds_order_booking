@@ -144,7 +144,7 @@ class _TaskStatusDialogState extends State<TaskStatusDialog> {
                       Navigator.pop(context);
                     },
                     child: Text("Cancel",style: GoogleFonts.roboto(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.normal,
                         color: secondaryColor),)),
                 TextButton(onPressed: () {
@@ -155,7 +155,7 @@ class _TaskStatusDialogState extends State<TaskStatusDialog> {
                   widget.onSave(widget.task);
                   Navigator.pop(context);
                 }, child: Text("Save",style: GoogleFonts.roboto(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.normal,
                     color: secondaryColor),))
               ],

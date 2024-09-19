@@ -23,7 +23,7 @@ abstract class OrderDao {
 
   Future<OrderEntityModel?> getOrderWithItems(int? outletId);
 
-  Future<Order> findOrderById(int? mobileOrderId);
+  Future<Order?> findOrderById(int? mobileOrderId);
 
   Future<void> updateOrder(Order? order);
 

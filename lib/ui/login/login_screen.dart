@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
           foregroundColor: Colors.white,
           backgroundColor: primaryColor,
           title: Text(
-            "EDS Survey",
+            "EDS",
             style: GoogleFonts.roboto(color: Colors.white),
           )),
       body: Stack(

@@ -2,12 +2,15 @@ import 'package:get/get.dart';
 import 'package:get/get_rx/get_rx.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:order_booking/db/entities/outlet/outlet.dart';
+import 'package:order_booking/db/models/work_status/work_status.dart';
+import 'package:order_booking/status_repository.dart';
 import 'package:order_booking/ui/route/outlet/outlet_list/outlet_list_repository.dart';
 
 import '../../../../db/models/outlet_order_status/outlet_order_status.dart';
 
 class OutletListViewModel extends GetxController {
   final OutletListRepository _repository;
+  final StatusRepository _statusRepository;
 
   final RxList<OutletOrderStatus> pendingOutlets = RxList<OutletOrderStatus>();
   final RxList<OutletOrderStatus> visitedOutlets = RxList<OutletOrderStatus>();
@@ -15,13 +18,14 @@ class OutletListViewModel extends GetxController {
   final RxList<OutletOrderStatus> outlets = RxList<OutletOrderStatus>();
   final RxList<OutletOrderStatus> filteredOutlets = RxList<OutletOrderStatus>();
 
-  OutletListViewModel(this._repository);
+  int currentTab=0,currentPjpTab=0;
 
-  @override
-  void onReady() {
+  OutletListViewModel(this._repository, this._statusRepository);
+
+  void init(){
     loadOutlets();
     _repository.getOutletStream().listen(
-      (outletOrderStatusList) {
+          (outletOrderStatusList) {
         populateOutlets(outletOrderStatusList);
       },
     );
@@ -31,8 +35,8 @@ class OutletListViewModel extends GetxController {
     _repository.setLoading(true);
     _repository.getPendingOutlets().then(
       (outletOrderStatusList) {
-        filteredOutlets(outletOrderStatusList);
-        setPendingOutlets(outletOrderStatusList);
+          filteredOutlets(outletOrderStatusList);
+          setPendingOutlets(outletOrderStatusList);
       },
     ).whenComplete(
       () => _repository.setLoading(false),
@@ -51,25 +55,8 @@ class OutletListViewModel extends GetxController {
     );
   }
 
-  // Future<void> loadVisitedOutlets() async {
-  //   _repository.getVisitedOutlets().then(
-  //         (outletsList) {
-  //       visitedOutlets(outletsList);
-  //       visitedOutlets.refresh();
-  //     },
-  //   );
-  // }
-  //
-  // Future<void> loadProductiveOutlets() async {
-  //   _repository.getProductiveOutlets().then(
-  //         (outletsList) {
-  //           productiveOutlets(outletsList);
-  //           productiveOutlets.refresh();
-  //     },
-  //   );
-  // }
-
   void filterOutlets(int parentTabIndex,int pjpTabIndex) {
+    updateSelectedTabs(parentTabIndex,pjpTabIndex);
     if(parentTabIndex==0) {
       switch (pjpTabIndex) {
         case 0:
@@ -127,6 +114,8 @@ class OutletListViewModel extends GetxController {
           (outletOrderStatus) => outletOrderStatus.outlet?.planned == 0,
         )
         .toList());
+
+    filterOutlets(currentTab, currentPjpTab);
   }
 
   void setPendingOutlets(List<OutletOrderStatus> outlets) {
@@ -147,5 +136,31 @@ class OutletListViewModel extends GetxController {
   void setUnPlannedOutlets(List<OutletOrderStatus> outletList) {
     outlets(outletList);
     outlets.refresh();
+  }
+
+  WorkStatus getWorkSyncData() {
+    return _repository.getWorkSyncData();
+  }
+
+  RxBool orderTaken(int outletId) {
+    RxBool orderAlreadyTaken = false.obs;
+    _statusRepository.findOrderStatus(outletId).then((orderModel) {
+      if (orderModel!=null) {
+        orderAlreadyTaken((orderModel.status??0)>6);
+      }else{orderAlreadyTaken(false);
+
+      }
+    },);
+
+    return orderAlreadyTaken;
+  }
+
+  bool isTestUser() {
+    return _statusRepository.isTestUser();
+  }
+
+  void updateSelectedTabs(int parentTabIndex, int pjpTabIndex) {
+    currentTab=parentTabIndex;
+    currentPjpTab=pjpTabIndex;
   }
 }

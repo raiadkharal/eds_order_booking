@@ -51,7 +51,7 @@ class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
   Widget build(BuildContext context) {
     return PopScope(
         canPop: true,
-        onPopInvoked: (didPop) => _onBackPressed(),
+        onPopInvoked: (didPop) => _onBackPressed,
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(

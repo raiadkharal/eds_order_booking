@@ -40,40 +40,38 @@ class PendingTaskListItem extends StatelessWidget {
                 color: Colors.black54,
                 fontWeight: FontWeight.normal),
           ),
-          trailing: Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  color:
-                      task.status?.toUpperCase() == Constants.taskStatusList[0]
-                          ? secondaryColor
-                          : (task.status?.toUpperCase() ==
-                                  Constants.taskStatusList[1]
-                              ? Colors.green
-                              : Colors.grey),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 2),
-                    child: Text(
-                      task.status?.toUpperCase() ?? "",
-                      style: GoogleFonts.roboto(
-                          fontSize: 14,
-                          color: Colors.white,
-                          fontWeight: FontWeight.normal),
-                    ),
+          trailing: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                color:
+                    task.status?.toUpperCase() == Constants.taskStatusList[0]
+                        ? secondaryColor
+                        : (task.status?.toUpperCase() ==
+                                Constants.taskStatusList[1]
+                            ? Colors.green
+                            : Colors.grey),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 2),
+                  child: Text(
+                    task.status?.toUpperCase() ?? "",
+                    style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.normal),
                   ),
                 ),
-                const SizedBox(
-                  height: 5,
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.black54,
-                  size: 17,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.black54,
+                size: 17,
+              ),
+            ],
           ),
         ),
       ),

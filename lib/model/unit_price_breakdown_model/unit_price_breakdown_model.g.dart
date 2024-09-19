@@ -6,7 +6,7 @@ UnitPriceBreakDownModel _$UnitPriceBreakDownFromJson(Map<String, dynamic> json) 
   return UnitPriceBreakDownModel(
     id: json['pk_upbd'] as int?,
     orderId: json['orderId'] as int?,
-    orderDetailId: json['fk_modid'] as int?,
+    orderDetailId: json['mobileOrderDetailId'] as int?,
     priceCondition: json['priceCondition'] as String?,
     priceConditionType: json['priceConditionType'] as String?,
     priceConditionClass: json['priceConditionClass'] as String?,
@@ -33,7 +33,7 @@ Map<String, dynamic> _$UnitPriceBreakDownToJson(UnitPriceBreakDownModel instance
     <String, dynamic>{
       'pk_upbd': instance.id,
       'orderId': instance.orderId,
-      'fk_modid': instance.orderDetailId,
+      'mobileOrderDetailId': instance.orderDetailId,
       'priceCondition': instance.priceCondition,
       'priceConditionType': instance.priceConditionType,
       'priceConditionClass': instance.priceConditionClass,

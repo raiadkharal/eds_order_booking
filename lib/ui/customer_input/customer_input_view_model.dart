@@ -84,7 +84,7 @@ class CustomerInputViewModel extends GetxController {
 
   void saveOrder(String mobileNumber, String remarks, String cnic, String strn,
       String base64sign, int deliveryDate, int? statusId) {
-    _isSaving(true);
+    setIsSaving(true);
 
     OrderEntityModel? orderModel = _orderModelLiveData.value;
 
@@ -175,7 +175,6 @@ class CustomerInputViewModel extends GetxController {
     _statusRepository.updateOutletCnic(outletId, customerInput.mobileNumber,
         customerInput.cnic, customerInput.strn);
     _statusRepository.updateStatus(orderStatus);
-    setIsSaving(false);
     _startSingleOrderUpdate(outletId);
     _startSingleOrderUpdate.refresh();
   }
@@ -203,7 +202,8 @@ class CustomerInputViewModel extends GetxController {
     masterModel.order = (responseModel);
     masterModel.setLocation(order?.latitude, order?.longitude);
     masterModel.outletId = order?.outletId;
-    masterModel.outletStatus = Constants.STATUS_CONTINUE; //(assuming 8 means order complete)
+    masterModel.outletStatus =
+        Constants.STATUS_CONTINUE; //(assuming 8 means order complete)
     masterModel.outletVisits = orderModel.outlet?.outletVisits;
 
     MerchandiseUploadModel? merchandiseModel = await saveMerchandiseSync(

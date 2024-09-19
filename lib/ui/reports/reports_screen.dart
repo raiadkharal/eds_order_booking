@@ -7,6 +7,7 @@ import 'package:order_booking/ui/reports/reports_view_model.dart';
 import 'package:order_booking/utils/Constants.dart';
 import 'package:order_booking/utils/util.dart';
 
+import '../../components/progress_dialog/PregressDialog.dart';
 import '../../db/entities/route/route.dart';
 import '../../utils/Colors.dart';
 import '../route/outlet/outlet_detail/outlet_detail_repository.dart';
@@ -25,7 +26,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           OutletDetailRepository(
               Get.find(), Get.find(), Get.find(), Get.find(), Get.find()),
           Get.find(),
-          OutletListRepository(Get.find(), Get.find())));
+          OutletListRepository(Get.find(), Get.find(), Get.find())));
 
   RxString tvRoutes = "".obs;
   RxString tvGrandTotal = "".obs;
@@ -57,362 +58,397 @@ class _ReportsScreenState extends State<ReportsScreen> {
       appBar: AppBar(
           foregroundColor: Colors.white,
           backgroundColor: primaryColor,
-          title: Expanded(
-              child: Text(
+          title: Text(
             "KPI Report",
             style: GoogleFonts.roboto(color: Colors.white),
-          ))),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5),
-        child: Obx(() =>  Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              tvRoutes.value,
-              style: GoogleFonts.roboto(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 18),
-            ),
-
-            // outlets counts by their statuses
-
-            const SizedBox(
-              height: 5,
-            ),
-            SizedBox(
-              height: 31,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(6),
-                        child: Text(
-                          Constants.reportTopSummaryTitles[index],
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12),
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: Constants.reportTopSummaryTitles.length,
-              ),
-            ),
-            SizedBox(
-              height: 30,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(5),
-                        child: Obx(() => Text(
-                          _getValueByIndex(_controller.summaryLiveData,index),
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: 5,
-              ),
-            ),
-
-            //completion rate section
-
-            const SizedBox(
-              height: 10,
-            ),
-            SizedBox(
-              height: 31,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(5),
-                        child: Text(
-                          Constants.reportTopSummaryTitles2[index],
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: Constants.reportTopSummaryTitles2.length,
-              ),
-            ),
-            SizedBox(
-              height: 30,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(5),
-                        child: Obx(() => Text(
-                          index == 0 ? tvCompRate.value : tvStrikeRate.value,
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: Constants.reportTopSummaryTitles2.length,
-              ),
-            ),
-
-            //performance section
-
-            const SizedBox(
-              height: 10,
-            ),
-            SizedBox(
-              height: 31,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(5),
-                        child: Text(
-                          Constants.reportTopSummaryTitles3[index],
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: Constants.reportTopSummaryTitles3.length,
-              ),
-            ),
-            SizedBox(
-              height: 30,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(5),
-                        child: Obx(() => Text(
-                          index == 0 ? tvAvgSku.value : tvDropSize.value,
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: Constants.reportTopSummaryTitles2.length,
-              ),
-            ),
-
-            // carton and total amount section
-
-            const SizedBox(
-              height: 20,
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: Text(
-                    "Carton(s)",
-                    style: GoogleFonts.roboto(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    "Total Amount",
-                    style: GoogleFonts.roboto(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 5.0),
-              child: Row(
+          )),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5),
+            child: Obx(
+              () => Column(
                 mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          color: Colors.blueAccent,
-                          borderRadius: BorderRadius.circular(5)),
-                      child:Obx(() =>  Text(
-                        tvOrderQty.value,
-                        style: GoogleFonts.roboto(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 20),
-                        textAlign: TextAlign.center,
-                      ),),
+                  Text(
+                    tvRoutes.value,
+                    style: GoogleFonts.roboto(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18),
+                  ),
+
+                  // outlets counts by their statuses
+
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  SizedBox(
+                    height: 31,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(6),
+                              child: Text(
+                                Constants.reportTopSummaryTitles[index],
+                                style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: Constants.reportTopSummaryTitles.length,
                     ),
                   ),
-                  const SizedBox(
-                    width: 10,
+                  SizedBox(
+                    height: 30,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(5),
+                              child: Obx(
+                                () => Text(
+                                  _getValueByIndex(
+                                      _controller.summaryLiveData, index),
+                                  style: GoogleFonts.roboto(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: 5,
+                    ),
                   ),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          color: Colors.blueAccent,
-                          borderRadius: BorderRadius.circular(5)),
-                      child: Obx(() => Text(
-                        tvGrandTotal.value,
-                        style: GoogleFonts.roboto(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 20),
-                        textAlign: TextAlign.center,
-                      ),),
+
+                  //completion rate section
+
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    height: 31,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(5),
+                              child: Text(
+                                Constants.reportTopSummaryTitles2[index],
+                                style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: Constants.reportTopSummaryTitles2.length,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(5),
+                              child: Obx(
+                                () => Text(
+                                  index == 0
+                                      ? tvCompRate.value
+                                      : tvStrikeRate.value,
+                                  style: GoogleFonts.roboto(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: Constants.reportTopSummaryTitles2.length,
+                    ),
+                  ),
+
+                  //performance section
+
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    height: 31,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(5),
+                              child: Text(
+                                Constants.reportTopSummaryTitles3[index],
+                                style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: Constants.reportTopSummaryTitles3.length,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(5),
+                              child: Obx(
+                                () => Text(
+                                  index == 0 ? tvAvgSku.value : tvDropSize.value,
+                                  style: GoogleFonts.roboto(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: Constants.reportTopSummaryTitles2.length,
+                    ),
+                  ),
+
+                  // carton and total amount section
+
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Carton(s)",
+                          style: GoogleFonts.roboto(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "Total Amount",
+                          style: GoogleFonts.roboto(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                                color: Colors.blueAccent,
+                                borderRadius: BorderRadius.circular(5)),
+                            child: Obx(
+                              () => Text(
+                                tvOrderQty.value,
+                                style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 20),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                                color: Colors.blueAccent,
+                                borderRadius: BorderRadius.circular(5)),
+                            child: Obx(
+                              () => Text(
+                                tvGrandTotal.value,
+                                style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 20),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  //Confirmed Orders section
+
+                  const SizedBox(
+                    height: 20,
+                  ),
+                 Obx(() =>  Text(
+                   tvConfirmedOrders.value,
+                   style: GoogleFonts.roboto(
+                       color: Colors.black,
+                       fontWeight: FontWeight.w500,
+                       fontSize: 18),
+                 ),),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    height: 34,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(5),
+                              child: Text(
+                                Constants.reportQuantityTitles[index],
+                                style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: Constants.reportQuantityTitles.length,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, crossAxisSpacing: 1),
+                      itemBuilder: (context, index) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              color: grayColor,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(5),
+                              child: Obx(
+                                () => Text(
+                                  index == 0
+                                      ? tvConfirmedQty.value
+                                      : tvConfirmedTotal.value,
+                                  style: GoogleFonts.roboto(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      itemCount: Constants.reportTopSummaryTitles2.length,
                     ),
                   ),
                 ],
               ),
             ),
-
-            //Confirmed Orders section
-
-            const SizedBox(
-              height: 20,
-            ),
-            Text(
-              "Confirmed Orders:",
-              style: GoogleFonts.roboto(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 18),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            SizedBox(
-              height: 34,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(5),
-                        child: Text(
-                          Constants.reportQuantityTitles[index],
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: Constants.reportQuantityTitles.length,
-              ),
-            ),
-            SizedBox(
-              height: 30,
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 1),
-                itemBuilder: (context, index) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        color: grayColor,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(5),
-                        child: Obx(() => Text(
-                          index == 0 ? tvConfirmedQty.value : tvConfirmedTotal.value,
-                          style: GoogleFonts.roboto(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16),
-                          textAlign: TextAlign.center,
-                        ),),
-                      ),
-                    ],
-                  );
-                },
-                itemCount: Constants.reportTopSummaryTitles2.length,
-              ),
-            ),
-          ],
-        ),),
+          ),
+          Obx(
+                () => _controller.isLoading.value
+                ? const SimpleProgressDialog()
+                : const SizedBox(),
+          )
+        ],
       ),
     );
   }
@@ -423,21 +459,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }, time: const Duration(milliseconds: 200));
 
     debounce(_controller.summaryLiveData, (reportModel) {
-      tvGrandTotal(Util.formatCurrency(reportModel.getTotalAmount(),2));
+      _controller.setLoading(false);
+
+      tvGrandTotal(Util.formatCurrency(reportModel.getTotalAmount(), 2));
       tvPlannedCount(reportModel.getPjpCount().toString());
       tvCompletedCount(reportModel.getCompletedOutletsCount().toString());
       tvProductiveCount(reportModel.getProductiveOutletCount().toString());
-      tvConfirmedOrders("Confirmed Orders: ${reportModel.getTotalConfirmOrders()}");
-      tvConfirmedTotal(Util.formatCurrency(reportModel.getTotalAmountConfirm(),2));
+      tvConfirmedOrders(
+          "Confirmed Orders: ${reportModel.getTotalConfirmOrders()}");
+      tvConfirmedTotal(
+          Util.formatCurrency(reportModel.getTotalAmountConfirm(), 2));
       tvPendingTotal(reportModel.getPendingCount().toString());
       tvSyncCount(reportModel.getSyncCount().toString());
 
       double qty = double.parse(reportModel.getCarton().toStringAsFixed(2));
-      double confirmQty = double.parse(reportModel.getCartonConfirm().toStringAsFixed(2));
+      double confirmQty =
+          double.parse(reportModel.getCartonConfirm().toStringAsFixed(2));
       tvOrderQty(qty.toString());
       tvConfirmedQty(confirmQty.toString());
-      setRatio(reportModel , qty);
-    },time: const Duration(milliseconds: 200));
+      setRatio(reportModel, qty);
+    }, time: const Duration(milliseconds: 200));
   }
 
   void _onRoutesLoaded(List<MRoute> routeList) {
@@ -455,11 +496,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
     int productive = summary.productiveOutletCount;
 
     double avgSku = summary.totalSku / summary.totalOrders;
-    double dropSize = totalCasesOrder / productive;
+    double dropSize=0.0;
+    if (productive>0) {
+      dropSize= totalCasesOrder / productive;
+    }
 
     double compRate = (completed / planned) * 100;
     double strikeRate = (productive / planned) * 100;
-    double completionRate = ((planned - (planned - (productive + completed))) * 100) / planned;
+    double completionRate =
+        ((planned - (planned - (productive + completed))) * 100) / planned;
 
     tvCompRate("${completionRate.toStringAsFixed(1)} %");
     tvStrikeRate("${strikeRate.toStringAsFixed(1)} %");
@@ -467,8 +512,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     tvDropSize("${dropSize.isNaN ? 0 : dropSize.toStringAsFixed(1)}");
   }
 
-  String _getValueByIndex(Rx<ReportModel> summaryLiveData,int index) {
-    switch(index){
+  String _getValueByIndex(Rx<ReportModel> summaryLiveData, int index) {
+    switch (index) {
       case 0:
         return tvPlannedCount.value;
       case 1:
@@ -480,8 +525,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       case 4:
         return tvSyncCount.value;
     }
-    
+
     return "0";
   }
-
 }

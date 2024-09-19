@@ -8,5 +8,7 @@ abstract class MerchandiseDao{
 
   Future<List<Asset>> findAllAssetsForOutlet(int outletId);
 
-  void updateAssets(List<Asset> assets);
+ Future<void> updateAssets(List<Asset> assets);
+
+  Future<void> updateMerchandise(Merchandise merchandise) ;
 }

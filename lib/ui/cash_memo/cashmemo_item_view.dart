@@ -172,7 +172,7 @@ class _CashMemoItemViewState extends State<CashMemoItemView> {
                                         fontWeight: FontWeight.w500),
                                   ),
                                   Text(
-                                    " Rs ${(widget.item.orderDetail.cartonTotalPrice ?? 0.0).toString()}",
+                                    _getTotalPrice(),
                                     style: GoogleFonts.roboto(
                                         fontSize: 14,
                                         color: Colors.black54,

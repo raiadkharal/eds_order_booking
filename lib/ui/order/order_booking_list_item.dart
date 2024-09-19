@@ -11,6 +11,7 @@ class OrderBookingListItem extends StatefulWidget {
   final TextEditingController? avlStockController;
   final TextEditingController? orderQtyController;
   final bool showMarketReturnButton;
+  final bool autoFocus;
   final Function(Product) onReturnClick;
 
   const OrderBookingListItem(
@@ -19,19 +20,20 @@ class OrderBookingListItem extends StatefulWidget {
       required this.avlStockController,
       required this.orderQtyController,
       required this.showMarketReturnButton,
-      required this.onReturnClick});
+      required this.onReturnClick,
+      required this.autoFocus});
 
   @override
   State<OrderBookingListItem> createState() => _OrderBookingListItemState();
 }
 
 class _OrderBookingListItemState extends State<OrderBookingListItem> {
-  @override
+/*  @override
   void initState() {
     super.initState();
 
     iniControllers();
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +87,7 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
               child: TextField(
                 controller: widget.avlStockController,
                 keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
                 inputFormatters: [PositiveNumberTextInputFormatter()],
                 onChanged: (s) {
                   if (s.isEmpty ||
@@ -106,17 +109,18 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
                   isDense: true,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.zero,
-                      borderSide: BorderSide(color: Colors.grey)),
-                  focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey)),
-                  hintText: "Avl Stock",
                   fillColor: Colors.white,
+                  hintText: "Avl Stock",
                   hintStyle: GoogleFonts.roboto(
                       fontSize: 12,
                       color: Colors.grey,
                       fontWeight: FontWeight.normal),
+                  enabledBorder: const OutlineInputBorder(
+                      borderRadius: BorderRadius.zero,
+                      borderSide: BorderSide(color: Colors.grey, width: 2)),
+                  focusedBorder: const OutlineInputBorder(
+                      borderRadius: BorderRadius.zero,
+                      borderSide: BorderSide(color: Colors.grey, width: 2)),
                 ),
                 style: GoogleFonts.roboto(
                     fontSize: 12,
@@ -133,6 +137,9 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
                 controller: widget.orderQtyController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [PositiveNumberTextInputFormatter()],
+                autofocus: widget.autoFocus,
+                textAlign: TextAlign.center,
+                focusNode: FocusNode(),
                 onChanged: (s) {
                   if (s.isEmpty ||
                       (s.length == 1 &&
@@ -155,10 +162,6 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
                     int enteredQty = Util.convertToUnits(
                         cu?[0], widget.product.cartonQuantity, cu?[1]);
                     if (enteredQty > unitStock) {
-                      // s = s.toString().substring(0,start);
-                      // itemHolder.etOrderQty.setText(s.toString());
-                      // itemHolder.etOrderQty.setSelection(start);
-                      // mCallback.onInvalidQtyEntered();
                       showToastMessage(
                           "You cannot enter above maximum quantity");
                       widget.orderQtyController?.text =
@@ -172,11 +175,12 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
                   isDense: true,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  border: const OutlineInputBorder(
+                  enabledBorder: const OutlineInputBorder(
                       borderRadius: BorderRadius.zero,
-                      borderSide: BorderSide(color: Colors.black)),
+                      borderSide: BorderSide(color: Colors.black87, width: 2)),
                   focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
+                      borderRadius: BorderRadius.zero,
+                      borderSide: BorderSide(color: Colors.black87, width: 2)),
                   hintText: "Order",
                   fillColor: Colors.white,
                   hintStyle: GoogleFonts.roboto(
@@ -207,7 +211,7 @@ class _OrderBookingListItemState extends State<OrderBookingListItem> {
     );
   }
 
-  void iniControllers() async{
+  void iniControllers() async {
     if (widget.product.avlStockCarton != null ||
         widget.product.avlStockUnit != null) {
       widget.avlStockController?.text = Util.convertStockToDecimalQuantity(

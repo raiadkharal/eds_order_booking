@@ -125,7 +125,7 @@ class MarketReturnListItem extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      getReplacementProductName(returnDetail)??"NOT AVAILABLE",
+                      returnDetail.replaceWith??"NOT AVAILABLE",
                       style: GoogleFonts.roboto(fontSize: 14),
                       textAlign: TextAlign.start,
                     ),
@@ -181,25 +181,25 @@ class MarketReturnListItem extends StatelessWidget {
     );
   }
 
-  String? getReplacementProductName(MarketReturnDetail returnDetail) {
+ /* Future<String?> getReplacementProductName(MarketReturnDetail returnDetail) async {
 
     if(returnDetail.returnedProductTypeId==1){
       return null;
     }
 
     if(returnDetail.replaceWith==null&&returnDetail.replacementProductId!=0){
-      // MarketReturnViewModel viewModel = MarketReturnViewModel(MarketReturnRepository(Get.find(),Get.find()));
+      MarketReturnViewModel viewModel = MarketReturnViewModel(MarketReturnRepository(Get.find(),Get.find(),Get.find()),Get.find());
 
-      // Product? product = await viewModel.findProductById(returnDetail.replacementProductId);
-      //
-      // if(product!=null){
-      //   return product.productName;
-      // }
+      Product? product = await viewModel.findProductById(returnDetail.replacementProductId);
+
+      if(product!=null){
+        return product.productName;
+      }
     }else{
       return returnDetail.replaceWith;
     }
     return null;
-  }
+  }*/
 
   String getReturnReasonById(int? id) {
     for (int i = 0; i < marketReturnReasons.length; i++) {

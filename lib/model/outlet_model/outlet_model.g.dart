@@ -35,17 +35,33 @@ OutletModel _$OutletFromJson(Map<String, dynamic> json) => OutletModel(
       strn: json['strn'] as String?,
       mtdSale: (json['mtdSale'] as num?)?.toDouble(),
       mobileNumber: json['mobileNumber'] as String?,
-      hasHTHDiscount: (json['hasHTHDiscount'] is int)? boolFromInt(json['hasHTHDiscount'] as int?): (json['hasHTHDiscount'] as bool?),
-      hasRentalDiscount:(json['hasRentalDiscount'] is int)? boolFromInt(json['hasRentalDiscount'] as int?): (json['hasRentalDiscount'] as bool?),
-      hasExclusivityFee: (json['hasExclusivityFee'] is int)? boolFromInt(json['hasExclusivityFee'] as int?): (json['hasExclusivityFee'] as bool?),
+      hasHTHDiscount: (json['hasHTHDiscount'] is int)
+          ? boolFromInt(json['hasHTHDiscount'] as int?)
+          : (json['hasHTHDiscount'] as bool?),
+      hasRentalDiscount: (json['hasRentalDiscount'] is int)
+          ? boolFromInt(json['hasRentalDiscount'] as int?)
+          : (json['hasRentalDiscount'] as bool?),
+      hasExclusivityFee: (json['hasExclusivityFee'] is int)
+          ? boolFromInt(json['hasExclusivityFee'] as int?)
+          : (json['hasExclusivityFee'] as bool?),
       lastOrder: json['lastOrder'] == null
           ? null
-          : LastOrder.fromJson((json['lastOrder'] is String)? jsonDecode(json['lastOrder']):json['lastOrder'] as Map<String,dynamic>),
+          : LastOrder.fromJson((json['lastOrder'] is String)
+              ? jsonDecode(json['lastOrder'])
+              : json['lastOrder'] as Map<String, dynamic>),
       isAssetsScennedInTheLastMonth:
-          (json['isAssetsScennedInTheLastMonth'] is int)? boolFromInt(json['isAssetsScennedInTheLastMonth'] as int?): (json['isAssetsScennedInTheLastMonth'] as bool?),
-      synced: (json['synced'] is int)? boolFromInt(json['synced'] as int?): (json['synced'] as bool?),
+          (json['isAssetsScennedInTheLastMonth'] is int)
+              ? boolFromInt(json['isAssetsScennedInTheLastMonth'] as int?)
+              : (json['isAssetsScennedInTheLastMonth'] as bool?),
+      synced: json['synced'] == null
+          ? null
+          : ((json['synced'] is int)
+              ? boolFromInt(json['synced'] as int?)
+              : (json['synced'] as bool?)),
       statusId: json['statusId'] as int?,
-      isZeroSaleOutlet: (json['isZeroSaleOutlet'] is int)? boolFromInt(json['isZeroSaleOutlet'] as int?): (json['isZeroSaleOutlet'] as bool?),
+      isZeroSaleOutlet: (json['isZeroSaleOutlet'] is int)
+          ? boolFromInt(json['isZeroSaleOutlet'] as int?)
+          : (json['isZeroSaleOutlet'] as bool?),
       promoTypeId: json['promoTypeId'] as int?,
       customerRegistrationTypeId: json['customerRegistrationTypeId'] as int?,
       digitalAccount: json['digitalAccount'] as String?,
@@ -53,10 +69,14 @@ OutletModel _$OutletFromJson(Map<String, dynamic> json) => OutletModel(
       remarks: json['remarks'] as String?,
       organizationId: json['organizationId'] as int?,
       outletPromoConfigId: json['outletPromoConfigId'] as int?,
-      outletVisits:((json['outletVisits'] is String)? jsonDecode(json['outletVisits']):json['outletVisits'] as List<dynamic>?)
+      outletVisits: ((json['outletVisits'] is String)
+              ? jsonDecode(json['outletVisits'])
+              : json['outletVisits'] as List<dynamic>?)
           ?.map((e) => OutletVisit.fromJson(e as Map<String, dynamic>))
           .toList(),
-      avlStockDetail:((json['avlStockDetail'] is String)? jsonDecode(json['avlStockDetail']):json['avlStockDetail'] as List<dynamic>?)
+      avlStockDetail: ((json['avlStockDetail'] is String)
+              ? jsonDecode(json['avlStockDetail'])
+              : json['avlStockDetail'] as List<dynamic>?)
           ?.map((e) => AvailableStock.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
@@ -90,12 +110,13 @@ Map<String, dynamic> _$OutletToJson(OutletModel instance) => <String, dynamic>{
       'strn': instance.strn,
       'mtdSale': instance.mtdSale,
       'mobileNumber': instance.mobileNumber,
-      'hasHTHDiscount':boolToInt(instance.hasHTHDiscount),
+      'hasHTHDiscount': boolToInt(instance.hasHTHDiscount),
       'hasRentalDiscount': boolToInt(instance.hasRentalDiscount),
       'hasExclusivityFee': boolToInt(instance.hasExclusivityFee),
       'lastOrder': jsonEncode(instance.lastOrder),
-      'isAssetsScennedInTheLastMonth': boolToInt(instance.isAssetsScennedInTheLastMonth),
-      'synced': boolToInt(instance.synced),
+      'isAssetsScennedInTheLastMonth':
+          boolToInt(instance.isAssetsScennedInTheLastMonth),
+      'synced': instance.synced != null ? boolToInt(instance.synced) : null,
       'statusId': instance.statusId,
       'isZeroSaleOutlet': boolToInt(instance.isZeroSaleOutlet),
       'promoTypeId': instance.promoTypeId,
@@ -106,5 +127,5 @@ Map<String, dynamic> _$OutletToJson(OutletModel instance) => <String, dynamic>{
       'organizationId': instance.organizationId,
       'outletPromoConfigId': instance.outletPromoConfigId,
       'outletVisits': jsonEncode(instance.outletVisits),
-      'avlStockDetail':jsonEncode (instance.avlStockDetail),
+      'avlStockDetail': jsonEncode(instance.avlStockDetail),
     };

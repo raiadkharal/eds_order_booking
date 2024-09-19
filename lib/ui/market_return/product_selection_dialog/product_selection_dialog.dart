@@ -109,7 +109,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                           _selectedProduct=value as Product;
                         },
                         isDense: true,
-                        isExpanded: false,
+                        isExpanded: true,
                         value: controller.filteredProducts.isNotEmpty
                             ? controller.filteredProducts[0]
                             : "No Products",
@@ -125,6 +125,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                               value: product,
                               child: Text(
                                 product.productName  ?? "",
+                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.roboto(
                                     fontSize: 14,
                                     fontWeight: FontWeight.normal,

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:get/get_rx/get_rx.dart';
 import 'package:order_booking/model/order_detail_and_price_breakdown/order_detail_and_price_breakdown.dart';
 import 'package:order_booking/model/order_model_response/order_model_response.dart';
 import 'package:order_booking/status_repository.dart';
@@ -15,6 +16,7 @@ class ReportsViewModel extends GetxController {
   final OutletDetailRepository _detailRepository;
   final OutletListRepository _repository;
   final StatusRepository _statusRepository;
+  RxBool isLoading = false.obs;
 
   ReportModel reportModel = ReportModel();
 
@@ -49,7 +51,9 @@ class ReportsViewModel extends GetxController {
   }
 
   void getReport() async {
-    _getPjpCount();
+    setLoading(true);
+
+    await _getPjpCount();
 
     _repository.getOrders().then(
       (orderModelList) {
@@ -78,7 +82,7 @@ class ReportsViewModel extends GetxController {
               uQty = uQty ?? 0;
 
               double quantity = OrderManager.getInstance()
-                  .calculateQtyInCartons(orderItem.cartonSize ?? 1, uQty, cQty);
+                  .calculateQtyInCartons(orderItem.cartonSize, uQty, cQty);
               Quantity qty =
                   Quantity(itemId: orderItem.mProductId, quantity: quantity);
 
@@ -121,8 +125,8 @@ class ReportsViewModel extends GetxController {
       for (Quantity item in confirmedOrderDetailList) {
         confirmedCarton+=item.quantity??0;
       }
-      int syncCount= await _statusRepository.getTotalSyncCount();
-      syncCount=syncCount;
+      int syncedCount= await _statusRepository.getTotalSyncCount();
+      syncCount=syncedCount;
       summaryLiveData(_setSummary(total,confirmedTotal,carton,confirmedCarton,totalOrder,confirmedOrderCount, totalSku,syncCount)); // orderDetailList.size()
     },);
   }
@@ -134,7 +138,7 @@ class ReportsViewModel extends GetxController {
     pendingCount = await _repository.getPendingCount();
     reportModel.setCounts(
         pjpCount, completedCount, productiveCount, pendingCount);
-    summaryLiveData(reportModel);
+    // summaryLiveData(reportModel);
   }
 
   ReportModel _setSummary(double total,double confirmedTotal,double carton,double confirmedCartons,int totalOrder,int confirmedOrder,double totalSku, int syncCount){ //skuSize
@@ -143,13 +147,18 @@ class ReportsViewModel extends GetxController {
     reportModel.setTotalSaleConfirm(confirmedTotal);
     reportModel.setCarton(carton);
     reportModel.setCartonConfirm(confirmedCartons);
-//        reportModel.setSkuSize(skuSize);
+       // reportModel.setSkuSize(skuSize);
     reportModel.setTotalSku(totalSku);
     reportModel.setTotalOrders(totalOrder);
     reportModel.setTotalConfirmOrders(confirmedOrder);
     reportModel.setSyncCount(syncCount);
 
     return reportModel;
+  }
+
+  void setLoading(bool value){
+    isLoading(value);
+    isLoading.refresh();
   }
 
 }

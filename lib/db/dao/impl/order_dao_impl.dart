@@ -67,91 +67,135 @@ class OrderDaoImpl extends OrderDao {
     }
   }
 
-
   @override
-  Future<void> insertOrders(List<OrderModel>? orders,List<int> outletIds) async{
-    _database.transaction((txn) async{
-      Batch batch = txn.batch();
+  Future<void> insertOrders(
+      List<OrderModel>? orders, List<int> outletIds) async {
+    try {
+      _database.transaction(
+        (txn) async {
+          Batch batch = txn.batch();
 
-      int mobileOrderId = 1;
-      for (OrderModel order in orders ?? []) {
-        if (!outletIds.contains(order.outletId)) {
-          continue;
-        }
-        order.id = mobileOrderId;
-        batch.insert("`Order`", order.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-        mobileOrderId++;
-      }
-      await batch.commit(noResult: true);
-
-    },);
-  }
-
-
-  @override
-  Future<void> insertOrderStatuses(List<OrderModel>? orders,List<int> outletIds) async{
-    _database.transaction((txn) async{
-      Batch batch = txn.batch();
-
-      for (OrderModel order in orders ?? []) {
-        if (!outletIds.contains(order.outletId)) {
-          continue;
-        }
-
-        OrderStatus orderStatus = OrderStatus();
-        orderStatus.orderId = order.serverOrderId;
-        orderStatus.outletId = order.outletId;
-
-        MasterModel masterModel = MasterModel();
-        masterModel.outletId = order.outletId;
-        masterModel.outletStatus = 8;
-
-        orderStatus.synced = false;
-        orderStatus.data = jsonEncode(masterModel);
-        orderStatus.status = 8;
-        orderStatus.orderAmount = order.payable;
-        orderStatus.outletVisitEndTime = 0;
-        orderStatus.outletVisitStartTime = null;
-        orderStatus.requestStatus = 3;
-        batch.insert("OrderStatus", orderStatus.toJson(),
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-      await batch.commit(noResult: true);
-
-    },);
-  }
-
-
-  @override
-  Future<void> insertOrderDetails(List<OrderModel>? orders,List<int> outletIds, HashMap<String, int> productH) async{
-    _database.transaction((txn) async{
-      Batch batch = txn.batch();
-
-      int mobileOrderId = 1;
-
-      for (OrderModel order in orders ?? []) {
-        if (!outletIds.contains(order.outletId)) {
-          continue;
-        }
-        for (OrderDetailModel orderDetail in order.orderDetails ?? []) {
-          //check cartonSize is null or not from the server if null and product hashMap is not null then set cartonSize from hashMap in order Detail
-          if (orderDetail.cartonSize == null &&
-              productH[orderDetail.mProductId.toString()] != null) {
-            orderDetail.cartonSize = productH[
-            productH[orderDetail.mProductId.toString()].toString()];
+          int mobileOrderId = 1;
+          for (OrderModel order in orders ?? []) {
+            if (!outletIds.contains(order.outletId)) {
+              continue;
+            }
+            order.id = mobileOrderId;
+            batch.insert("`Order`", order.toJson(),
+                conflictAlgorithm: ConflictAlgorithm.replace);
+            mobileOrderId++;
           }
-          orderDetail.mLocalOrderId = mobileOrderId;
+          await batch.commit(noResult: true);
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
 
-          batch.insert("OrderDetail", orderDetail.toJson(),
-              conflictAlgorithm: ConflictAlgorithm.replace);
+  @override
+  Future<void> insertOrderStatuses(
+      List<OrderModel>? orders, List<int> outletIds) async {
+    try {
+      _database.transaction(
+        (txn) async {
+          Batch batch = txn.batch();
+
+          for (OrderModel order in orders ?? []) {
+            if (!outletIds.contains(order.outletId)) {
+              continue;
+            }
+
+            OrderStatus orderStatus = OrderStatus();
+            orderStatus.orderId = order.serverOrderId;
+            orderStatus.outletId = order.outletId;
+
+            MasterModel masterModel = MasterModel();
+            masterModel.outletId = order.outletId;
+            masterModel.outletStatus = 8;
+
+            orderStatus.synced = false;
+            orderStatus.data = jsonEncode(masterModel);
+            orderStatus.status = 8;
+            orderStatus.orderAmount = order.payable;
+            orderStatus.outletVisitEndTime = 0;
+            orderStatus.outletVisitStartTime = null;
+            orderStatus.requestStatus = 3;
+            batch.insert("OrderStatus", orderStatus.toJson(),
+                conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+          await batch.commit(noResult: true);
+        },
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  Future<void> insertOrderDetails(List<OrderModel>? orders, List<int> outletIds,
+      HashMap<String, int> productH) async {
+    try {
+      _database.transaction(
+            (txn) async {
+              Batch batch = txn.batch();
+
+              int mobileOrderId = 1;
+
+              for (OrderModel order in orders ?? []) {
+                if (!outletIds.contains(order.outletId)) {
+                  continue;
+                }
+                for (OrderDetailModel orderDetail in order.orderDetails ?? []) {
+                  //check cartonSize is null or not from the server if null and product hashMap is not null then set cartonSize from hashMap in order Detail
+                  if (orderDetail.cartonSize == null &&
+                      productH[orderDetail.mProductId.toString()] != null) {
+                    orderDetail.cartonSize = productH[orderDetail.mProductId.toString()];
+                  }
+                  orderDetail.mLocalOrderId = mobileOrderId;
+
+                  batch.insert("OrderDetail", OrderDetail.fromJson(orderDetail.toJson()).toJson(),
+                      conflictAlgorithm: ConflictAlgorithm.replace);
+                }
+                mobileOrderId++;
+              }
+
+              await batch.commit(noResult: true);
+            },
+          );
+    } catch (e) {
+      print(e);
+    }
+  }
+
+
+/*  @override
+  Future<void> insertBreakdowns(List<OrderModel>? orders) async{
+    _database.transaction((txn) async{
+      Batch batch =txn.batch();
+      List<CartonPriceBreakDown>? cartonPriceBreakdownList;
+      List<UnitPriceBreakDown>? unitPriceBreakdownList;
+      for(OrderModel orderModel in orders??[]){
+        for(OrderDetailModel orderDetail in orderModel.orderDetails??[]){
+          cartonPriceBreakdownList=orderDetail.cartonPriceBreakDown?.map((e) => CartonPriceBreakDown.fromJson(e.toJson()),).toList();
+          unitPriceBreakdownList=orderDetail.unitPriceBreakDown?.map((e) => UnitPriceBreakDown.fromJson(e.toJson()),).toList();
+
+          //add carton price breakdown list in batch
+          for (CartonPriceBreakDown item in cartonPriceBreakdownList??[]) {
+            batch.insert("CartonPriceBreakDown", item.toJson(),
+                conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+
+          //add unit price breakdown list in batch
+          for (UnitPriceBreakDown item in unitPriceBreakdownList??[]) {
+            batch.insert("UnitPriceBreakDown", item.toJson(),
+                conflictAlgorithm: ConflictAlgorithm.replace);
+          }
         }
-        mobileOrderId++;
       }
-
       await batch.commit(noResult: true);
     },);
-  }
+  }*/
 
   @override
   Future<OrderEntityModel?> getOrderWithItems(int? outletId) async {
@@ -242,11 +286,15 @@ class OrderDaoImpl extends OrderDao {
   }
 
   @override
-  Future<Order> findOrderById(int? mobileOrderId) async {
+  Future<Order?> findOrderById(int? mobileOrderId) async {
     final result = await _database
-        .query("`Order`", where: "pk_oid = ?", whereArgs: [mobileOrderId]);
+        .query("`Order`", where: "mobileOrderId = ?", whereArgs: [mobileOrderId]);
 
-    return Order.fromJson(result.first);
+    if (result.isNotEmpty) {
+      return Order.fromJson(result.first);
+    }
+
+    return null;
   }
 
   @override
@@ -254,7 +302,7 @@ class OrderDaoImpl extends OrderDao {
     try {
       if (order != null) {
         _database.update("`Order`", order.toJson(),
-            where: "pk_oid=?", whereArgs: [order.id]);
+            where: "mobileOrderId=?", whereArgs: [order.id]);
         // _database.rawQuery(
         // "update  `Order` set outletId = ${order.outletId}, serverOrderId = ${order.serverOrderId}, routeId = ${order.routeId},code = ${order.code},orderStatusId = ${order.orderStatus},visitDayId = ${order.visitDayId},latitude = ${order.latitude},longitude = ${order.longitude},subtotal = ${order.subTotal},payable = ${order.payable},orderDate = ${order.orderDate},deliveryDate = ${order.deliveryDate},distributionId = ${order.distributionId},priceBreakDown = ${jsonEncode(order.priceBreakDown)},orderDetails = '' where outletId = ${order.outletId}");
       }
@@ -389,7 +437,10 @@ class OrderDaoImpl extends OrderDao {
           List<Map<String, dynamic>> outletResult =
               await txn.rawQuery(outletQuery, [order.outletId]);
 
-          Outlet outlet = Outlet.fromJson(outletResult.first);
+          Outlet? outlet;
+          if (outletResult.isNotEmpty) {
+            outlet = Outlet.fromJson(outletResult.first);
+          }
 
           //fetch order status
           const String orderStatusQuery = '''
@@ -398,10 +449,12 @@ class OrderDaoImpl extends OrderDao {
         ''';
 
           List<Map<String, dynamic>> orderStatusResult =
-              await txn.rawQuery(orderStatusQuery, [order.id]);
+              await txn.rawQuery(orderStatusQuery, [order.serverOrderId]);
 
-          OrderStatus orderStatus =
-              OrderStatus.fromJson(orderStatusResult.first);
+          OrderStatus? orderStatus;
+          if (orderStatusResult.isNotEmpty) {
+            orderStatus = OrderStatus.fromJson(orderStatusResult.first);
+          }
 
           List<OrderDetailAndPriceBreakdown> orderDetailAndPriceBreakdownList =
               [];
@@ -468,6 +521,4 @@ class OrderDaoImpl extends OrderDao {
       return orderList;
     });
   }
-
-
 }
