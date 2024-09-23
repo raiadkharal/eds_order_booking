@@ -33,6 +33,7 @@ import '../data_source/remote/api_service.dart';
 import '../ui/login/login_repository.dart';
 import '../ui/login/login_view_model.dart';
 import '../ui/order/order_booking_view_model.dart';
+import '../ui/route/routes/routes_view_model.dart';
 import '../utils/PreferenceUtil.dart';
 
 class EdsBindings extends Bindings {
@@ -105,5 +106,6 @@ class EdsBindings extends Bindings {
         permanent: true);
     Get.put<LoginViewModel>(LoginViewModel(Get.find(), Get.find()),
         permanent: true);
+    Get.put<RoutesViewModel>(RoutesViewModel(Get.find()),permanent: true);
   }
 }

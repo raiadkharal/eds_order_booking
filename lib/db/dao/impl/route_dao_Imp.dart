@@ -553,4 +553,15 @@ class RouteDaoImp extends RouteDao {
     },);
 
   }
+
+  @override
+  Future<List<MRoute>?> getAllRoutes() async {
+    final result = await _database.query("Route");
+
+    if(result.isNotEmpty){
+      return result.map((e) => MRoute.fromJson(e),).toList();
+    }
+
+    return null;
+  }
 }

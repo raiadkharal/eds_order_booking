@@ -3,6 +3,7 @@ import 'package:order_booking/db/dao/task_dao.dart';
 import 'package:order_booking/db/entities/asset/asset.dart';
 import 'package:order_booking/db/entities/lookup/lookup.dart';
 import 'package:order_booking/db/entities/outlet/outlet.dart';
+import 'package:order_booking/db/entities/route/route.dart';
 import 'package:order_booking/db/entities/task/task.dart';
 import 'package:order_booking/utils/PreferenceUtil.dart';
 
@@ -125,6 +126,10 @@ class StatusRepository {
 
   void insertTasks(List<Task> taskList) {
     _taskDao.insertTasks(taskList);
+  }
+
+  Future<List<MRoute>?> getAllRoutes() {
+    return _routeDao.getAllRoutes();
   }
 
 }

@@ -83,4 +83,6 @@ abstract class RouteDao {
   Future<void> deleteOrderAndAvailableTempQty();
 
   Future<void> updateAvailableStockInOutlet(List<OutletModel>? outletList,List<AvailableStock>? availableStock);
+
+  Future<List<MRoute>?> getAllRoutes();
 }

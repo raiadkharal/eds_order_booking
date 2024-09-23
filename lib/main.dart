@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:order_booking/route.dart';
 import 'package:order_booking/ui/cash_memo/cash_memo_screen.dart';
@@ -40,8 +41,11 @@ void callbackDispatcher() {
   });
 }
 
-void main() {
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   runApp(const MyApp());
 }

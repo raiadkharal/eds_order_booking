@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 
     <application
-        android:label="EDS Flutter"
+        android:label="EDS"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
