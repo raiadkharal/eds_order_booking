@@ -46,7 +46,7 @@ class _NavDrawerItemListState extends State<NavDrawerItemList> {
                 menuItem(2, "Check for Update", Icons.refresh),
                 menuItem(3, "Logout", Icons.login_outlined),
                 menuItem(4, "App Version ( $versionCode )",null),
-                menuItem(5, "Updated on 27/05/2024",null),
+                menuItem(5, "Updated on 31/10/2024",null),
               ],
             ),
           );

@@ -147,8 +147,8 @@ class PreferenceUtil {
   }
 
   bool isTestUser() {
-    return true;
-    // return getUsername().startsWith("u_");
+    // return true;
+    return getUsername().startsWith("u_");
   }
 
   void setOutletStatus(int value) {

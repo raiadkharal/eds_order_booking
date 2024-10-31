@@ -42,7 +42,9 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
   bool isAssets = true;
   bool assetsVerified = true;
 
-  final RxBool _disableAssetScanningBtn = false.obs;
+  // final RxBool _disableAssetScanningBtn = false.obs;
+  //TODO- make it false by default after implementing barcode scanner functionality
+  final RxBool _disableAssetScanningBtn = true.obs;
 
   late final int outletId;
 

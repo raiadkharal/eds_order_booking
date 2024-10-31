@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+// import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,6 +12,7 @@ import 'package:order_booking/ui/route/outlet/merchandising/asset_verification/a
 import 'package:order_booking/ui/route/outlet/merchandising/asset_verification/asset_verification_view_model.dart';
 import 'package:order_booking/utils/Constants.dart';
 import 'package:order_booking/utils/utils.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 import '../../../../../db/entities/asset/asset.dart';
 import '../../../../../utils/Colors.dart';
@@ -126,7 +127,7 @@ class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
                   )),
                   CustomButton(
                       onTap: () async {
-                        _startBarcodeScan();
+                        // _startBarcodeScan();
                         // final result = await Get.toNamed(EdsRoutes.barcodeScanner,
                         //     arguments: [_outletId]);
                         // showToastMessage(result.toString());
@@ -188,21 +189,20 @@ class _AssetVerificationScreenState extends State<AssetVerificationScreen> {
     return locationData;
   }
 
-  Future<void> _startBarcodeScan() async {
-    try {
-      final scanResult = await FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', 'Cancel', true, ScanMode.BARCODE);
-      if (!mounted) return;
-
-      showToastMessage("Barcode Scanned ( $scanResult )");
-      controller.verifyAsset(scanResult, currentLatLng);
-      controller.setAssetScanned(true);
-    } catch (e) {
-      setState(() {
-        showToastMessage("Failed to get barcode.");
-      });
-    }
-  }
+  // Future<void> _startBarcodeScan() async {
+  //   try {
+  //     final scanResult = await Get.to(const SimpleBarcodeScannerPage());
+  //     if (!mounted) return;
+  //
+  //     showToastMessage("Barcode Scanned ( $scanResult )");
+  //     controller.verifyAsset(scanResult, currentLatLng);
+  //     controller.setAssetScanned(true);
+  //   } catch (e) {
+  //     setState(() {
+  //       showToastMessage("Failed to get barcode.");
+  //     });
+  //   }
+  // }
 
   void _init() {
     controller.loadOutlet(_outletId);

@@ -6,7 +6,7 @@ class Constants {
 
 
 /*  //localhost testing url
-  static const baseUrl = "http://192.168.0.125:7291/api/";*/
+  static const baseUrl = "http://192.168.88.66:7291/api/";*/
 
 
 /*  //Engro testing url

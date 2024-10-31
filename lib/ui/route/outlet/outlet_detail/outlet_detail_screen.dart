@@ -92,7 +92,6 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
     _controller.setAssetScanned(false);
     _controller.loadSelectedOutlet(_outletId);
     _setObservers();
-    _setLocationCallback();
     super.initState();
   }
 
@@ -110,6 +109,8 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
       body: FutureBuilder(
         future: _controller.loadSelectedOutlet(_outletId),
         builder: (context, snapshot) {
+          _controller.setLoading(true);
+          _setLocationCallback();
           if (snapshot.connectionState == ConnectionState.done) {
             return Stack(
               children: [
@@ -695,6 +696,7 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
 
         _controller.onNextClick(_currentLatLng!, outletVisitStartTime);
       } else {
+        _controller.setLoading(true);
         _setLocationCallback();
       }
     } else {
@@ -716,6 +718,7 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
       if (_currentLatLng != null) {
         _controller.onNextClick(_currentLatLng!, _outletVisitStartTime);
       } else {
+        _controller.setLoading(true);
         _setLocationCallback();
       }
     } else {
@@ -746,7 +749,6 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
       return Future.error(
           "Location permissions are permanently denied, we cannot request permissions. ");
     }
-    _controller.setLoading(true);
     final locationData = await Location.instance.getLocation();
     _isFakeLocation = locationData.isMock ?? false;
 
@@ -765,14 +767,15 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
 
     ConfigurationModel configuration = _controller.getConfiguration();
 
-    _controller.setLoading(false);
     _startLocationTime = DateTime.now().millisecondsSinceEpoch;
     if ((meters > configuration.geoFenceMinRadius &&
             _startLocationTime > _endLocationTime) &&
         !_controller.isTestUser()) {
+      _controller.setLoading(false);
       _showOutsideBoundaryDialog(_alertDialogCount, meters.toString());
     } else if (meters <= configuration.geoFenceMinRadius ||
         _controller.isTestUser()) {
+      _controller.setLoading(false);
       _updateBtn(true);
     }
 
@@ -812,7 +815,8 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
                 onPressed: () {
                   _alertDialogCount++;
                   _startLocationTime = DateTime.now().millisecondsSinceEpoch;
-                  _endLocationTime = _startLocationTime + 4000;
+                  _endLocationTime = _startLocationTime;
+                  _controller.setLoading(true);
                   _setLocationCallback();
                   Navigator.of(context).pop();
                 },

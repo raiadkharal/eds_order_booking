@@ -370,7 +370,7 @@ class _OrderBookingScreenState extends State<OrderBookingScreen> {
 
   void _createNoOrderReasonList() {
     noOrderReasonList.add(CustomObject(1, "Buying from WS"));
-    noOrderReasonList.add(CustomObject(2, "Converted to coke"));
+    noOrderReasonList.add(CustomObject(2, "Converted to Competitor"));
     noOrderReasonList.add(CustomObject(3, "No Funds"));
     noOrderReasonList.add(CustomObject(4, "No Owner"));
     noOrderReasonList.add(CustomObject(5, "Over Stock"));

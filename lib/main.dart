@@ -104,10 +104,10 @@ class MyApp extends StatelessWidget {
             name: EdsRoutes.assetVerification,
             page: () => const AssetVerificationScreen(),
             transition: Transition.rightToLeft),
-        GetPage(
-            name: EdsRoutes.barcodeScanner,
-            page: () => const BarcodeScannerScreen(),
-            transition: Transition.fadeIn),
+        // GetPage(
+        //     name: EdsRoutes.barcodeScanner,
+        //     page: () => const BarcodeScannerScreen(),
+        //     transition: Transition.fadeIn),
         GetPage(
             name: EdsRoutes.orderBooking,
             page: () => const OrderBookingScreen(),
