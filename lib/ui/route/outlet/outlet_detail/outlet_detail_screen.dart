@@ -681,8 +681,10 @@ class _OutletDetailScreenState extends State<OutletDetailScreen> {
         return;
       }
 
-      bool isDeveloperOptionEnable =
-          await DeviceInfoUtil.isDeveloperOptionsEnabled();
+      bool isDeveloperOptionEnable = false;
+
+      // bool isDeveloperOptionEnable =
+      //     await DeviceInfoUtil.isDeveloperOptionsEnabled();
       if (isDeveloperOptionEnable && !_controller.isTestUser()) {
         _showWarningDialogue(
             "Your developer option is enable in mobile setting!\nPlease turn off the developer Option.");

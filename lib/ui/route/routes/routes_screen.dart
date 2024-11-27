@@ -25,9 +25,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Get.offNamed(EdsRoutes.outletList, arguments: [routeList.first]);
           });
-
-          _controller.updateRouteList(routeList);
+        }else{
+          _controller.updateRouteList(routeList??[]);
         }
+
       },
     );
 

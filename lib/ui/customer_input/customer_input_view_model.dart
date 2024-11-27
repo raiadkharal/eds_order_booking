@@ -14,7 +14,7 @@ import 'package:order_booking/ui/customer_input/customer_input_repository.dart';
 import 'package:order_booking/ui/order/order_booking_repository.dart';
 import 'package:order_booking/ui/route/outlet/outlet_detail/outlet_detail_repository.dart';
 import 'package:order_booking/utils/PreferenceUtil.dart';
-import 'package:workmanager/workmanager.dart';
+// import 'package:workmanager/workmanager.dart';
 
 import '../../db/entities/customer_input/customer_input.dart';
 import '../../db/entities/merchandise/merchandise.dart';
@@ -321,19 +321,19 @@ class CustomerInputViewModel extends GetxController {
   }
 
   void scheduleMerchandiseJob(int outletId, String token, int statusId) {
-    Workmanager().registerOneOffTask(
-      Constants.MERCHANDISE_JOB_UNIQUE_NAME, // Unique name to identify the task
-      Constants.MERCHANDISE_UPLOAD_TASK,
-      inputData: {
-        Constants.EXTRA_PARAM_OUTLET_ID: outletId,
-        Constants.EXTRA_PARAM_TOKEN: 'Bearer $token',
-        Constants.EXTRA_PARAM_STATUS_ID: statusId,
-      },
-      initialDelay: const Duration(milliseconds: 1000),
-      // Delay before the task runs
-      constraints: Constraints(
-        networkType: NetworkType.connected, // Require any network
-      ),
-    );
+    // Workmanager().registerOneOffTask(
+    //   Constants.MERCHANDISE_JOB_UNIQUE_NAME, // Unique name to identify the task
+    //   Constants.MERCHANDISE_UPLOAD_TASK,
+    //   inputData: {
+    //     Constants.EXTRA_PARAM_OUTLET_ID: outletId,
+    //     Constants.EXTRA_PARAM_TOKEN: 'Bearer $token',
+    //     Constants.EXTRA_PARAM_STATUS_ID: statusId,
+    //   },
+    //   initialDelay: const Duration(milliseconds: 1000),
+    //   // Delay before the task runs
+    //   constraints: Constraints(
+    //     networkType: NetworkType.connected, // Require any network
+    //   ),
+    // );
   }
 }

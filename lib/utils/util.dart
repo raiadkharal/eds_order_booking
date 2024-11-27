@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:order_booking/db/entities/unit_price_breakdown/unit_price_breakdown.dart';
+import 'package:toastification/toastification.dart';
 
 class Util {
   static const String DATE_FORMAT_1 = "MM/dd/yy";
@@ -91,7 +91,12 @@ class Util {
   }
 
   static void showToastMessage(String message) {
-    Fluttertoast.showToast(msg: message);
+    toastification.show(
+      title: Text(message),
+      style: ToastificationStyle.simple,
+      alignment: Alignment.bottomCenter,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
   }
 
   static double checkMetre(LatLng? from, LatLng? to) {

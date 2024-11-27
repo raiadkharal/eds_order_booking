@@ -5,15 +5,15 @@ class Constants {
   static const baseUrl = "http://101.50.85.136:84/api/api/";*/
 
 
-/*  //localhost testing url
-  static const baseUrl = "http://192.168.88.66:7291/api/";*/
+  /*//localhost testing url
+  static const baseUrl = "http://192.168.88.31:7291/api/";*/
 
 
 /*  //Engro testing url
   static const baseUrl = "http://101.50.85.136:83/api/";*/
 
    //ENGRO PRODUCTION URL
-  static const baseUrl = "http://101.50.85.136:85/api/api/";
+  static const baseUrl = "http://101.50.85.136:81/api/api/";
 
 /*//pepsi testing url
   static const baseUrl = "http://101.50.85.136:81/api/";*/

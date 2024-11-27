@@ -12,7 +12,6 @@ import 'package:order_booking/ui/route/outlet/merchandising/asset_verification/a
 import 'package:order_booking/ui/route/outlet/merchandising/asset_verification/asset_verification_view_model.dart';
 import 'package:order_booking/utils/Constants.dart';
 import 'package:order_booking/utils/utils.dart';
-import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 import '../../../../../db/entities/asset/asset.dart';
 import '../../../../../utils/Colors.dart';

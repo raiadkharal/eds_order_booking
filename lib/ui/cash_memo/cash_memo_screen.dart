@@ -366,7 +366,7 @@ class _CashMemoScreenState extends State<CashMemoScreen> {
   }
 
   Future<void> _onBackPressed() async {
-    if (!(_fromOutlet ?? false)) {
+    if (!(_fromOutlet  ?? false)) {
       if (_orderModel != null) {
         if (_orderModel?.order?.serverOrderId != null) {
           OrderStatus? orderStatus =

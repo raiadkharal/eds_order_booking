@@ -32,6 +32,7 @@ import '../../utils/utils.dart';
 import '../market_return/market_return_repository.dart';
 import '../order/order_booking_repository.dart';
 import '../repository.dart';
+import 'package:path/path.dart' as p;
 
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -639,7 +640,7 @@ class HomeViewModel extends GetxController {
 
       bool isImageRemaining = false;
 
-      for (var merchandiseImage in merchandise.merchandiseImages ?? []) {
+      for (MerchandiseImage merchandiseImage in merchandise.merchandiseImages ?? []) {
         if (merchandiseImage.status == 0) {
           File file = File(merchandiseImage.path ?? "");
 
@@ -650,15 +651,18 @@ class HomeViewModel extends GetxController {
             var uri = Uri.parse('${Constants.baseUrl}route/PostImageResources');
             var request = http.MultipartRequest('POST', uri);
 
-            // Add the fields and files
-            request.fields['imagePath'] = merchandiseImage.image ?? "";
-            request.fields['md5'] = ''; // Add the md5 field if needed
-            request.files.add(await http.MultipartFile.fromPath(
+            final requestFile = http.MultipartFile.fromBytes(
               'file',
-              merchandiseImage.path ?? "",
-              filename: file.uri.pathSegments.last,
-              contentType: null, // Adjust the content type as needed
-            ));
+              await file.readAsBytes(),
+              filename: p.basename(file.path),
+              contentType: DioMediaType('image', '*'), // Equivalent to "image/*"
+            );
+
+            // Add the fields and files
+            request.fields['imageName'] = merchandiseImage.image??"";
+            request.fields['imagePath'] = merchandiseImage.path ?? "";
+            // request.fields['md5'] = ''; // Add the md5 field if needed
+            request.files.add(requestFile);
 
             try {
               // upload multipart image to the server
@@ -667,7 +671,7 @@ class HomeViewModel extends GetxController {
               if (response.statusCode == 200) {
                 merchandiseImage.status = 1; // Uploaded
                 await file.delete();
-                updateRecord(merchandiseImage);
+                updateRecord(merchandise);
               } else {
                 if (kDebugMode) {
                   print('Failed to upload file: ${response.statusCode}');
@@ -712,6 +716,7 @@ class HomeViewModel extends GetxController {
       }
       return false;
     }
+
 
     return true;
   }

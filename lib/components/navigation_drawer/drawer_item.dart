@@ -1,9 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:order_booking/utils/utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../ui/login/login_screen.dart';
@@ -34,7 +34,7 @@ class _NavDrawerItemListState extends State<NavDrawerItemList> {
     return FutureBuilder(
       future: getVersionCode(),
       builder: (context, snapshot) {
-        String versionCode = snapshot.requireData;
+        String versionCode = snapshot.data??"";
         if(snapshot.connectionState==ConnectionState.done){
           return  Container(
             padding: const EdgeInsets.only(top: 15.0),
@@ -78,10 +78,10 @@ class _NavDrawerItemListState extends State<NavDrawerItemList> {
   void navigate(int id) {
     switch (id) {
       case 1:
-        Fluttertoast.showToast(msg: "Account");
+        showToastMessage("Account");
         break;
       case 2:
-        Fluttertoast.showToast(msg: "Update");
+        showToastMessage("Update");
         break;
       case 3:
       showDialog(
@@ -105,6 +105,6 @@ class _NavDrawerItemListState extends State<NavDrawerItemList> {
       preferenceUtil.clearAllPreferences();
     });
     Get.offAll(const LoginScreen());
-    Fluttertoast.showToast(msg: "Logout Success");
+    showToastMessage("Logout Success");
   }
 }
